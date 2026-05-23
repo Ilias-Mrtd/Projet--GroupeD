@@ -21,4 +21,14 @@ public class Node {
         this.capacity = capacity;
     }
 
+    @Override
+    public String toString() {
+        String s = "id:" + id + "\r \n"
+                + "X:" + x + "\r \n"
+                + "Y:" + y + "\r \n"
+                + "capacity:" + capacity + "\r \n"
+                + "state:" + state;
+
+        return s;
+    }
 }
