@@ -27,7 +27,7 @@ public class Node {
                 + "X:" + x + "\r \n"
                 + "Y:" + y + "\r \n"
                 + "capacity:" + capacity + "\r \n"
-                + "state:" + state;
+                + "state:" + state + "\r\n";
 
         return s;
     }
