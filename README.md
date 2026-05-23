@@ -1,5 +1,7 @@
 # Projet--GroupeD
 
+ARNOUX Antoine, ADEM Ben-Halima, PELLERIN Corentin, RIVOHERISSON Tsiky, MOURTADA Ilias
+
 Proposition d'architecture:
 
 >bin
