@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import graphRenderer.simulationEngine.graph.*;
 
-public class Agent implements PathFinder {
+public class Agent extends Dijkstra {
 
     public int id;
     public float speed = 1.0f;
@@ -20,12 +20,6 @@ public class Agent implements PathFinder {
         CALCULATING,
         RUNNING,
         WAITING
-    }
-
-    @Override
-    public List<Edge> findPath(Graph graph, Node source, Node target) {
-        // Implemente l'algorithme de Dijkstra
-
     }
 
 }

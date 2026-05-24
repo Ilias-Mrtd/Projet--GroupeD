@@ -37,4 +37,7 @@ public class Edge {
         return s;
     }
 
+    public void setState(edgeState state) {
+        this.state = state;
+    }
 }
