@@ -8,6 +8,13 @@ public class Edge {
     public boolean direction;
     public double length;
     public int capacity;
+    public edgeState state = edgeState.AVAILABLE;
+
+    public enum edgeState {
+        OUT,
+        AVAILABLE,
+        FULL
+    }
 
     public Edge(int id, Node source, Node target, int capacity, boolean direction) {
         this.id = id;
