@@ -18,11 +18,11 @@ public class Graph {
 
     private int newNodeId() {
         Random random = new Random();
-        int newId = random.nextInt(100);
+        int newId = random.nextInt(500);
 
         for (int i = 0; i < Nodes.size(); i++) {
             if (Nodes.get(i).id == newId) {
-                newId = random.nextInt(100);
+                newId = random.nextInt(500);
                 i = 0; // recommence la boucle tant que un id unique n'a pas ete creer
             }
         }
@@ -32,12 +32,12 @@ public class Graph {
 
     private int newEdgeId() {
         Random random = new Random();
-        int newId = random.nextInt(100);
+        int newId = random.nextInt(500);
 
         for (int i = 0; i < Edges.size(); i++) {
             for (int j = 0; j < Edges.get(i).size(); j++) {
                 if (Edges.get(i).get(j).id == newId) {
-                    newId = random.nextInt(100);
+                    newId = random.nextInt(500);
                     i = 0; // recommence la boucle tant que un id unique n'a pas ete creer
                 }
             }

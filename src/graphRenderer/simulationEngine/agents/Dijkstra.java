@@ -86,10 +86,9 @@ public class Dijkstra implements PathFinder {
                                             graphSize),
                                     graph.Nodes.get(indiceSource));
                             pathLength.set(
-                                    nodeIndice(graph,
+                                    graph.Nodes.indexOf(
                                             destination(graph.Nodes.get(indiceSource),
-                                                    graph.Edges.get(indiceSource).get(i)),
-                                            graphSize),
+                                                    graph.Edges.get(indiceSource).get(i))),
                                     pathLength.get(indiceSource) + graph.Edges.get(indiceSource).get(i).length);
                         }
                     }
