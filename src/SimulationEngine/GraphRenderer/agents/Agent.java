@@ -31,7 +31,7 @@ public class Agent extends Dijkstra {
     this.id = Integer.parseInt(id);
     this.speed = speed;
     this.state = agentState.valueOf(state.toUpperCase());
-}
+    }
 
     public void setDestination(Node dest) {
         this.Destination = dest;
@@ -52,7 +52,7 @@ public class Agent extends Dijkstra {
         }
     }
     return null;
-}
+    }
 
     public void update() {
         if (this.state == agentState.RUNNING) {
@@ -62,27 +62,31 @@ public class Agent extends Dijkstra {
                 this.currentEdge = findEdgeBetween(this.currentNode, nextNode);
                 this.distanceTraveledOnEdge = 0.0f;
                 if (this.currentEdge != null) {
-                    System.out.println("Agent " + id + " entre sur l'arête " + currentEdge.id);
-                }
+                    System.out.println("Agent " + id + " commence le segment vers " + nextNode.id);
+            }
             }
 
-            // 2. Si on est sur une route, on avance
+
             if (currentEdge != null) {
                 distanceTraveledOnEdge += speed;
                 
                 
                 if (distanceTraveledOnEdge >= currentEdge.length) {
-                    this.currentNode = (currentEdge.source == currentNode) ? currentEdge.target : currentEdge.source;
-                    this.currentEdge = null;
-                    System.out.println("Agent " + id + " est arrivé au noeud " + currentNode.id);
+       
+                this.distanceTraveledOnEdge = (float) currentEdge.length; 
+                
+               
+                this.currentNode = (currentEdge.source == currentNode) ? currentEdge.target : currentEdge.source;
+                this.currentEdge = null; 
+                System.out.println("Agent " + id + " est arrivé au noeud " + currentNode.id);
 
-                    
-                    if (this.path.isEmpty()) {
-                        this.state = agentState.AVAILABLE;
-                        System.out.println("Destination finale atteinte !");
-                    }
+               
+                if (this.path.isEmpty()) {
+                    this.state = agentState.AVAILABLE;
+                    System.out.println("Trajet terminé. État : " + this.state);
                 }
             }
         }
     }
+}
 }
