@@ -1,4 +1,4 @@
-package SimulationEngine.GraphRenderer.graph;
+package simulationEngine.graphRenderer.graph;
 
 public class Node {
 

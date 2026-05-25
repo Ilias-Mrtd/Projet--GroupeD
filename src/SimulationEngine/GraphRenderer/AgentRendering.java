@@ -1,4 +1,4 @@
-package SimulationEngine.GraphRenderer;
+package simulationEngine.graphRenderer;
 
 import java.awt.Graphics2D;
 

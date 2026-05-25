@@ -1,6 +1,6 @@
-package SimulationEngine.GraphRenderer.agents;
+package simulationEngine.graphRenderer.agents;
 
-import SimulationEngine.GraphRenderer.graph.*;
+import simulationEngine.graphRenderer.graph.*;
 
 public interface PathFinder {
     public void findPath(Graph graph, Node source, Node target);
