@@ -14,7 +14,9 @@ public class Agent extends Dijkstra {
     public Node currentNode;
     public Edge currentEdge;
     public Node Destination;
-    public List<Edge> path = new ArrayList<>();
+
+
+    public float distanceTraveledOnEdge = 0.0f;
 
     public enum agentState {
         AVAILABLE,
@@ -42,10 +44,45 @@ public class Agent extends Dijkstra {
         this.state = agentState.RUNNING;
     }
 
-    public void update() {
-        if (this.state == agentState.RUNNING) {
-            System.out.println("Agent " + this.id + " en mouvement vers " + this.Destination.id);
+    private Edge findEdgeBetween(Node s, Node t) {
+    int index = graph.Nodes.indexOf(s);
+    if (index != -1) {
+        for (Edge e : graph.Edges.get(index)) {
+            if (e.source == t || e.target == t) return e;
         }
     }
+    return null;
+}
 
+    public void update() {
+        if (this.state == agentState.RUNNING) {
+            
+            if (currentEdge == null && !this.path.isEmpty()) {
+                Node nextNode = this.path.remove(0); 
+                this.currentEdge = findEdgeBetween(this.currentNode, nextNode);
+                this.distanceTraveledOnEdge = 0.0f;
+                if (this.currentEdge != null) {
+                    System.out.println("Agent " + id + " entre sur l'arête " + currentEdge.id);
+                }
+            }
+
+            // 2. Si on est sur une route, on avance
+            if (currentEdge != null) {
+                distanceTraveledOnEdge += speed;
+                
+                
+                if (distanceTraveledOnEdge >= currentEdge.length) {
+                    this.currentNode = (currentEdge.source == currentNode) ? currentEdge.target : currentEdge.source;
+                    this.currentEdge = null;
+                    System.out.println("Agent " + id + " est arrivé au noeud " + currentNode.id);
+
+                    
+                    if (this.path.isEmpty()) {
+                        this.state = agentState.AVAILABLE;
+                        System.out.println("Destination finale atteinte !");
+                    }
+                }
+            }
+        }
+    }
 }
