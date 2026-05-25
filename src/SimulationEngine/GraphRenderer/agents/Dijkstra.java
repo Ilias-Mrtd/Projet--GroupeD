@@ -1,8 +1,9 @@
-package graphRenderer.simulationEngine.agents;
+package SimulationEngine.GraphRenderer.agents;
 
-import graphRenderer.simulationEngine.graph.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import SimulationEngine.GraphRenderer.graph.*;
 
 public class Dijkstra implements PathFinder {
 

@@ -1,8 +1,9 @@
-package graphRenderer.simulationEngine.agents;
+package SimulationEngine.GraphRenderer.agents;
 
 import java.util.ArrayList;
 import java.util.List;
-import graphRenderer.simulationEngine.graph.*;
+
+import SimulationEngine.GraphRenderer.graph.*;
 
 public class Agent extends Dijkstra {
 

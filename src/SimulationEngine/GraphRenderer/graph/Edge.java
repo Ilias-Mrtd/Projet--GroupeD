@@ -1,4 +1,4 @@
-package graphRenderer.simulationEngine.graph;
+package SimulationEngine.GraphRenderer.graph;
 
 public class Edge {
 
