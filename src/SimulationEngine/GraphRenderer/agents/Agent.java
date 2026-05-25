@@ -17,6 +17,7 @@ public class Agent extends Dijkstra {
 
 
     public float distanceTraveledOnEdge = 0.0f;
+    public List<Node> objectives = new ArrayList<>();
 
     public enum agentState {
         AVAILABLE,
@@ -33,16 +34,7 @@ public class Agent extends Dijkstra {
     this.state = agentState.valueOf(state.toUpperCase());
     }
 
-    public void setDestination(Node dest) {
-        this.Destination = dest;
-        this.state = agentState.CALCULATING;
-        
-        if (this.graph != null && this.currentNode != null) {
-            findPath(this.graph, this.currentNode, this.Destination);
-        }
-        
-        this.state = agentState.RUNNING;
-    }
+
 
     private Edge findEdgeBetween(Node s, Node t) {
     int index = graph.Nodes.indexOf(s);
@@ -52,6 +44,30 @@ public class Agent extends Dijkstra {
         }
     }
     return null;
+    }
+
+    public void addObjective(Node dest) {
+        this.objectives.add(dest);
+        System.out.println("Agent " + id + " a reçu un nouvel objectif dans sa file : Noeud " + dest.id);
+        
+        
+        if (this.state == agentState.AVAILABLE) {
+            startNextObjective();
+        }
+    }
+
+    private void startNextObjective() {
+        if (!this.objectives.isEmpty()) {
+            this.Destination = this.objectives.remove(0); 
+            this.state = agentState.CALCULATING;
+            
+            if (this.graph != null && this.currentNode != null) {
+                findPath(this.graph, this.currentNode, this.Destination); 
+            }
+            
+            this.state = agentState.RUNNING;
+            System.out.println(">>> Agent " + id + " en route vers l'objectif actuel : Noeud " + this.Destination.id);
+        }
     }
 
     public void update() {
@@ -74,19 +90,25 @@ public class Agent extends Dijkstra {
                 if (distanceTraveledOnEdge >= currentEdge.length) {
        
                 this.distanceTraveledOnEdge = (float) currentEdge.length; 
-                
-               
                 this.currentNode = (currentEdge.source == currentNode) ? currentEdge.target : currentEdge.source;
                 this.currentEdge = null; 
                 System.out.println("Agent " + id + " est arrivé au noeud " + currentNode.id);
 
                
                 if (this.path.isEmpty()) {
-                    this.state = agentState.AVAILABLE;
-                    System.out.println("Trajet terminé. État : " + this.state);
-                }
+
+                    System.out.println("--- Objectif Noeud " + this.Destination.id + " ATTEINT ! ---");
+                    if (!this.objectives.isEmpty()) {
+                            
+                            startNextObjective();
+                        } else {
+                           
+                            this.state = agentState.AVAILABLE;
+                            System.out.println("Tous les objectifs sont terminés. État : " + this.state);
+                        }
+                    }
+                }   
             }
         }
     }
-}
 }
