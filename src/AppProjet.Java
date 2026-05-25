@@ -1,6 +1,7 @@
 import SimulationEngine.GraphRenderer.agents.Agent;
 import SimulationEngine.GraphRenderer.graph.Graph;
 import SimulationEngine.GraphRenderer.graph.Node;
+import SimulationEngine.SimulationEngine;
 
 /**
  * Classe principale pour lancer le MVP (Minimum Viable Product).
@@ -24,28 +25,34 @@ public class AppProjet {
         monGraphe.addEdge(n0, n1, 2, true);
         monGraphe.addEdge(n1, n2, 2, true);
 
-        Agent monAgent = new Agent("007", 20.0f, "AVAILABLE");
-        monAgent.graph = monGraphe;
+        SimulationEngine engine = new SimulationEngine(monGraphe);
+
+        Agent monAgent = new Agent("007", 25.0f, "AVAILABLE");
         monAgent.currentNode = n0;
+        engine.addAgent(monAgent);
 
         System.out.println("\n--- État Initial ---");
         System.out.println("Agent ID: " + monAgent.id);
         System.out.println("État: " + monAgent.state);
 
-        System.out.println("\n--- Calcul du trajet ---");
+        System.out.println("\n--- Assignation des missions ---");
         monAgent.addObjective(n2); 
         monAgent.addObjective(n0);
+
+        System.out.println("\n--- Début des Ticks de Simulation ---");
         
-        System.out.println("Nouvel état: " + monAgent.state);
 
-        System.out.println("\n--- Simulation ---");
-        System.out.println("\n--- Début de la marche ---");
-        for (int i = 1; i <= 15; i++) {
-        System.out.println("\n[Tour " + i + "]");
-        monAgent.update();
 
-        if (monAgent.state == Agent.agentState.AVAILABLE && i > 1) break;
-    }
+        for (int currentTick = 1; currentTick <= 15; currentTick++) {
+            System.out.println("\n[ TICK " + currentTick + " ]");
+            
+            engine.tick(); 
+            
+            if (monAgent.state == Agent.agentState.AVAILABLE && currentTick > 1) {
+                System.out.println("Simulation terminée, agents au repos.");
+                break;
+            }
+        }
 
         System.out.println("\n=== FIN DU TEST MVP ===");
     } 
