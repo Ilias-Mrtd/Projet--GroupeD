@@ -43,6 +43,10 @@ public class SimulationEngine {
     public void addAgent(Agent agent) {
         agent.graph = this.graph;
         this.Agents.add(agent);
+
+        if (agent.currentNode != null) {
+            agent.currentNode.forceEnter(); 
+        }
         System.out.println("Agent " + agent.id + " ajouté au moteur de simulation.");
     }
 

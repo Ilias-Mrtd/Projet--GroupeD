@@ -19,6 +19,9 @@ public class Agent{
     public List<Node> objectives = new ArrayList<>();
     public List<Node> path = new ArrayList<>();
 
+    public int maxPatience = 300;
+    public int currentPatience;
+
     public enum agentState {
         AVAILABLE,
         CALCULATING,
@@ -31,6 +34,7 @@ public class Agent{
         this.id = Integer.parseInt(id);
         this.speed = speed;
         this.state = agentState.valueOf(state.toUpperCase());
+        this.currentPatience = this.maxPatience;
     }
 
     private Edge findEdgeBetween(Node s, Node t) {
@@ -64,11 +68,67 @@ public class Agent{
             }
 
             this.state = agentState.RUNNING;
+            this.currentPatience = this.maxPatience;
             System.out.println(">>> Agent " + id + " en route vers l'objectif actuel : Noeud " + this.Destination.id);
+
+            
         }
+
     }
 
     public void update() {
+
+        if (this.state == agentState.WAITING) {
+            this.currentPatience--;
+            
+
+            if (this.currentPatience <= 0) {
+                System.out.println("!!! Agent " + id + " cherche à s'écarter pour débloquer la situation !!!");
+
+                if (this.currentEdge != null) {
+                    System.out.println("Agent " + id + " libère l'arête et recule sur le noeud " + this.currentNode.id);
+                    this.currentEdge.leave();
+                    this.currentEdge = null;
+                    this.currentNode.tryEnter(); 
+                    this.distanceTraveledOnEdge = 0.0f;
+                }
+                
+                Node detour = null;
+                int index = graph.Nodes.indexOf(this.currentNode);
+                
+                if (index != -1) {
+                    for (Edge e : graph.Edges.get(index)) {
+                        Node neighbor = (e.source == this.currentNode) ? e.target : e.source;
+                        
+                        
+                        if (!this.path.isEmpty() && neighbor.id == this.path.get(0).id) continue;
+                        
+                        
+                        if (neighbor.state != Node.nodeState.FULL) {
+                            detour = neighbor;
+                            break;
+                        }
+                    }
+                }
+
+                if (detour != null) {
+                    System.out.println("↪️ Agent " + id + " fait un détour temporaire vers le Noeud " + detour.id);
+                    this.path.clear();
+                    this.path.add(detour); 
+                } else {
+                    System.out.println("Agent " + id + " ne trouve aucune rue pour s'écarter, il recalcule sa route...");
+                    Dijkstra calculator = new Dijkstra(this.graph, this.currentNode, this.Destination);
+                    this.path = calculator.path;
+                }
+                
+                this.state = agentState.RUNNING;
+                this.currentPatience = this.maxPatience;
+                return; 
+            }
+
+
+            
+        }
         
         if (this.state == agentState.RUNNING || this.state == agentState.WAITING) {
 
@@ -82,10 +142,14 @@ public class Agent{
 
                     if (nextEdge != null) {
                         if (nextEdge.tryEnter()) { 
+                            if (this.currentNode != null) {
+                                this.currentNode.leave(); 
+                            }
                             this.currentEdge = nextEdge;
                             this.path.remove(0); 
                             this.distanceTraveledOnEdge = 0.0f;
                             this.state = agentState.RUNNING; 
+                            this.currentPatience = this.maxPatience;
                             System.out.println("🟢 Agent " + id + " S'ENGAGE vers le noeud " + nextNode.id);
                         } else {
                             if (this.state != agentState.WAITING) {
@@ -99,26 +163,50 @@ public class Agent{
             }
 
            
-            // ETAPE 2 : Avancer sur l'arête (Séparé de l'Etape 1 !)
+            // ETAPE 2 : Avancer sur l'arête (Séparé de l'Etape 1)
             
-            if (this.currentEdge != null && this.state == agentState.RUNNING) {
-                this.distanceTraveledOnEdge += this.speed; 
+            if (this.currentEdge != null ) {
+
+                if (this.distanceTraveledOnEdge < this.currentEdge.length) {
+                    this.distanceTraveledOnEdge += this.speed; 
+                }
 
                 if (this.distanceTraveledOnEdge >= this.currentEdge.length) {
                     this.distanceTraveledOnEdge = (float) this.currentEdge.length;
-                    this.currentNode = (this.currentEdge.source == this.currentNode) ? this.currentEdge.target : this.currentEdge.source;
+                    Node targetNode = (this.currentEdge.source == this.currentNode) ? this.currentEdge.target : this.currentEdge.source;
                     
-                    this.currentEdge.leave(); 
-                    this.currentEdge = null;
-                    System.out.println("Agent " + id + " EST ARRIVÉ au noeud " + currentNode.id);
+                    if (targetNode.tryEnter()) {
+                        this.currentNode = targetNode;
+                        this.currentEdge.leave(); 
+                        this.currentEdge = null;
+                        this.state = agentState.RUNNING;
+                        this.currentPatience = this.maxPatience;
 
-                    if (this.path.isEmpty()) {
-                        System.out.println("Objectif final Noeud " + this.Destination.id + " ATTEINT !");
-                        if (!this.objectives.isEmpty()) {
-                            startNextObjective();
-                        } else {
-                            this.state = agentState.AVAILABLE;
-                            System.out.println("Tous les objectifs sont terminés.");
+                        System.out.println("Agent " + id + " EST ARRIVÉ au noeud " + currentNode.id);
+
+                        if (this.path.isEmpty()) {
+                            if (this.currentNode.id == this.Destination.id) {
+                                System.out.println("Objectif final Noeud " + this.Destination.id + " ATTEINT !");
+                                if (!this.objectives.isEmpty()) {
+                                    startNextObjective();
+                                } else {
+                                    this.state = agentState.AVAILABLE;
+                                    System.out.println("Tous les objectifs sont terminés.");
+                                }
+                            } else {
+                                
+                                System.out.println("🔄 Agent " + id + " a terminé son évitement. Recalcul vers l'objectif " + this.Destination.id);
+                                Dijkstra calculator = new Dijkstra(this.graph, this.currentNode, this.Destination);
+                                this.path = calculator.path;
+                            }
+                        }
+                    }
+
+                    else {
+                        
+                        if (this.state != agentState.WAITING) {
+                            this.state = agentState.WAITING;
+                            System.out.println("🛑 Agent " + id + " EST BLOQUÉ au bout de l'arête (le noeud " + targetNode.id + " est PLEIN !)");
                         }
                     }
                 }

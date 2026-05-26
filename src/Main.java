@@ -21,6 +21,7 @@ public class Main {
         // ── 1. Construction du graphe ─────────────────────────────────────
         Graph monGraphe = new Graph();
 
+
         monGraphe.addNode(150, 300, 2); // n0 — gauche
         monGraphe.addNode(400, 150, 1); // n1 — centre-haut
         monGraphe.addNode(650, 300, 2); // n2 — droite
@@ -33,6 +34,7 @@ public class Main {
         monGraphe.addNode(50, 400, 1); // n9
         monGraphe.addNode(200, 500, 2); // n10
         monGraphe.addNode(650, 500, 1); // n11
+
 
         Node n0 = monGraphe.Nodes.get(0);
         Node n1 = monGraphe.Nodes.get(1);

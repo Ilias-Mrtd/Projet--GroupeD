@@ -170,9 +170,20 @@ public class GraphRenderer {
         }
 
         Edge edge = agent.currentEdge;
+        
+        // --- NOUVEAU : Ajustement visuel pour les bouchons ---
+        double visualDist = agent.distanceTraveledOnEdge;
+        
+        // Si l'agent est arrivé au bout de l'arête et attend la permission d'entrer
+        if (visualDist >= edge.length) {
+            // On le dessine juste avant le noeud (on soustrait le rayon du noeud et la taille de l'agent)
+            visualDist = Math.max(0, edge.length - NODE_RADIUS - (AGENT_SIZE / 2));
+        }
+        
         double t = (edge.length > 0)
-                ? Math.min(agent.distanceTraveledOnEdge / edge.length, 1.0)
+                ? Math.min(visualDist / edge.length, 1.0)
                 : 1.0;
+        // -----------------------------------------------------
 
         Node from = (edge.source == agent.currentNode) ? edge.source : edge.target;
         Node to = (from == edge.source) ? edge.target : edge.source;
