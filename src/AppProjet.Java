@@ -1,23 +1,28 @@
-import SimulationEngine.GraphRenderer.agents.Agent;
-import SimulationEngine.GraphRenderer.graph.Graph;
-import SimulationEngine.GraphRenderer.graph.Node;
-import SimulationEngine.SimulationEngine;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+
+import simulationEngine.SimulationEngine;
+import simulationEngine.graphRenderer.agents.Agent;
+import simulationEngine.graphRenderer.graph.Graph;
+import simulationEngine.graphRenderer.graph.Node;
 
 /**
  * Classe principale pour lancer le MVP (Minimum Viable Product).
- * @author ARNOUX Antoine, ADEM Ben-Halima, PELLERIN Corentin, RIVOHERISSON Tsiky, MOURTADA Ilias
+ * @author ARNOUX Antoine, ADEM Ben-Halima, PELLERIN Corentin,
+ *         RIVOHERISSON Tsiky, MOURTADA Ilias
  */
 public class AppProjet {
+
     public static void main(String[] args) {
         System.out.println("=== DÉMARRAGE DU TEST MVP - THÉMATIQUE 3 ===");
 
+        // ── 1. Construction du graphe ─────────────────────────────────────
         Graph monGraphe = new Graph();
-        
-        monGraphe.addNode(0, 0, 5);   
-        monGraphe.addNode(50, 0, 5);  
-        monGraphe.addNode(100, 0, 5);
 
-        
+        monGraphe.addNode(150, 300, 5);   // n0 — gauche
+        monGraphe.addNode(400, 150, 5);   // n1 — centre-haut
+        monGraphe.addNode(650, 300, 5);   // n2 — droite
+
         Node n0 = monGraphe.Nodes.get(0);
         Node n1 = monGraphe.Nodes.get(1);
         Node n2 = monGraphe.Nodes.get(2);
@@ -25,35 +30,34 @@ public class AppProjet {
         monGraphe.addEdge(n0, n1, 2, true);
         monGraphe.addEdge(n1, n2, 2, true);
 
+        // ── 2. Moteur de simulation ───────────────────────────────────────
         SimulationEngine engine = new SimulationEngine(monGraphe);
 
-        Agent monAgent = new Agent("007", 25.0f, "AVAILABLE");
+        // ── 3. Agent ─────────────────────────────────────────────────────
+        Agent monAgent = new Agent("007", 5.0f, "AVAILABLE");
         monAgent.currentNode = n0;
         engine.addAgent(monAgent);
 
-        System.out.println("\n--- État Initial ---");
-        System.out.println("Agent ID: " + monAgent.id);
-        System.out.println("État: " + monAgent.state);
+        System.out.println("Agent ID : " + monAgent.id);
+        System.out.println("État     : " + monAgent.state);
 
-        System.out.println("\n--- Assignation des missions ---");
-        monAgent.addObjective(n2); 
+        // ── 4. Objectifs ─────────────────────────────────────────────────
+        monAgent.addObjective(n2);
         monAgent.addObjective(n0);
 
-        System.out.println("\n--- Début des Ticks de Simulation ---");
-        
+        // ── 5. Fenêtre Swing (sur l'EDT) ─────────────────────────────────
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("MVP Simulation — Groupe D");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.add(engine.panel);   // GraphicApp étend JPanel
+            frame.pack();              // taille = getPreferredSize() du panel
+            frame.setLocationRelativeTo(null);  // centré à l'écran
+            frame.setVisible(true);
 
+            // ── 6. Démarrage de la boucle de simulation ──────────────────
+            engine.start();
+        });
 
-        for (int currentTick = 1; currentTick <= 15; currentTick++) {
-            System.out.println("\n[ TICK " + currentTick + " ]");
-            
-            engine.tick(); 
-            
-            if (monAgent.state == Agent.agentState.AVAILABLE && currentTick > 1) {
-                System.out.println("Simulation terminée, agents au repos.");
-                break;
-            }
-        }
-
-        System.out.println("\n=== FIN DU TEST MVP ===");
-    } 
-} 
+        System.out.println("=== INTERFACE LANCÉE — fermez la fenêtre pour quitter ===");
+    }
+}
