@@ -68,7 +68,8 @@ public class GraphRenderer {
                         g2,
                         (int) edge.source.x, (int) edge.source.y,
                         (int) edge.target.x, (int) edge.target.y,
-                        edge.id);
+                        edge.id,
+                        edge.state);
 
                 // Indicateur de sens pour les arêtes unidirectionnelles
                 if (!edge.direction) {
@@ -126,7 +127,8 @@ public class GraphRenderer {
                     g2,
                     (int) node.x - NODE_RADIUS,
                     (int) node.y - NODE_RADIUS,
-                    node.id);
+                    node.id,
+                    node.state);
         }
     }
 
@@ -154,7 +156,8 @@ public class GraphRenderer {
                     g2,
                     (int) pos.x - AGENT_SIZE / 2,
                     (int) pos.y - AGENT_SIZE / 2,
-                    agent.id);
+                    agent.id,
+                    agent.state);
         }
     }
 

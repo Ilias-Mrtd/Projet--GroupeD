@@ -21,18 +21,18 @@ public class Main {
         // ── 1. Construction du graphe ─────────────────────────────────────
         Graph monGraphe = new Graph();
 
-        monGraphe.addNode(150, 300, 5); // n0 — gauche
-        monGraphe.addNode(400, 150, 5); // n1 — centre-haut
-        monGraphe.addNode(650, 300, 5); // n2 — droite
-        monGraphe.addNode(50, 50, 5); // n3
-        monGraphe.addNode(200, 150, 5); // n4
-        monGraphe.addNode(650, 100, 5); // n5
-        monGraphe.addNode(500, 400, 5); // n6
-        monGraphe.addNode(400, 50, 5); // n7
-        monGraphe.addNode(350, 300, 5); // n8
-        monGraphe.addNode(50, 400, 5); // n9
-        monGraphe.addNode(200, 500, 5); // n10
-        monGraphe.addNode(650, 500, 5); // n11
+        monGraphe.addNode(150, 300, 2); // n0 — gauche
+        monGraphe.addNode(400, 150, 1); // n1 — centre-haut
+        monGraphe.addNode(650, 300, 2); // n2 — droite
+        monGraphe.addNode(50, 50, 2); // n3
+        monGraphe.addNode(200, 150, 1); // n4
+        monGraphe.addNode(650, 100, 2); // n5
+        monGraphe.addNode(500, 400, 2); // n6
+        monGraphe.addNode(400, 50, 1); // n7
+        monGraphe.addNode(350, 300, 1); // n8
+        monGraphe.addNode(50, 400, 1); // n9
+        monGraphe.addNode(200, 500, 2); // n10
+        monGraphe.addNode(650, 500, 1); // n11
 
         Node n0 = monGraphe.Nodes.get(0);
         Node n1 = monGraphe.Nodes.get(1);
@@ -47,7 +47,7 @@ public class Main {
         Node n10 = monGraphe.Nodes.get(10);
         Node n11 = monGraphe.Nodes.get(11);
 
-        monGraphe.addEdge(n0, n1, 1, true); // Jai remplace les  capacite pour les testes de edge capacity
+        monGraphe.addEdge(n0, n1, 1, true); // Jai remplace les capacite pour les testes de edge capacity
         monGraphe.addEdge(n1, n2, 1, true);
         monGraphe.addEdge(n2, n11, 1, true);
         monGraphe.addEdge(n1, n5, 1, true);
@@ -63,8 +63,6 @@ public class Main {
         monGraphe.addEdge(n8, n6, 1, true);
         monGraphe.addEdge(n6, n11, 1, true);
         monGraphe.addEdge(n10, n11, 1, true);
-
-        monGraphe.removeNode(n1);
 
         // ── 2. Moteur de simulation ───────────────────────────────────────
         SimulationEngine engine = new SimulationEngine(monGraphe);
