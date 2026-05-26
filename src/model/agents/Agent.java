@@ -5,7 +5,7 @@ import java.util.List;
 
 import model.graph.*;
 
-public class Agent extends Dijkstra {
+public class Agent{
 
     public int id;
     public float speed = 1.0f;
@@ -17,6 +17,7 @@ public class Agent extends Dijkstra {
 
     public float distanceTraveledOnEdge = 0.0f;
     public List<Node> objectives = new ArrayList<>();
+    public List<Node> path = new ArrayList<>();
 
     public enum agentState {
         AVAILABLE,
@@ -27,7 +28,6 @@ public class Agent extends Dijkstra {
 
     public Agent(String id, float speed, String state) {
 
-        super(new Graph(), null, null);
         this.id = Integer.parseInt(id);
         this.speed = speed;
         this.state = agentState.valueOf(state.toUpperCase());
@@ -59,7 +59,8 @@ public class Agent extends Dijkstra {
             this.state = agentState.CALCULATING;
 
             if (this.graph != null && this.currentNode != null) {
-                findPath(this.graph, this.currentNode, this.Destination);
+                Dijkstra calculator = new Dijkstra(this.graph, this.currentNode, this.Destination);
+                this.path = calculator.path;
             }
 
             this.state = agentState.RUNNING;
