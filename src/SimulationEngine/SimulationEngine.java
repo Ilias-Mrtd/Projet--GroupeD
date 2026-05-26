@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.ArrayList;
 import javax.swing.Timer;
 
-import simulationEngine.graphRenderer.GraphicApp;
 import simulationEngine.graphRenderer.GraphRenderer;
 import simulationEngine.graphRenderer.SelectionSystem;
 import simulationEngine.graphRenderer.agents.Agent;
@@ -12,16 +11,16 @@ import simulationEngine.graphRenderer.graph.Graph;
 
 public class SimulationEngine {
 
-    public Graph        graph;
-    public List<Agent>  Agents;
-    public GraphicApp   panel;          // le JPanel affiché dans la JFrame
-    private Timer       timer;          // boucle de simulation Swing (thread EDT)
+    public Graph graph;
+    public List<Agent> Agents;
+    public GraphicApp panel; // le JPanel affiché dans la JFrame
+    private Timer timer; // boucle de simulation Swing (thread EDT)
 
     /** Délai entre chaque tick en millisecondes (≈ 60 fps). */
     private static final int TICK_DELAY_MS = 16;
 
     public SimulationEngine(Graph graph) {
-        this.graph  = graph;
+        this.graph = graph;
         this.Agents = new ArrayList<>();
 
         // Système de sélection partagé entre GraphicApp et GraphRenderer

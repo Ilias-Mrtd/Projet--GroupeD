@@ -1,31 +1,27 @@
-package simulationEngine.graphRenderer;
+package simulationEngine;
 
 import simulationEngine.SimulationEngine;
-import simulationEngine.graphRenderer.agents.Agent;
-import simulationEngine.graphRenderer.graph.Node;
-import simulationEngine.graphRenderer.graph.Edge;
+import simulationEngine.graphRenderer.*;
+import simulationEngine.graphRenderer.graph.*;
 
 import javax.swing.JPanel;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
 
-
 public class GraphicApp extends JPanel implements MouseListener {
 
     private final SimulationEngine engine;
-    private final GraphRenderer    renderedGraph;
-    private final SelectionSystem  selectionSystem;
+    private final GraphRenderer renderedGraph;
+    private final SelectionSystem selectionSystem;
 
     // Interfaces de rendu (conformes au diagramme — instances dans les renderers)
     private final NodeRendering nodeRendering = new NodeRenderer();
     private final EdgeRendering edgeRendering = new EdgeRenderer();
 
-    public GraphicApp(SimulationEngine engine,
-                      GraphRenderer renderedGraph,
-                      SelectionSystem selectionSystem) {
-        this.engine          = engine;
-        this.renderedGraph   = renderedGraph;
+    public GraphicApp(SimulationEngine engine, GraphRenderer renderedGraph, SelectionSystem selectionSystem) {
+        this.engine = engine;
+        this.renderedGraph = renderedGraph;
         this.selectionSystem = selectionSystem;
 
         setBackground(Color.WHITE);
@@ -47,7 +43,8 @@ public class GraphicApp extends JPanel implements MouseListener {
 
     private void drawSelectionInfo(Graphics2D g2) {
         Object sel = selectionSystem.getSelectedObject();
-        if (sel == null) return;
+        if (sel == null)
+            return;
 
         String info;
         if (sel instanceof Node n) {
@@ -78,13 +75,23 @@ public class GraphicApp extends JPanel implements MouseListener {
         selectionSystem.selectAct(
                 new Point2D.Float(e.getX(), e.getY()),
                 engine.graph,
-                engine.Agents
-        );
+                engine.Agents);
         repaint();
     }
 
-    @Override public void mousePressed(MouseEvent e)  {}
-    @Override public void mouseReleased(MouseEvent e) {}
-    @Override public void mouseEntered(MouseEvent e)  {}
-    @Override public void mouseExited(MouseEvent e)   {}
+    @Override
+    public void mousePressed(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+    }
 }
