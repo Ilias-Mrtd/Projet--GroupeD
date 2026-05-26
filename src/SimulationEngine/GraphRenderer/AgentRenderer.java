@@ -14,7 +14,7 @@ public class AgentRenderer implements AgentRendering {
         g.fillOval(x, y, TAILLE, TAILLE);
 
         // etickette
-        g.setColor(Color.WHITE);
+        g.setColor(Color.BLACK);
         g.drawString("id: " + id, x + 5, y + 10);
     }
 }

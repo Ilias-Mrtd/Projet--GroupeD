@@ -1,6 +1,5 @@
 package simulationEngine;
 
-import simulationEngine.SimulationEngine;
 import simulationEngine.graphRenderer.*;
 import simulationEngine.graphRenderer.graph.*;
 
@@ -14,10 +13,6 @@ public class GraphicApp extends JPanel implements MouseListener {
     private final SimulationEngine engine;
     private final GraphRenderer renderedGraph;
     private final SelectionSystem selectionSystem;
-
-    // Interfaces de rendu (conformes au diagramme — instances dans les renderers)
-    private final NodeRendering nodeRendering = new NodeRenderer();
-    private final EdgeRendering edgeRendering = new EdgeRenderer();
 
     public GraphicApp(SimulationEngine engine, GraphRenderer renderedGraph, SelectionSystem selectionSystem) {
         this.engine = engine;

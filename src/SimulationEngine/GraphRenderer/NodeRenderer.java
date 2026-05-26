@@ -9,7 +9,7 @@ public class NodeRenderer implements NodeRendering {
     @Override
     public void drawNode(Graphics2D g, int x, int y, int id) {
         // plus tard la couleur changeras selon l'etat du noeud
-        g.setColor(Color.BLACK);
+        g.setColor(Color.DARK_GRAY);
         // le noeud representer par un oval
         g.fillOval(x, y, TAILLE, TAILLE);
 

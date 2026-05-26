@@ -17,7 +17,7 @@ public class SimulationEngine {
     private Timer timer; // boucle de simulation Swing (thread EDT)
 
     /** Délai entre chaque tick en millisecondes (≈ 60 fps). */
-    private static final int TICK_DELAY_MS = 16;
+    private static final int TICK_DELAY_MS = 33;
 
     public SimulationEngine(Graph graph) {
         this.graph = graph;
