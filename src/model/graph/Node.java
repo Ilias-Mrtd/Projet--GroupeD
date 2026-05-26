@@ -1,4 +1,4 @@
-package simulationEngine.graphRenderer.graph;
+package model.graph;
 
 public class Node {
 

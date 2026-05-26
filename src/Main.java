@@ -2,9 +2,8 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import simulationEngine.SimulationEngine;
-import simulationEngine.graphRenderer.agents.Agent;
-import simulationEngine.graphRenderer.graph.Graph;
-import simulationEngine.graphRenderer.graph.Node;
+import model.agents.Agent;
+import model.graph.*;
 
 import java.util.Random;
 
@@ -14,7 +13,7 @@ import java.util.Random;
  * @author ARNOUX Antoine, ADEM Ben-Halima, PELLERIN Corentin,
  *         RIVOHERISSON Tsiky, MOURTADA Ilias
  */
-public class AppProjet {
+public class Main {
 
     public static void main(String[] args) {
         System.out.println("=== DÉMARRAGE DU TEST MVP - THÉMATIQUE 3 ===");
@@ -64,6 +63,8 @@ public class AppProjet {
         monGraphe.addEdge(n8, n6, 2, true);
         monGraphe.addEdge(n6, n11, 2, true);
         monGraphe.addEdge(n10, n11, 2, true);
+
+        monGraphe.removeNode(n1);
 
         // ── 2. Moteur de simulation ───────────────────────────────────────
         SimulationEngine engine = new SimulationEngine(monGraphe);

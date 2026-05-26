@@ -1,20 +1,22 @@
-package simulationEngine;
-
-import simulationEngine.graphRenderer.*;
-import simulationEngine.graphRenderer.graph.*;
+package UI;
 
 import javax.swing.JPanel;
+
+import simulationEngine.SimulationEngine;
+import controllers.SelectionSystem;
+import model.graph.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
 
-public class GraphicApp extends JPanel implements MouseListener {
+public class GraphPanel extends JPanel implements MouseListener {
 
     private final SimulationEngine engine;
     private final GraphRenderer renderedGraph;
     private final SelectionSystem selectionSystem;
 
-    public GraphicApp(SimulationEngine engine, GraphRenderer renderedGraph, SelectionSystem selectionSystem) {
+    public GraphPanel(SimulationEngine engine, GraphRenderer renderedGraph, SelectionSystem selectionSystem) {
         this.engine = engine;
         this.renderedGraph = renderedGraph;
         this.selectionSystem = selectionSystem;
@@ -48,7 +50,7 @@ public class GraphicApp extends JPanel implements MouseListener {
         } else if (sel instanceof Edge e) {
             info = String.format("Arête id=%d  %d→%d  len=%.1f  état=%s",
                     e.id, e.source.id, e.target.id, e.length, e.state);
-        } else if (sel instanceof simulationEngine.graphRenderer.agents.Agent a) {
+        } else if (sel instanceof model.agents.Agent a) {
             info = String.format("Agent id=%d  vitesse=%.1f  état=%s",
                     a.id, a.speed, a.state);
         } else {

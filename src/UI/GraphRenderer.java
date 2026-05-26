@@ -1,11 +1,14 @@
-package simulationEngine.graphRenderer;
-
-import simulationEngine.graphRenderer.agents.Agent;
-import simulationEngine.graphRenderer.graph.*;
+package UI;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.List;
+
+import controllers.SelectionSystem;
+import model.agents.Agent;
+import model.graph.Graph;
+import model.graph.Node;
+import model.graph.Edge;
 
 public class GraphRenderer {
 

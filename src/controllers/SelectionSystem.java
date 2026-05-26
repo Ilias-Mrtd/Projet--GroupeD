@@ -1,12 +1,10 @@
-package simulationEngine.graphRenderer;
-
-import simulationEngine.graphRenderer.agents.Agent;
-import simulationEngine.graphRenderer.graph.Edge;
-import simulationEngine.graphRenderer.graph.Graph;
-import simulationEngine.graphRenderer.graph.Node;
+package controllers;
 
 import java.awt.geom.Point2D;
 import java.util.List;
+
+import model.agents.Agent;
+import model.graph.*;
 
 public class SelectionSystem {
 
@@ -17,8 +15,8 @@ public class SelectionSystem {
     private Object selectedObject;
 
     public Object selectAct(Point2D.Float clickPosition,
-                            Graph graph,
-                            List<Agent> agents) {
+            Graph graph,
+            List<Agent> agents) {
 
         float x = clickPosition.x;
         float y = clickPosition.y;
@@ -95,7 +93,7 @@ public class SelectionSystem {
     }
 
     private double distance(double x1, double y1,
-                            double x2, double y2) {
+            double x2, double y2) {
 
         return Math.hypot(x2 - x1, y2 - y1);
     }
@@ -111,10 +109,8 @@ public class SelectionSystem {
         double dx = x2 - x1;
         double dy = y2 - y1;
 
-        double t = (
-                (px - x1) * dx +
-                (py - y1) * dy
-        ) / (dx * dx + dy * dy);
+        double t = ((px - x1) * dx +
+                (py - y1) * dy) / (dx * dx + dy * dy);
 
         t = Math.max(0, Math.min(1, t));
 
@@ -134,8 +130,7 @@ public class SelectionSystem {
 
             return new Point2D.Float(
                     agent.currentNode.x,
-                    agent.currentNode.y
-            );
+                    agent.currentNode.y);
         }
 
         Edge edge = agent.currentEdge;
@@ -146,15 +141,11 @@ public class SelectionSystem {
             t = 1;
         }
 
-        float x = (float) (
-                edge.source.x +
-                t * (edge.target.x - edge.source.x)
-        );
+        float x = (float) (edge.source.x +
+                t * (edge.target.x - edge.source.x));
 
-        float y = (float) (
-                edge.source.y +
-                t * (edge.target.y - edge.source.y)
-        );
+        float y = (float) (edge.source.y +
+                t * (edge.target.y - edge.source.y));
 
         return new Point2D.Float(x, y);
     }

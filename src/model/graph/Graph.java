@@ -1,4 +1,4 @@
-package simulationEngine.graphRenderer.graph;
+package model.graph;
 
 import java.util.List;
 import java.util.ArrayList;
