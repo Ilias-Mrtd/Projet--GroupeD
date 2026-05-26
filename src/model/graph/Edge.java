@@ -10,10 +10,36 @@ public class Edge {
     public int capacity;
     public edgeState state = edgeState.AVAILABLE;
 
+    public int currentOccupants = 0;
+
     public enum edgeState {
         OUT,
         AVAILABLE,
         FULL
+    }
+
+    public boolean isFull() {
+        return currentOccupants >= capacity;
+    }
+
+    public boolean tryEnter() {
+        if (!isFull()) {
+            currentOccupants++;
+            if (isFull()) {
+                this.state = edgeState.FULL; 
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public void leave() {
+        if (currentOccupants > 0) {
+            currentOccupants--;
+        }
+        if (!isFull()) {
+            this.state = edgeState.AVAILABLE;
+        }
     }
 
     public Edge(int id, Node source, Node target, int capacity, boolean direction) {

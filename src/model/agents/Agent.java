@@ -69,41 +69,61 @@ public class Agent{
     }
 
     public void update() {
-        if (this.state == agentState.RUNNING) {
+        
+        if (this.state == agentState.RUNNING || this.state == agentState.WAITING) {
 
-            if (currentEdge == null && !this.path.isEmpty()) {
-                Node nextNode = this.path.remove(0);
-                this.currentEdge = findEdgeBetween(this.currentNode, nextNode);
-                this.distanceTraveledOnEdge = 0.0f;
-                if (this.currentEdge != null) {
-                    System.out.println("Agent " + id + " commence le segment vers " + nextNode.id);
+            
+            // ETAPE 1 : Chercher à entrer sur l'arête suivante
+            
+            if (this.currentEdge == null) {
+                if (!this.path.isEmpty()) {
+                    Node nextNode = this.path.get(0); 
+                    Edge nextEdge = findEdgeBetween(this.currentNode, nextNode);
+
+                    if (nextEdge != null) {
+                        if (nextEdge.tryEnter()) { 
+                            this.currentEdge = nextEdge;
+                            this.path.remove(0); 
+                            this.distanceTraveledOnEdge = 0.0f;
+                            this.state = agentState.RUNNING; 
+                            System.out.println("🟢 Agent " + id + " S'ENGAGE vers le noeud " + nextNode.id);
+                        } else {
+                            if (this.state != agentState.WAITING) {
+                                this.state = agentState.WAITING; 
+                                System.out.println("🟠 Agent " + id + " PATIENTE (arête pleine vers " + nextNode.id + " | Capacité: " + nextEdge.capacity + ")");
+                            }
+                            return; 
+                        }
+                    } 
                 }
             }
 
-            if (currentEdge != null) {
-                distanceTraveledOnEdge += speed;
+           
+            // ETAPE 2 : Avancer sur l'arête (Séparé de l'Etape 1 !)
+            
+            if (this.currentEdge != null && this.state == agentState.RUNNING) {
+                this.distanceTraveledOnEdge += this.speed; 
 
-                if (distanceTraveledOnEdge >= currentEdge.length) {
-
-                    this.distanceTraveledOnEdge = (float) currentEdge.length;
-                    this.currentNode = (currentEdge.source == currentNode) ? currentEdge.target : currentEdge.source;
+                if (this.distanceTraveledOnEdge >= this.currentEdge.length) {
+                    this.distanceTraveledOnEdge = (float) this.currentEdge.length;
+                    this.currentNode = (this.currentEdge.source == this.currentNode) ? this.currentEdge.target : this.currentEdge.source;
+                    
+                    this.currentEdge.leave(); 
                     this.currentEdge = null;
-                    System.out.println("Agent " + id + " est arrivé au noeud " + currentNode.id);
+                    System.out.println("Agent " + id + " EST ARRIVÉ au noeud " + currentNode.id);
 
                     if (this.path.isEmpty()) {
-
-                        System.out.println("--- Objectif Noeud " + this.Destination.id + " ATTEINT ! ---");
+                        System.out.println("Objectif final Noeud " + this.Destination.id + " ATTEINT !");
                         if (!this.objectives.isEmpty()) {
-
                             startNextObjective();
                         } else {
-
                             this.state = agentState.AVAILABLE;
-                            System.out.println("Tous les objectifs sont terminés. État : " + this.state);
+                            System.out.println("Tous les objectifs sont terminés.");
                         }
                     }
                 }
             }
         }
+    
     }
 }
