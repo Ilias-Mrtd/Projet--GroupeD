@@ -18,7 +18,7 @@ public class SimulationEngine {
     private Timer timer; // boucle de simulation Swing (thread EDT)
 
     /** Délai entre chaque tick en millisecondes (≈ 60 fps). */
-    private static final int TICK_DELAY_MS = 50;
+    private static final int TICK_DELAY_MS = 33;
 
     public SimulationEngine(Graph graph) {
         this.graph = graph;
@@ -45,7 +45,8 @@ public class SimulationEngine {
         this.Agents.add(agent);
 
         if (agent.currentNode != null) {
-            agent.currentNode.forceEnter(); 
+            agent.currentNode.forceEnter();
+            agent.setStartingNode(agent.currentNode);
         }
         System.out.println("Agent " + agent.id + " ajouté au moteur de simulation.");
     }

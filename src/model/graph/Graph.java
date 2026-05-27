@@ -46,7 +46,7 @@ public class Graph {
         return newId;
     }
 
-    public String addNode(int x, int y, int capacity) {
+    public void addNode(int x, int y, int capacity) {
 
         // Creation du noeud avec nouvel id unique
         int newId = newNodeId();
@@ -56,10 +56,10 @@ public class Graph {
         Nodes.add(newNode);
         Edges.add(new ArrayList<>()); // Ajout d'une liste d'aretes vide
 
-        return newNode.toString();
+        System.out.println("Node " + newId + " succesfuly added to Graph");
     }
 
-    public String addEdge(Node source, Node target, int capacity, boolean direction) {
+    public void addEdge(Node source, Node target, int capacity, boolean direction) {
         // Creation de l'arete avec nouvel id unique
         int newId = newEdgeId();
         Edge newEdge = new Edge(newId, source, target, capacity, direction);
@@ -74,7 +74,7 @@ public class Graph {
             }
         }
 
-        return newEdge.toString();
+        System.out.println("Edge " + newId + " succesfuly added to Graph");
     }
 
     private void removeEdge(Edge edgeToRemove) {
@@ -85,7 +85,7 @@ public class Graph {
                 }
             }
         }
-        System.out.println("Edge " + edgeToRemove.id + " as been removed.");
+        System.out.println("Edge " + edgeToRemove.id + " has been succesfuly removed.");
     }
 
     public boolean removeNode(Node nodeToRemove) {
@@ -97,11 +97,11 @@ public class Graph {
                 }
                 Edges.remove(i);
                 Nodes.remove(i);
-                System.out.println("Node succesfully removed.");
+                System.out.println("Node" + nodeToRemove.id + " has succesfully removed.");
                 return true;
             }
         }
-        System.out.println("Node not found.");
+        System.out.println("Node not found in Graph:" + this.toString());
         return false;
     }
 

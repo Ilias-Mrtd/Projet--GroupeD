@@ -6,7 +6,7 @@ import java.awt.Graphics2D;
 import model.graph.Node.nodeState;
 
 public class NodeRenderer implements NodeRendering {
-    private final int TAILLE = 30;
+    protected final int TAILLE = 30;
 
     @Override
     public void drawNode(Graphics2D g, int x, int y, int id, nodeState state) {
