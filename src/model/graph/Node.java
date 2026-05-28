@@ -13,6 +13,7 @@ public class Node {
     public nodeState state = nodeState.AVAILABLE;
 
     public int currentOccupants = 0;
+    public int expectedOccupants = 0;
 
 
     public Queue<Agent> waitingQueue = new LinkedList<>();

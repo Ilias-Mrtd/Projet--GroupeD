@@ -12,6 +12,8 @@ public class Dijkstra implements PathFinder {
     public Node Destination;
     public List<Node> path = new ArrayList<>();
 
+    private static final double TRAFFIC_PENALTY = 50.0;
+
     @Override
     public String toString() {
         String s = currentNode.id + ":";
@@ -77,20 +79,19 @@ public class Dijkstra implements PathFinder {
 
                     // 1er phase
                     for (int i = 0; i < graph.Edges.get(indiceSource).size(); i++) {
-                        if (pathLength.get(indiceSource) + graph.Edges.get(indiceSource).get(i).length < pathLength
-                                .get(nodeIndice(graph, destination(graph.Nodes.get(indiceSource),
-                                        graph.Edges.get(indiceSource).get(i)), graphSize))) {
-                            nearestVertice.set(
-                                    nodeIndice(graph,
-                                            destination(graph.Nodes.get(indiceSource),
-                                                    graph.Edges.get(indiceSource).get(i)),
-                                            graphSize),
-                                    graph.Nodes.get(indiceSource));
-                            pathLength.set(
-                                    graph.Nodes.indexOf(
-                                            destination(graph.Nodes.get(indiceSource),
-                                                    graph.Edges.get(indiceSource).get(i))),
-                                    pathLength.get(indiceSource) + graph.Edges.get(indiceSource).get(i).length);
+                        Edge edge = graph.Edges.get(indiceSource).get(i);
+                        Node destNode = destination(graph.Nodes.get(indiceSource), edge);
+                        
+                        
+                        double dynamicCost = edge.length 
+                                           + (edge.expectedOccupants * TRAFFIC_PENALTY) 
+                                           + (destNode.expectedOccupants * TRAFFIC_PENALTY);
+
+                        int destIndex = nodeIndice(graph, destNode, graphSize);
+                        
+                        if (pathLength.get(indiceSource) + dynamicCost < pathLength.get(destIndex)) {
+                            nearestVertice.set(destIndex, graph.Nodes.get(indiceSource));
+                            pathLength.set(destIndex, pathLength.get(indiceSource) + dynamicCost);
                         }
                     }
 

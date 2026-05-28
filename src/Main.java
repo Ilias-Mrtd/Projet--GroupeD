@@ -92,7 +92,7 @@ public class Main {
             System.out.println("État     : " + agent.state);
 
             // ── 4. Objectifs ─────────────────────────────────────────────────
-            agent.addObjective(engine.graph.Nodes.get(random.nextInt(engine.graph.Nodes.size())));
+            agent.addObjective(engine.graph.Nodes.get(11));
             agent.addObjective(engine.graph.Nodes.get(random.nextInt(engine.graph.Nodes.size())));
         }
 

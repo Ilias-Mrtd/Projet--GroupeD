@@ -15,6 +15,7 @@ public class Edge {
     public edgeState state = edgeState.AVAILABLE;
 
     public int currentOccupants = 0;
+    public int expectedOccupants = 0;
 
 
     public Queue<Agent> waitingQueue = new LinkedList<>();

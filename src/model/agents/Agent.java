@@ -25,6 +25,8 @@ public class Agent {
     public int currentPatience;
 
     public EndBehavior endBehavior = EndBehavior.RANDOM_WANDER;
+    public List<Node> reservedNodes = new ArrayList<>();
+    public List<Edge> reservedEdges = new ArrayList<>();
 
     public boolean isRetreating = false;
 
@@ -49,6 +51,8 @@ public class Agent {
 
     private void handleEndBehavior() {
         System.out.println("Agent " + id + " a terminé tous ses objectifs. Comportement : " + endBehavior);
+        clearReservations();
+
         switch (this.endBehavior) {
             case STOP:
                 this.state = agentState.AVAILABLE;
@@ -68,6 +72,33 @@ public class Agent {
                 }
                 break;
         }
+    }
+
+    private void makeReservations() {
+        clearReservations(); 
+        Node prev = this.currentNode;
+        for (Node n : this.path) {
+            n.expectedOccupants++;
+            reservedNodes.add(n);
+            Edge e = findEdgeBetween(prev, n);
+            if (e != null) {
+                e.expectedOccupants++;
+                reservedEdges.add(e);
+            }
+            prev = n;
+        }
+    }
+
+    private void clearReservations() {
+        for (Node n : reservedNodes) {
+            if (n.expectedOccupants > 0) n.expectedOccupants--;
+        }
+        reservedNodes.clear();
+        
+        for (Edge e : reservedEdges) {
+            if (e.expectedOccupants > 0) e.expectedOccupants--;
+        }
+        reservedEdges.clear();
     }
 
     public Agent(String id, float speed, String state) {
@@ -106,6 +137,7 @@ public class Agent {
             if (this.graph != null && this.currentNode != null) {
                 Dijkstra calculator = new Dijkstra(this.graph, this.currentNode, this.Destination);
                 this.path = calculator.path;
+                makeReservations();
             }
 
             this.state = agentState.RUNNING;
@@ -139,10 +171,12 @@ public class Agent {
             System.out.println("↪️ Agent " + id + " fait un détour temporaire vers le Noeud " + detour.id);
             this.path.clear();
             this.path.add(detour);
+            makeReservations();
         } else {
             System.out.println("Agent " + id + " ne trouve aucune rue pour s'écarter, il recalcule sa route...");
             Dijkstra calculator = new Dijkstra(this.graph, this.currentNode, this.Destination);
             this.path = calculator.path;
+            makeReservations();
         }
 
         this.state = agentState.RUNNING;
@@ -188,6 +222,12 @@ public class Agent {
 
                     if (nextEdge != null) {
                         if (nextEdge.tryEnter(this)) {
+
+                            if (reservedEdges.contains(nextEdge)) {
+                                if (nextEdge.expectedOccupants > 0) nextEdge.expectedOccupants--;
+                                reservedEdges.remove(nextEdge);
+                            }
+
                             if (this.currentNode != null) {
                                 this.currentNode.leave();
                             }
@@ -256,6 +296,12 @@ public class Agent {
                                 : this.currentEdge.source;
 
                         if (targetNode.tryEnter(this)) {
+
+                            if (reservedNodes.contains(targetNode)) {
+                                if (targetNode.expectedOccupants > 0) targetNode.expectedOccupants--;
+                                reservedNodes.remove(targetNode);
+                            }
+
                             this.currentNode = targetNode;
                             this.currentEdge.leave();
                             this.currentEdge = null;
@@ -274,10 +320,12 @@ public class Agent {
                                     }
                                 } else {
 
-                                    System.out.println("🔄 Agent " + id
-                                            + " a terminé son évitement. Recalcul vers l'objectif " + this.Destination.id);
+                                    System.out.println("🔄 Agent " + id + " a terminé son évitement. Recalcul vers l'objectif " + this.Destination.id);
                                     Dijkstra calculator = new Dijkstra(this.graph, this.currentNode, this.Destination);
                                     this.path = calculator.path;
+
+                                    makeReservations();
+
                                 }
                             }
                         }
