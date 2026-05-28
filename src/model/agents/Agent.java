@@ -23,6 +23,8 @@ public class Agent {
     public int maxPatience = 300;
     public int currentPatience;
 
+    public boolean isRetreating = false;
+
     public enum agentState {
         AVAILABLE,
         CALCULATING,
