@@ -94,7 +94,7 @@ public class GraphRenderer {
         int x1 = mx - (int) (len * Math.cos(angle));
         int y1 = my - (int) (len * Math.sin(angle));
 
-        g2.setColor(Color.DARK_GRAY);
+        g2.setColor(Color.WHITE);
         g2.setStroke(new BasicStroke(1.2f));
         g2.drawLine(x1, y1, x2, y2);
         g2.drawLine(x2, y2,
@@ -170,16 +170,17 @@ public class GraphRenderer {
         }
 
         Edge edge = agent.currentEdge;
-        
+
         // --- NOUVEAU : Ajustement visuel pour les bouchons ---
         double visualDist = agent.distanceTraveledOnEdge;
-        
+
         // Si l'agent est arrivé au bout de l'arête et attend la permission d'entrer
         if (visualDist >= edge.length) {
-            // On le dessine juste avant le noeud (on soustrait le rayon du noeud et la taille de l'agent)
+            // On le dessine juste avant le noeud (on soustrait le rayon du noeud et la
+            // taille de l'agent)
             visualDist = Math.max(0, edge.length - NODE_RADIUS - (AGENT_SIZE / 2));
         }
-        
+
         double t = (edge.length > 0)
                 ? Math.min(visualDist / edge.length, 1.0)
                 : 1.0;

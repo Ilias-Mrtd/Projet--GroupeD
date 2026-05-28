@@ -47,22 +47,22 @@ public class Main {
         Node n10 = monGraphe.Nodes.get(10);
         Node n11 = monGraphe.Nodes.get(11);
 
-        monGraphe.addEdge(n0, n1, 1, true); // Jai remplace les capacite pour les testes de edge capacity
-        monGraphe.addEdge(n1, n2, 1, true);
-        monGraphe.addEdge(n2, n11, 1, true);
-        monGraphe.addEdge(n1, n5, 1, true);
-        monGraphe.addEdge(n0, n4, 1, true);
-        monGraphe.addEdge(n5, n7, 1, true);
-        monGraphe.addEdge(n7, n3, 1, true);
-        monGraphe.addEdge(n0, n3, 1, true);
+        monGraphe.addEdge(n0, n1, 1, false); // Jai orienter les noeuds pour teste
+        monGraphe.addEdge(n1, n2, 1, false);
+        monGraphe.addEdge(n2, n11, 1, false);
+        monGraphe.addEdge(n1, n5, 1, false);
+        monGraphe.addEdge(n0, n4, 1, false);
+        monGraphe.addEdge(n5, n7, 1, false);
+        monGraphe.addEdge(n7, n3, 1, false);
+        monGraphe.addEdge(n3, n0, 1, false);
         monGraphe.addEdge(n4, n7, 1, true);
-        monGraphe.addEdge(n0, n9, 1, true);
-        monGraphe.addEdge(n9, n10, 1, true);
-        monGraphe.addEdge(n10, n8, 1, true);
-        monGraphe.addEdge(n8, n2, 1, true);
+        monGraphe.addEdge(n9, n0, 1, false);
+        monGraphe.addEdge(n10, n9, 1, false);
+        monGraphe.addEdge(n10, n8, 1, false);
+        monGraphe.addEdge(n8, n2, 1, false);
         monGraphe.addEdge(n8, n6, 1, true);
-        monGraphe.addEdge(n6, n11, 1, true);
-        monGraphe.addEdge(n10, n11, 1, true);
+        monGraphe.addEdge(n6, n11, 1, false);
+        monGraphe.addEdge(n11, n10, 1, false);
 
         // ── 2. Moteur de simulation ───────────────────────────────────────
         SimulationEngine engine = new SimulationEngine(monGraphe);

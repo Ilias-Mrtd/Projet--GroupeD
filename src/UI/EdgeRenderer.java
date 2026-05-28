@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.BasicStroke;
-
 import model.graph.Edge.edgeState;
 
 public class EdgeRenderer implements EdgeRendering {

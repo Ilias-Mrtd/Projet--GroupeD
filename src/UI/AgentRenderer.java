@@ -11,10 +11,10 @@ public class AgentRenderer implements AgentRendering {
     public void drawAgent(Graphics2D g, int x, int y, int id, agentState state) {
         switch (state) {
             case agentState.AVAILABLE:
-                g.setColor(Color.GRAY);
+                g.setColor(Color.GREEN);
                 break;
             case agentState.CALCULATING:
-                g.setColor(Color.GREEN);
+                g.setColor(Color.RED);
                 break;
             case agentState.WAITING:
                 g.setColor(Color.YELLOW);
@@ -22,7 +22,7 @@ public class AgentRenderer implements AgentRendering {
             case agentState.RUNNING:
                 g.setColor(Color.BLUE);
                 break;
-            case agentState.OUT:          
+            case agentState.OUT:
                 return;
         }
         g.fillOval(x, y, TAILLE, TAILLE);
