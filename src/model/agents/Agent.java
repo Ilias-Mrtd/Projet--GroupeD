@@ -15,6 +15,7 @@ public class Agent {
     public Node currentNode;
     public Edge currentEdge;
     public Node Destination;
+    
 
     public float distanceTraveledOnEdge = 0.0f;
     public List<Node> objectives = new ArrayList<>();
@@ -122,6 +123,17 @@ public class Agent {
             this.currentPatience--;
 
             if (this.currentPatience <= 0) {
+
+                if (this.isRetreating) {
+                    this.currentNode.removeQueue(this);
+                } else if (this.currentEdge == null && !this.path.isEmpty()) {
+                    Edge nextEdge = findEdgeBetween(this.currentNode, this.path.get(0));
+                    if (nextEdge != null) nextEdge.removeQueue(this);
+                } else if (this.currentEdge != null) {
+                    Node targetNode = (this.currentEdge.source == this.currentNode) ? this.currentEdge.target : this.currentEdge.source;
+                    targetNode.removeQueue(this);
+                }
+
                 if (this.currentEdge != null) {
                     System.out.println("!!! Agent " + id + " perd patience et fait MARCHE ARRIÈRE sur l'arête !!!");
                     this.isRetreating = true;
@@ -143,7 +155,7 @@ public class Agent {
                     Edge nextEdge = findEdgeBetween(this.currentNode, nextNode);
 
                     if (nextEdge != null) {
-                        if (nextEdge.tryEnter()) {
+                        if (nextEdge.tryEnter(this)) {
                             if (this.currentNode != null) {
                                 this.currentNode.leave();
                             }
@@ -154,6 +166,8 @@ public class Agent {
                             this.currentPatience = this.maxPatience;
                             System.out.println("🟢 Agent " + id + " S'ENGAGE vers le noeud " + nextNode.id);
                         } else {
+
+                            nextEdge.enqueue(this);
                             if (this.state != agentState.WAITING) {
                                 this.state = agentState.WAITING;
                                 System.out.println("🟠 Agent " + id + " PATIENTE (arête pleine vers " + nextNode.id
@@ -184,13 +198,14 @@ public class Agent {
                     if (this.distanceTraveledOnEdge <= 0.0f) {
                         this.distanceTraveledOnEdge = 0.0f;
                         
-                        if (this.currentNode.tryEnter()) {
+                        if (this.currentNode.tryEnter(this)) {
                             System.out.println("Agent " + id + " est revenu sur son noeud et libère l'arête.");
                             this.currentEdge.leave();
                             this.currentEdge = null;
                             this.isRetreating = false;
                             applyDetour(); 
                         } else {
+                            this.currentNode.enqueue(this);
                             if (this.state != agentState.WAITING) {
                                 this.state = agentState.WAITING;
                                 System.out.println("🛑 Agent " + id + " est bloqué en reculant (le noeud d'origine est PLEIN !)");
@@ -210,7 +225,7 @@ public class Agent {
                         Node targetNode = (this.currentEdge.source == this.currentNode) ? this.currentEdge.target
                                 : this.currentEdge.source;
 
-                        if (targetNode.tryEnter()) {
+                        if (targetNode.tryEnter(this)) {
                             this.currentNode = targetNode;
                             this.currentEdge.leave();
                             this.currentEdge = null;
@@ -240,7 +255,7 @@ public class Agent {
                         }
 
                         else {
-
+                            targetNode.enqueue(this);
                             if (this.state != agentState.WAITING) {
                                 this.state = agentState.WAITING;
                                 System.out.println("🛑 Agent " + id + " EST BLOQUÉ au bout de l'arête (le noeud "

@@ -1,21 +1,34 @@
 package model.graph;
 
+import java.util.LinkedList;
+import java.util.Queue;
+import model.agents.Agent;
+
 public class Node {
 
     public int id;
-    public float x; // abscisse
-    public float y; // ordonnee
+    public float x; 
+    public float y; 
     public int capacity;
     public nodeState state = nodeState.AVAILABLE;
 
     public int currentOccupants = 0;
 
+
+    public Queue<Agent> waitingQueue = new LinkedList<>();
+
     public boolean isFull() {
         return currentOccupants >= capacity;
     }
 
-    public boolean tryEnter() {
-        if (!isFull()) {
+    public boolean canEnter(Agent a) {
+        return !isFull() && (waitingQueue.isEmpty() || waitingQueue.peek() == a);
+    }
+
+
+    public boolean tryEnter(Agent a) {
+        if (canEnter(a)) {
+            waitingQueue.remove(a); 
             currentOccupants++;
             if (isFull()) {
                 this.state = nodeState.FULL; 
@@ -39,6 +52,16 @@ public class Node {
         if (!isFull()) {
             this.state = nodeState.AVAILABLE;
         }
+    }
+
+    public void enqueue(Agent a) {
+        if (!waitingQueue.contains(a)) {
+            waitingQueue.add(a);
+        }
+    }
+
+    public void removeQueue(Agent a) {
+        waitingQueue.remove(a);
     }
 
     public enum nodeState {

@@ -22,17 +22,17 @@ public class Main {
         Graph monGraphe = new Graph();
 
         monGraphe.addNode(150, 300, 1); // n0 — gauche
-        monGraphe.addNode(400, 150, 3); // n1 — centre-haut
-        monGraphe.addNode(650, 300, 3); // n2 — droite
-        monGraphe.addNode(50, 50, 3); // n3
+        monGraphe.addNode(400, 150, 1); // n1 — centre-haut
+        monGraphe.addNode(650, 300, 1); // n2 — droite
+        monGraphe.addNode(50, 50, 1); // n3
         monGraphe.addNode(200, 150, 1); // n4
-        monGraphe.addNode(650, 100, 5); // n5
-        monGraphe.addNode(500, 400, 5); // n6
-        monGraphe.addNode(400, 50, 5); // n7
-        monGraphe.addNode(350, 300, 5); // n8
-        monGraphe.addNode(50, 400, 5); // n9
-        monGraphe.addNode(200, 500, 5); // n10
-        monGraphe.addNode(650, 500, 3); // n11
+        monGraphe.addNode(650, 100, 1); // n5
+        monGraphe.addNode(500, 400, 1); // n6
+        monGraphe.addNode(400, 50, 1); // n7
+        monGraphe.addNode(350, 300, 1); // n8
+        monGraphe.addNode(50, 400, 1); // n9
+        monGraphe.addNode(200, 500, 1); // n10
+        monGraphe.addNode(650, 500, 1); // n11
 
         Node n0 = monGraphe.Nodes.get(0);
         Node n1 = monGraphe.Nodes.get(1);
