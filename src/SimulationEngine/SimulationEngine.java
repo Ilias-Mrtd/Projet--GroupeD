@@ -60,8 +60,16 @@ public class SimulationEngine {
     }
 
     public void tick() {
-        for (Agent agent : Agents) {
+        java.util.Iterator<Agent> it = Agents.iterator();
+        while (it.hasNext()) {
+            Agent agent = it.next();
             agent.update();
+            
+            
+            if (agent.state == Agent.agentState.OUT) {
+                System.out.println("🧹 Agent " + agent.id + " retiré définitivement de la simulation.");
+                it.remove();
+            }
         }
     }
 }

@@ -22,6 +22,8 @@ public class AgentRenderer implements AgentRendering {
             case agentState.RUNNING:
                 g.setColor(Color.BLUE);
                 break;
+            case agentState.OUT:          
+                return;
         }
         g.fillOval(x, y, TAILLE, TAILLE);
 

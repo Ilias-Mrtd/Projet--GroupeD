@@ -24,18 +24,50 @@ public class Agent {
     public int maxPatience = 300;
     public int currentPatience;
 
+    public EndBehavior endBehavior = EndBehavior.RANDOM_WANDER;
+
     public boolean isRetreating = false;
+
+    public enum EndBehavior {
+        STOP,
+        REMOVE,
+        RANDOM_WANDER
+    }
 
     public enum agentState {
         AVAILABLE,
         CALCULATING,
         RUNNING,
-        WAITING
+        WAITING,
+        OUT
     }
 
     public void setStartingNode(Node node) {
         this.startingNode = node;
         this.currentNode = node;
+    }
+
+    private void handleEndBehavior() {
+        System.out.println("Agent " + id + " a terminé tous ses objectifs. Comportement : " + endBehavior);
+        switch (this.endBehavior) {
+            case STOP:
+                this.state = agentState.AVAILABLE;
+                this.currentNode.leave();
+                break;
+            case REMOVE:
+                this.state = agentState.OUT;
+                this.currentNode.leave();
+                break;
+            case RANDOM_WANDER:
+                this.state = agentState.AVAILABLE;
+                if (graph != null && !graph.Nodes.isEmpty()) {
+                    int randomIndex = (int) (Math.random() * graph.Nodes.size());
+                    Node randomNode = graph.Nodes.get(randomIndex);
+                    System.out.println("🎲 L'agent " + id + " choisit une nouvelle destination aléatoire : " + randomNode.id);
+                    addObjective(randomNode);
+                }
+                break;
+        }
     }
 
     public Agent(String id, float speed, String state) {
@@ -176,13 +208,11 @@ public class Agent {
                             return;
                         }
                     }
-                } else { // Implemente le cas ou l'agent recois en objectif son noeud actuel
+                } else { 
                     System.out.println("Objectif Noeud " + this.Destination.id + " ATTEINT !");
-                    if (this.objectives.isEmpty()) { // si il a recu plusieurs fois son noeud actuel
-                        this.state = agentState.AVAILABLE;
-                        this.currentNode.leave(); // ICI !!!!!!!!LEAVE !!!!!!!!!!
-                        System.out.println("Tous les objectifs sont terminés.");
-                    } else { // Il passe a l'objectif suivant
+                    if (this.objectives.isEmpty()) { 
+                        handleEndBehavior();
+                    } else { 
                         startNextObjective();
                     }
                 }
@@ -240,9 +270,7 @@ public class Agent {
                                     if (!this.objectives.isEmpty()) {
                                         startNextObjective();
                                     } else {
-                                        this.state = agentState.AVAILABLE;
-                                        this.currentNode.leave(); // ICI !!!!!!!!!!!!!!! LEAVE !!!!!!!!!!!!!!!
-                                        System.out.println("Tous les objectifs sont terminés.");
+                                        handleEndBehavior();
                                     }
                                 } else {
 
