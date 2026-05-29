@@ -12,7 +12,7 @@ public class Dijkstra implements PathFinder {
     public Node Destination;
     public List<Node> path = new ArrayList<>();
 
-    private static final double TRAFFIC_PENALTY = 50.0;
+    private static final double TRAFFIC_PENALTY = 5000.0;
 
     @Override
     public String toString() {
