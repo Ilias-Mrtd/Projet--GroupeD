@@ -190,13 +190,7 @@ public class SelectionSystem {
     private Node findNodeAt(double x, double y) {
         Point2D click = new Point2D(x, y);
         for (Node node : graph.Nodes) {
-<<<<<<< HEAD
-            Point2D nodeCenter = new Point2D(node.x, node.y);
-
-            if (clickPoint.distance(nodeCenter) <= NODE_RADIUS) {
-=======
             if (click.distance(new Point2D(node.x, node.y)) <= NODE_RADIUS)
->>>>>>> a7ef079 (feat: menu édition graphe - ajout/suppression nœuds, arêtes, agents)
                 return node;
         }
         return null;
