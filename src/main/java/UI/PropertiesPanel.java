@@ -46,7 +46,7 @@ public class PropertiesPanel extends VBox {
 
         if (selectedItem instanceof Agent) {
             Agent a = (Agent) selectedItem;
-            String texte = "Type : Agent\n";
+            String texte = "Type : Agent\n" + a.id;
             texte += "État : " + a.state + "\n";
 
             if (a.currentEdge != null) {

@@ -86,8 +86,8 @@ public class SimulationEngine extends AnimationTimer {
             a.distanceTraveledOnEdge = 0.0f;
             a.currentEdge = null;
             a.state = Agent.agentState.AVAILABLE;
-            a.path.clear();
             a.objectives.clear();
+            a.path.clear();
             a.isRetreating = false;
 
             // Retour au nœud de départ
