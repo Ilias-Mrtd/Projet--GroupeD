@@ -15,6 +15,7 @@ public class Node {
     public boolean isSelected = false;
     public int currentOccupants = 0;
     public int expectedOccupants = 0;
+    public int incomingOccupants = 0;
 
     public Queue<Agent> waitingQueue = new LinkedList<>();
 

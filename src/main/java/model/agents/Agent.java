@@ -56,7 +56,6 @@ public class Agent {
         switch (this.endBehavior) {
             case STOP:
                 this.state = agentState.AVAILABLE;
-                this.currentNode.leave();
                 break;
             case REMOVE:
                 this.state = agentState.OUT;
@@ -69,8 +68,9 @@ public class Agent {
                  * if (graph != null && !graph.Nodes.isEmpty()) {
                  * int randomIndex = (int) (Math.random() * graph.Nodes.size());
                  * Node randomNode = graph.Nodes.get(randomIndex);
-                 * System.out.println("🎲 L'agent " + id +
-                 * " choisit une nouvelle destination aléatoire : " + randomNode.id);
+                 * System.out.println(
+                 * "🎲 L'agent " + id + " choisit une nouvelle destination aléatoire : " +
+                 * randomNode.id);
                  * addObjective(randomNode);
                  * }
                  */
@@ -189,10 +189,38 @@ public class Agent {
         this.currentPatience = this.maxPatience;
     }
 
+    private boolean isPathClearAhead(int depth) {
+        if (this.path.size() < 2)
+            return true;
+
+        Node prev = this.path.get(0);
+        int limit = Math.min(depth, this.path.size());
+
+        for (int i = 1; i < limit; i++) {
+            Node nextNode = this.path.get(i);
+            Edge nextEdge = findEdgeBetween(prev, nextNode);
+
+            if (nextEdge != null && nextEdge.currentOccupants >= nextEdge.capacity) {
+                return false;
+            }
+            if (nextNode.currentOccupants + nextNode.incomingOccupants >= nextNode.capacity) {
+                return false;
+            }
+            prev = nextNode;
+        }
+        return true;
+    }
+
     public void update(double deltaTime) {
 
         if (this.state == agentState.WAITING) {
-            this.currentPatience--;
+
+            if (this.currentNode == this.startingNode && this.currentEdge == null) {
+                if (Math.random() < 0.5)
+                    this.currentPatience--;
+            } else {
+                this.currentPatience -= 2;
+            }
 
             if (this.currentPatience <= 0) {
 
@@ -225,6 +253,14 @@ public class Agent {
 
             if (this.currentEdge == null) {
                 if (!this.path.isEmpty()) {
+                    if (!isPathClearAhead(2)) {
+                        if (this.state != agentState.WAITING) {
+                            this.state = agentState.WAITING;
+                            System.out.println("🧠 Agent " + id + " anticipe un bouchon et fait du SMART WAITING.");
+                        }
+                        return;
+                    }
+
                     Node nextNode = this.path.get(0);
                     Edge nextEdge = findEdgeBetween(this.currentNode, nextNode);
 
@@ -245,6 +281,9 @@ public class Agent {
                             this.distanceTraveledOnEdge = 0.0f;
                             this.state = agentState.RUNNING;
                             this.currentPatience = this.maxPatience;
+
+                            nextNode.incomingOccupants++;
+
                             System.out.println("🟢 Agent " + id + " S'ENGAGE vers le noeud " + nextNode.id);
                         } else {
 
@@ -279,6 +318,11 @@ public class Agent {
 
                         if (this.currentNode.tryEnter(this)) {
                             System.out.println("Agent " + id + " est revenu sur son noeud et libère l'arête.");
+                            Node targetNode = (this.currentEdge.source == this.currentNode) ? this.currentEdge.target
+                                    : this.currentEdge.source;
+                            if (targetNode.incomingOccupants > 0)
+                                targetNode.incomingOccupants--;
+
                             this.currentEdge.leave();
                             this.currentEdge = null;
                             this.isRetreating = false;
@@ -306,6 +350,9 @@ public class Agent {
                                 : this.currentEdge.source;
 
                         if (targetNode.tryEnter(this)) {
+
+                            if (targetNode.incomingOccupants > 0)
+                                targetNode.incomingOccupants--;
 
                             if (reservedNodes.contains(targetNode)) {
                                 if (targetNode.expectedOccupants > 0)
