@@ -23,20 +23,19 @@ Ce projet montre comment :
 ```
 Projet--GroupeD-main/
   README.md
-  src/
-    AppProjet.Java
-    SimulationEngine/
-      GraphicApp.java
-      SimulationEngine.java
-      GraphRenderer/
-        GraphRenderer.java
-        SelectionSystem.java
-        agents/
-          Agent.java
-        graph/
-          Graph.java
-          Node.java
-          Edge.java
+  src/main/java/app/Main.Java
+                SimulationEngine/SimulationEngine.java
+                UI/GraphRenderer.java
+                  GraphCanvas.java
+                  PropertiesPanel.java
+                  Renderers/...
+                SelectionSystem/SelectionSystem.java
+                model/agents/Agent.java
+                            Dijkstra.java
+                            PathFinder.java
+                      graph/Graph.java
+                            Node.java
+                            Edge.java
 ```
 
 ## Fonctionnalités du MVP
@@ -50,17 +49,7 @@ Projet--GroupeD-main/
 ## Lancer le projet
 
 1. Ouvrir un terminal dans le dossier `Projet--GroupeD`.
-2. Compiler les sources :
-
-```bash
-javac -d bin $(find src -name "*.java")
-```
-
-3. Lancer l’application :
-
-```bash
-java -cp bin AppProjet
-```
+2. mvn javafx:run
 
 ## Améliorations possibles
 

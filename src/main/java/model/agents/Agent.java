@@ -1,0 +1,360 @@
+package model.agents;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import model.graph.*;
+
+public class Agent {
+
+    public int id;
+    public float speed = 0.5f;
+    public agentState state = agentState.AVAILABLE;
+    public Graph graph;
+    public Node startingNode;
+    public Node currentNode;
+    public Edge currentEdge;
+    public Node destination;
+    public boolean isSelected = false;
+
+    public float distanceTraveledOnEdge = 0.0f;
+    public List<Node> objectives = new ArrayList<>();
+    public List<Node> path = new ArrayList<>();
+
+    public int maxPatience = 300;
+    public int currentPatience;
+
+    public EndBehavior endBehavior = EndBehavior.RANDOM_WANDER;
+    public List<Node> reservedNodes = new ArrayList<>();
+    public List<Edge> reservedEdges = new ArrayList<>();
+
+    public boolean isRetreating = false;
+
+    public enum EndBehavior {
+        STOP,
+        REMOVE,
+        RANDOM_WANDER
+    }
+
+    public enum agentState {
+        AVAILABLE,
+        CALCULATING,
+        RUNNING,
+        WAITING,
+        OUT
+    }
+
+    public void setStartingNode(Node node) {
+        this.startingNode = node;
+        this.currentNode = node;
+    }
+
+    private void handleEndBehavior() {
+        System.out.println("Agent " + id + " a terminé tous ses objectifs. Comportement : " + endBehavior);
+        clearReservations();
+
+        switch (this.endBehavior) {
+            case STOP:
+                this.state = agentState.AVAILABLE;
+                this.currentNode.leave();
+                break;
+            case REMOVE:
+                this.state = agentState.OUT;
+                this.currentNode.leave();
+                break;
+            case RANDOM_WANDER:
+                this.state = agentState.AVAILABLE;
+                this.currentNode.leave();
+                /*
+                 * if (graph != null && !graph.Nodes.isEmpty()) {
+                 * int randomIndex = (int) (Math.random() * graph.Nodes.size());
+                 * Node randomNode = graph.Nodes.get(randomIndex);
+                 * System.out.println("🎲 L'agent " + id +
+                 * " choisit une nouvelle destination aléatoire : " + randomNode.id);
+                 * addObjective(randomNode);
+                 * }
+                 */
+                break;
+        }
+    }
+
+    private void makeReservations() {
+        clearReservations();
+        Node prev = this.currentNode;
+        for (Node n : this.path) {
+            n.expectedOccupants++;
+            reservedNodes.add(n);
+            Edge e = findEdgeBetween(prev, n);
+            if (e != null) {
+                e.expectedOccupants++;
+                reservedEdges.add(e);
+            }
+            prev = n;
+        }
+    }
+
+    private void clearReservations() {
+        for (Node n : reservedNodes) {
+            if (n.expectedOccupants > 0)
+                n.expectedOccupants--;
+        }
+        reservedNodes.clear();
+
+        for (Edge e : reservedEdges) {
+            if (e.expectedOccupants > 0)
+                e.expectedOccupants--;
+        }
+        reservedEdges.clear();
+    }
+
+    public Agent(String id, float speed, String state) {
+
+        this.id = Integer.parseInt(id);
+        this.speed = speed;
+        this.state = agentState.valueOf(state.toUpperCase());
+        this.currentPatience = this.maxPatience;
+    }
+
+    private Edge findEdgeBetween(Node s, Node t) {
+        int index = graph.Nodes.indexOf(s);
+        if (index != -1) {
+            for (Edge e : graph.Edges.get(index)) {
+                if (e.source == t || e.target == t)
+                    return e;
+            }
+        }
+        return null;
+    }
+
+    public void addObjective(Node dest) {
+        this.objectives.add(dest);
+        System.out.println("Agent " + id + " a reçu un nouvel objectif dans sa file : Noeud " + dest.id);
+
+        if (this.state == agentState.AVAILABLE) {
+            startNextObjective();
+        }
+    }
+
+    private void startNextObjective() {
+        if (!this.objectives.isEmpty()) {
+            this.destination = this.objectives.remove(0);
+            this.state = agentState.CALCULATING;
+
+            if (this.graph != null && this.currentNode != null) {
+                Dijkstra calculator = new Dijkstra(this.graph, this.currentNode, this.destination);
+                this.path = calculator.path;
+                makeReservations();
+            }
+
+            this.state = agentState.RUNNING;
+            this.currentPatience = this.maxPatience;
+            System.out.println(">>> Agent " + id + " en route vers l'objectif actuel : Noeud " + this.destination.id);
+
+        }
+
+    }
+
+    private void applyDetour() {
+        System.out.println("!!! Agent " + id + " cherche à s'écarter pour débloquer la situation !!!");
+        Node detour = null;
+        int index = graph.Nodes.indexOf(this.currentNode);
+
+        if (index != -1) {
+            for (Edge e : graph.Edges.get(index)) {
+                Node neighbor = (e.source == this.currentNode) ? e.target : e.source;
+
+                if (!this.path.isEmpty() && neighbor.id == this.path.get(0).id)
+                    continue;
+
+                if (neighbor.state != Node.nodeState.FULL) {
+                    detour = neighbor;
+                    break;
+                }
+            }
+        }
+
+        if (detour != null) {
+            System.out.println("↪️ Agent " + id + " fait un détour temporaire vers le Noeud " + detour.id);
+            this.path.clear();
+            this.path.add(detour);
+            makeReservations();
+        } else {
+            System.out.println("Agent " + id + " ne trouve aucune rue pour s'écarter, il recalcule sa route...");
+            Dijkstra calculator = new Dijkstra(this.graph, this.currentNode, this.destination);
+            this.path = calculator.path;
+            makeReservations();
+        }
+
+        this.state = agentState.RUNNING;
+        this.currentPatience = this.maxPatience;
+    }
+
+    public void update(double deltaTime) {
+
+        if (this.state == agentState.WAITING) {
+            this.currentPatience--;
+
+            if (this.currentPatience <= 0) {
+
+                if (this.isRetreating) {
+                    this.currentNode.removeQueue(this);
+                } else if (this.currentEdge == null && !this.path.isEmpty()) {
+                    Edge nextEdge = findEdgeBetween(this.currentNode, this.path.get(0));
+                    if (nextEdge != null)
+                        nextEdge.removeQueue(this);
+                } else if (this.currentEdge != null) {
+                    Node targetNode = (this.currentEdge.source == this.currentNode) ? this.currentEdge.target
+                            : this.currentEdge.source;
+                    targetNode.removeQueue(this);
+                }
+
+                if (this.currentEdge != null) {
+                    System.out.println("!!! Agent " + id + " perd patience et fait MARCHE ARRIÈRE sur l'arête !!!");
+                    this.isRetreating = true;
+                    this.state = agentState.RUNNING;
+                } else {
+                    applyDetour();
+                }
+                return;
+            }
+        }
+
+        if (this.state == agentState.RUNNING || this.state == agentState.WAITING) {
+
+            // ETAPE 1 : Chercher à entrer sur l'arête suivante
+
+            if (this.currentEdge == null) {
+                if (!this.path.isEmpty()) {
+                    Node nextNode = this.path.get(0);
+                    Edge nextEdge = findEdgeBetween(this.currentNode, nextNode);
+
+                    if (nextEdge != null) {
+                        if (nextEdge.tryEnter(this)) {
+
+                            if (reservedEdges.contains(nextEdge)) {
+                                if (nextEdge.expectedOccupants > 0)
+                                    nextEdge.expectedOccupants--;
+                                reservedEdges.remove(nextEdge);
+                            }
+
+                            if (this.currentNode != null) {
+                                this.currentNode.leave();
+                            }
+                            this.currentEdge = nextEdge;
+                            this.path.remove(0);
+                            this.distanceTraveledOnEdge = 0.0f;
+                            this.state = agentState.RUNNING;
+                            this.currentPatience = this.maxPatience;
+                            System.out.println("🟢 Agent " + id + " S'ENGAGE vers le noeud " + nextNode.id);
+                        } else {
+
+                            nextEdge.enqueue(this);
+                            if (this.state != agentState.WAITING) {
+                                this.state = agentState.WAITING;
+                                System.out.println("🟠 Agent " + id + " PATIENTE (arête pleine vers " + nextNode.id
+                                        + " | Capacité: " + nextEdge.capacity + ")");
+                            }
+                            return;
+                        }
+                    }
+                } else {
+                    System.out.println("Objectif Noeud " + this.destination.id + " ATTEINT !");
+                    if (this.objectives.isEmpty()) {
+                        handleEndBehavior();
+                    } else {
+                        startNextObjective();
+                    }
+                }
+            }
+
+            // ETAPE 2 : Avancer sur l'arête (Séparé de l'Etape 1)
+
+            if (this.currentEdge != null) {
+
+                if (this.isRetreating) {
+                    this.distanceTraveledOnEdge -= this.speed * deltaTime * 60;
+
+                    if (this.distanceTraveledOnEdge <= 0.0f) {
+                        this.distanceTraveledOnEdge = 0.0f;
+
+                        if (this.currentNode.tryEnter(this)) {
+                            System.out.println("Agent " + id + " est revenu sur son noeud et libère l'arête.");
+                            this.currentEdge.leave();
+                            this.currentEdge = null;
+                            this.isRetreating = false;
+                            applyDetour();
+                        } else {
+                            this.currentNode.enqueue(this);
+                            if (this.state != agentState.WAITING) {
+                                this.state = agentState.WAITING;
+                                System.out.println(
+                                        "🛑 Agent " + id + " est bloqué en reculant (le noeud d'origine est PLEIN !)");
+                            }
+                        }
+                    }
+                }
+
+                else {
+
+                    if (this.distanceTraveledOnEdge < this.currentEdge.length) {
+                        this.distanceTraveledOnEdge += this.speed * deltaTime * 60;
+                    }
+
+                    if (this.distanceTraveledOnEdge >= this.currentEdge.length) {
+                        this.distanceTraveledOnEdge = (float) this.currentEdge.length;
+                        Node targetNode = (this.currentEdge.source == this.currentNode) ? this.currentEdge.target
+                                : this.currentEdge.source;
+
+                        if (targetNode.tryEnter(this)) {
+
+                            if (reservedNodes.contains(targetNode)) {
+                                if (targetNode.expectedOccupants > 0)
+                                    targetNode.expectedOccupants--;
+                                reservedNodes.remove(targetNode);
+                            }
+
+                            this.currentNode = targetNode;
+                            this.currentEdge.leave();
+                            this.currentEdge = null;
+                            this.state = agentState.RUNNING;
+                            this.currentPatience = this.maxPatience;
+
+                            System.out.println("Agent " + id + " EST ARRIVÉ au noeud " + currentNode.id);
+
+                            if (this.path.isEmpty()) {
+                                if (this.currentNode.id == this.destination.id) {
+                                    System.out.println("Objectif final Noeud " + this.destination.id + " ATTEINT !");
+                                    if (!this.objectives.isEmpty()) {
+                                        startNextObjective();
+                                    } else {
+                                        handleEndBehavior();
+                                    }
+                                } else {
+
+                                    System.out.println(
+                                            "🔄 Agent " + id + " a terminé son évitement. Recalcul vers l'objectif "
+                                                    + this.destination.id);
+                                    Dijkstra calculator = new Dijkstra(this.graph, this.currentNode, this.destination);
+                                    this.path = calculator.path;
+
+                                    makeReservations();
+
+                                }
+                            }
+                        }
+
+                        else {
+                            targetNode.enqueue(this);
+                            if (this.state != agentState.WAITING) {
+                                this.state = agentState.WAITING;
+                                System.out.println("🛑 Agent " + id + " EST BLOQUÉ au bout de l'arête (le noeud "
+                                        + targetNode.id + " est PLEIN !)");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+}
