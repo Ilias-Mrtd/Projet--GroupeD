@@ -51,6 +51,7 @@ public class PropertiesPanel extends VBox {
 
             if (a.currentEdge != null) {
                 texte += "Trajet : " + a.currentNode.id + " ➔ " + a.destination.id + "\n";
+                texte += "Sur l'arete : " + a.currentEdge.id;
                 texte += "Vitesse : " + a.speed + " px/s";
             } else if (a.currentNode != null) {
                 texte += "Position : Sur le nœud " + a.currentNode.id;
@@ -59,12 +60,18 @@ public class PropertiesPanel extends VBox {
 
         } else if (selectedItem instanceof Node) {
             Node n = (Node) selectedItem;
-            infoLabel.setText("🔵 Type : Nœud\nNom : " + n.id + "\nPosition : (" + n.x + " ; " + n.y + ")");
+            infoLabel.setText("Type : Nœud\nNom : " + n.id + "\nPosition : (" + n.x + " ; " + n.y + ")");
 
         } else if (selectedItem instanceof Edge) {
             Edge e = (Edge) selectedItem;
-            infoLabel.setText("➖ Type : Arête\nConnexion : " + e.source.id + " ➔ " + e.target.id + "\nLongueur : "
-                    + e.length + " px");
+            String s;
+            if (e.direction == true) {
+                s = " <--> ";
+            } else {
+                s = " --> ";
+            }
+            infoLabel.setText("Type : Arête\nConnexion : " + e.source.id + s + e.target.id + "\nLongueur : "
+                    + Math.floor(e.length) + " px");
 
         } else {
             infoLabel.setText("Cliquez sur un élément\npour voir ses détails.");

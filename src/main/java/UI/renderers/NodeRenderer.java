@@ -22,7 +22,7 @@ public class NodeRenderer implements NodeRendering {
                 gc.setFill(Color.BLACK);
                 break;
             case AVAILABLE:
-                gc.setFill(Color.LIGHTGREY);
+                gc.setFill(Color.DARKGREY);
                 break;
             case FULL:
                 gc.setFill(Color.RED);

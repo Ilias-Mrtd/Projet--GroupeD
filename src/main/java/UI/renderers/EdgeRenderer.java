@@ -14,19 +14,19 @@ public class EdgeRenderer implements EdgeRendering {
         // Halo autour de l'arete
         if (edge.isSelected) {
             gc.setStroke(Color.YELLOWGREEN);
-            gc.setLineWidth(EDGE_WIDTH + 1.0f);
+            gc.setLineWidth(EDGE_WIDTH + 6.0f);
             gc.strokeLine(edge.source.x, edge.source.y, edge.target.x, edge.target.y);
         }
 
         switch (edge.state) {
             case OUT:
-                gc.setStroke(Color.LIGHTGREY);
+                gc.setStroke(Color.BLACK);
                 break;
             case FULL:
                 gc.setStroke(Color.RED);
                 break;
             case AVAILABLE:
-                gc.setStroke(Color.DARKGRAY);
+                gc.setStroke(Color.GREY);
         }
 
         gc.setLineWidth(EDGE_WIDTH);

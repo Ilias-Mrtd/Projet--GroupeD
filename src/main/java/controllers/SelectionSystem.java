@@ -88,7 +88,6 @@ public class SelectionSystem {
             Point2D nodeCenter = new Point2D(node.x, node.y);
 
             if (clickPoint.distance(nodeCenter) <= NODE_RADIUS) {
-                System.out.println("Noeud " + node.id + "cliquer.");
                 return node;
             }
         }
