@@ -12,8 +12,8 @@ import java.util.List;
 
 public class PropertiesPanel extends VBox {
 
-    private final Graph graph;
-    private final List<Agent> agents;
+    private Graph graph;
+    private List<Agent> agents;
 
     private SelectionSystem selectionSystem;
     private Runnable onAddNode;
@@ -103,7 +103,7 @@ public class PropertiesPanel extends VBox {
                         .append(" ➔ ").append(a.destination.id).append("\n");
                 sb.append("Sur arête : ").append(a.currentEdge.id);
             } else if (a.currentNode != null) {
-                sb.append("Position : nœud ").append(a.currentNode.id);
+                sb.append("Position : nœud ").append(a.currentNode.id + "\n ");
             }
             infoLabel.setText(sb.toString());
 
@@ -130,7 +130,7 @@ public class PropertiesPanel extends VBox {
                             + "État      : " + ed.state);
 
         } else {
-            infoLabel.setText("Cliquez sur un élément\npour voir ses détails.");
+            infoLabel.setText("Cliquez sur un élément\npour voir ses détails.\n \n \n \n ");
         }
 
         boolean nodeSelected = (selected instanceof Node);
