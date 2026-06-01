@@ -153,7 +153,6 @@ public class SelectionSystem {
 
             // On repasse en mode normal AVANT le callback (le callback peut re-dessiner)
             linkSource.isSelected = false;
-            Mode prevMode = mode;
             mode = Mode.NORMAL;
             edgeLinkCallback.onEdgeLink(linkSource, target);
             linkSource = null;

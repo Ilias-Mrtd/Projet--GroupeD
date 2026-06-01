@@ -57,10 +57,7 @@ public class Main extends Application {
         root.setTop(toolbar);
         root.setCenter(graphCanvas);
         root.setRight(propertiesPanel);
-
-        // ==========================================
-        // 3. CONTRÔLEURS & MOTEUR
-        // ==========================================
+        
         SelectionSystem selectionSystem = new SelectionSystem(graph, agents, graphCanvas);
         graphCanvas.setSelectionSystem(selectionSystem);
 
@@ -130,61 +127,58 @@ public class Main extends Application {
 
     // ---------------------------------------------------------------- scénario test (inchangé)
     private void setupSampleGraph(Graph graph, List<Agent> agents, SimulationEngine engine) {
-        graph.addNode(150, 300, 1);
-        graph.addNode(400, 150, 1);
-        graph.addNode(650, 300, 1);
-        graph.addNode(50,  50,  1);
-        graph.addNode(200, 150, 1);
-        graph.addNode(650, 100, 1);
-        graph.addNode(500, 400, 1);
-        graph.addNode(400, 50,  1);
-        graph.addNode(350, 300, 1);
-        graph.addNode(50,  400, 1);
-        graph.addNode(200, 500, 1);
-        graph.addNode(650, 500, 1);
 
-        Node n0  = graph.Nodes.get(0);
-        Node n1  = graph.Nodes.get(1);
-        Node n2  = graph.Nodes.get(2);
-        Node n3  = graph.Nodes.get(3);
-        Node n4  = graph.Nodes.get(4);
-        Node n5  = graph.Nodes.get(5);
-        Node n6  = graph.Nodes.get(6);
-        Node n7  = graph.Nodes.get(7);
-        Node n8  = graph.Nodes.get(8);
-        Node n9  = graph.Nodes.get(9);
-        Node n10 = graph.Nodes.get(10);
-        Node n11 = graph.Nodes.get(11);
+    int cols = 5;   // nombre de colonnes
+    int rows = 4;   // nombre de lignes
 
-        graph.addEdge(n0,  n1,  1, true);
-        graph.addEdge(n1,  n2,  1, true);
-        graph.addEdge(n2,  n11, 1, true);
-        graph.addEdge(n1,  n5,  1, true);
-        graph.addEdge(n0,  n4,  1, false);
-        graph.addEdge(n5,  n7,  1, true);
-        graph.addEdge(n7,  n3,  1, true);
-        graph.addEdge(n3,  n0,  1, true);
-        graph.addEdge(n4,  n7,  1, true);
-        graph.addEdge(n9,  n0,  1, true);
-        graph.addEdge(n10, n9,  1, false);
-        graph.addEdge(n10, n8,  1, true);
-        graph.addEdge(n8,  n2,  1, true);
-        graph.addEdge(n8,  n6,  1, true);
-        graph.addEdge(n6,  n11, 1, true);
-        graph.addEdge(n11, n10, 1, true);
+    int startX = 100;
+    int startY = 100;
+    int spacing = 150;
 
-        Agent a1 = new Agent("007", 2.5f, "AVAILABLE"); a1.setStartingNode(n0); engine.addAgent(a1);
-        Agent a2 = new Agent("018", 2.5f, "AVAILABLE"); a2.setStartingNode(n0); engine.addAgent(a2);
-        Agent a3 = new Agent("057", 2.5f, "AVAILABLE"); a3.setStartingNode(n0); engine.addAgent(a3);
-        Agent a4 = new Agent("063", 2.5f, "AVAILABLE"); a4.setStartingNode(n0); engine.addAgent(a4);
-        Agent a5 = new Agent("023", 2.5f, "AVAILABLE"); a5.setStartingNode(n0); engine.addAgent(a5);
+    Node[][] grid = new Node[rows][cols];
 
-        Random random = new Random();
-        for (Agent agent : engine.agents) {
-            agent.addObjective(engine.graph.Nodes.get(11));
-            agent.addObjective(engine.graph.Nodes.get(random.nextInt(engine.graph.Nodes.size())));
+    // 1. Création des nodes en grille
+    for (int r = 0; r < rows; r++) {
+        for (int c = 0; c < cols; c++) {
+            int x = startX + c * spacing;
+            int y = startY + r * spacing;
+
+            graph.addNode(x, y, 1);
+            grid[r][c] = graph.Nodes.get(graph.Nodes.size() - 1);
         }
     }
+
+    // 2. Création des edges (grille classique)
+    for (int r = 0; r < rows; r++) {
+        for (int c = 0; c < cols; c++) {
+
+            Node current = grid[r][c];
+
+            // lien vers la droite
+            if (c + 1 < cols) {
+                graph.addEdge(current, grid[r][c + 1], 1, true);
+            }
+
+            // lien vers le bas
+            if (r + 1 < rows) {
+                graph.addEdge(current, grid[r + 1][c], 1, true);
+            }
+        }
+    }
+
+    // 3. Agents (inchangé)
+    Agent a1 = new Agent("007", 2.5f, "AVAILABLE"); a1.setStartingNode(grid[0][0]); engine.addAgent(a1);
+
+    // 4. Objectifs aléatoires
+    Random random = new Random();
+
+    for (Agent agent : engine.agents) {
+        agent.addObjective(grid[rows - 1][cols - 1]); // coin bas droite
+        agent.addObjective(
+            grid[random.nextInt(rows)][random.nextInt(cols)]
+        );
+    }
+}
 
     public static void main(String[] args) {
         launch(args);
