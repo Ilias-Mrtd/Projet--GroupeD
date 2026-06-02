@@ -1,4 +1,4 @@
-package app;
+package application;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -69,9 +69,7 @@ public class Main extends Application {
                         (int) selectionSystem.getPendingNodeY(), cap);
                 selectionSystem.clearPendingPosition();
             } else {
-                // fallback : centre du canvas
-                graph.addNode((int)(graphCanvas.getWidth() / 2),
-                        (int)(graphCanvas.getHeight() / 2), cap);
+                System.out.println("You tried to add a Node but did not selected a place.");
             }
             graphCanvas.draw();
         });
@@ -79,7 +77,8 @@ public class Main extends Application {
         // Supprimer le nœud sélectionné (seulement si aucun agent dessus)
         propertiesPanel.setOnRemoveNode(() -> {
             Node sel = propertiesPanel.getSelectedNode();
-            if (sel == null) return;
+            if (sel == null)
+                return;
             boolean occupied = agents.stream().anyMatch(a -> a.currentNode == sel);
             if (occupied) {
                 System.out.println("[Main] Nœud " + sel.id + " occupé, suppression impossible.");
@@ -92,14 +91,16 @@ public class Main extends Application {
         // Supprimer l'arête sélectionnée
         propertiesPanel.setOnRemoveEdge(() -> {
             Edge sel = propertiesPanel.getSelectedEdge();
-            if (sel == null) return;
+            if (sel == null)
+                return;
             // Vérifier qu'aucun agent n'est dessus
             boolean occupied = agents.stream().anyMatch(a -> a.currentEdge == sel);
             if (occupied) {
                 System.out.println("[Main] Arête " + sel.id + " occupée, suppression impossible.");
                 return;
             }
-            for (List<Edge> list : graph.Edges) list.removeIf(e -> e.id == sel.id);
+            for (List<Edge> list : graph.Edges)
+                list.removeIf(e -> e.id == sel.id);
             System.out.println("[Main] Arête " + sel.id + " supprimée.");
             graphCanvas.draw();
         });
@@ -107,7 +108,8 @@ public class Main extends Application {
         // Ajouter un agent sur le nœud sélectionné
         propertiesPanel.setOnAddAgent(() -> {
             Node sel = propertiesPanel.getSelectedNode();
-            if (sel == null) return;
+            if (sel == null)
+                return;
             String newId = String.valueOf(nextAgentId.getAndIncrement());
             Agent newAgent = new Agent(newId, 2.5f, "AVAILABLE");
             newAgent.setStartingNode(sel);
@@ -132,10 +134,10 @@ public class Main extends Application {
     }
 
     private void setupSampleGraph(Graph graph, List<Agent> agents, SimulationEngine engine) {
-        int cols    = 5;
-        int rows    = 4;
-        int startX  = 100;
-        int startY  = 100;
+        int cols = 5;
+        int rows = 4;
+        int startX = 100;
+        int startY = 100;
         int spacing = 150;
 
         Node[][] grid = new Node[rows][cols];
@@ -149,8 +151,10 @@ public class Main extends Application {
 
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                if (c + 1 < cols) graph.addEdge(grid[r][c], grid[r][c + 1], 1, true);
-                if (r + 1 < rows) graph.addEdge(grid[r][c], grid[r + 1][c], 1, true);
+                if (c + 1 < cols)
+                    graph.addEdge(grid[r][c], grid[r][c + 1], 1, true);
+                if (r + 1 < rows)
+                    graph.addEdge(grid[r][c], grid[r + 1][c], 1, true);
             }
         }
 

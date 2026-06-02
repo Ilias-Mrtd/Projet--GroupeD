@@ -14,14 +14,15 @@ import java.util.List;
  * PropertiesPanel — panneau latéral droit.
  *
  * Améliorations v2 :
- * - Ajouter un nœud : placement à l'endroit du clic dans le vide + champ capacité
+ * - Ajouter un nœud : placement à l'endroit du clic dans le vide + champ
+ * capacité
  * - Ajouter une arête : choix capacité (+/-) et direction avant liaison
  * - Supprimer une arête : bouton actif quand une arête est sélectionnée
  * - Bug timer corrigé : les callbacks ne touchent JAMAIS au moteur (stop/start)
  */
 public class PropertiesPanel extends VBox {
 
-    private final Graph       graph;
+    private final Graph graph;
     private final List<Agent> agents;
 
     private SelectionSystem selectionSystem;
@@ -42,10 +43,10 @@ public class PropertiesPanel extends VBox {
     private final Button btnAddAgent;
 
     // ---- paramètres arête ----
-    private int     edgeCapacity  = 1;
-    private boolean edgeDirection = false; // false = bidirectionnel
-    private final Label  lblEdgeCap;
-    private final Label  lblEdgeDir;
+    private int edgeCapacity = 1;
+    private boolean edgeDirection = true; // false = unidirectionnel
+    private final Label lblEdgeCap;
+    private final Label lblEdgeDir;
 
     // ---- paramètres nœud ----
     private int nodeCapacity = 1;
@@ -56,7 +57,7 @@ public class PropertiesPanel extends VBox {
     // ================================================================= ctor
 
     public PropertiesPanel(Graph graph, List<Agent> agents) {
-        this.graph  = graph;
+        this.graph = graph;
         this.agents = agents;
 
         setPadding(new Insets(15));
@@ -83,18 +84,26 @@ public class PropertiesPanel extends VBox {
         lblNodeCap = new Label("Capacité : 1");
         lblNodeCap.setStyle("-fx-font-size: 12px;");
         Button btnNodeCapMinus = smallButton("−");
-        Button btnNodeCapPlus  = smallButton("+");
-        btnNodeCapMinus.setOnAction(e -> { if (nodeCapacity > 1) { nodeCapacity--; lblNodeCap.setText("Capacité : " + nodeCapacity); } });
-        btnNodeCapPlus.setOnAction(e  -> { nodeCapacity++; lblNodeCap.setText("Capacité : " + nodeCapacity); });
+        Button btnNodeCapPlus = smallButton("+");
+        btnNodeCapMinus.setOnAction(e -> {
+            if (nodeCapacity > 1) {
+                nodeCapacity--;
+                lblNodeCap.setText("Capacité : " + nodeCapacity);
+            }
+        });
+        btnNodeCapPlus.setOnAction(e -> {
+            nodeCapacity++;
+            lblNodeCap.setText("Capacité : " + nodeCapacity);
+        });
         HBox nodeCapBox = new HBox(6, btnNodeCapMinus, lblNodeCap, btnNodeCapPlus);
         nodeCapBox.setStyle("-fx-alignment: center-left;");
 
-        btnAddNode    = buildButton("➕  Ajouter un nœud ici",  "#2196F3");
-        btnRemoveNode = buildButton("🗑  Supprimer le nœud",     "#F44336");
-        btnAddNode.setDisable(true);   // actif seulement après clic dans le vide
+        btnAddNode = buildButton("➕  Ajouter un nœud ici", "#2196F3");
+        btnAddNode.setDisable(true); // actif seulement après clic dans le vide
+        btnRemoveNode = buildButton("🗑  Supprimer le nœud", "#F44336");
         btnRemoveNode.setDisable(true);
 
-        btnAddNode.setOnAction(e    -> handleAddNode());
+        btnAddNode.setOnAction(e -> handleAddNode());
         btnRemoveNode.setOnAction(e -> handleRemoveNode());
 
         // ---- Séparateur ----
@@ -108,9 +117,17 @@ public class PropertiesPanel extends VBox {
         lblEdgeCap = new Label("Capacité : 1");
         lblEdgeCap.setStyle("-fx-font-size: 12px;");
         Button btnEdgeCapMinus = smallButton("−");
-        Button btnEdgeCapPlus  = smallButton("+");
-        btnEdgeCapMinus.setOnAction(e -> { if (edgeCapacity > 1) { edgeCapacity--; lblEdgeCap.setText("Capacité : " + edgeCapacity); } });
-        btnEdgeCapPlus.setOnAction(e  -> { edgeCapacity++; lblEdgeCap.setText("Capacité : " + edgeCapacity); });
+        Button btnEdgeCapPlus = smallButton("+");
+        btnEdgeCapMinus.setOnAction(e -> {
+            if (edgeCapacity > 1) {
+                edgeCapacity--;
+                lblEdgeCap.setText("Capacité : " + edgeCapacity);
+            }
+        });
+        btnEdgeCapPlus.setOnAction(e -> {
+            edgeCapacity++;
+            lblEdgeCap.setText("Capacité : " + edgeCapacity);
+        });
         HBox edgeCapBox = new HBox(6, btnEdgeCapMinus, lblEdgeCap, btnEdgeCapPlus);
         edgeCapBox.setStyle("-fx-alignment: center-left;");
 
@@ -123,11 +140,11 @@ public class PropertiesPanel extends VBox {
             lblEdgeDir.setText("Direction : " + (edgeDirection ? "Unidirect. →" : "Bidirect. ⇄"));
         });
 
-        btnAddEdge    = buildButton("🔗  Ajouter une arête",  "#9C27B0");
-        btnRemoveEdge = buildButton("🗑  Supprimer l'arête",  "#E91E63");
+        btnAddEdge = buildButton("🔗  Ajouter une arête", "#9C27B0");
+        btnRemoveEdge = buildButton("🗑  Supprimer l'arête", "#E91E63");
         btnRemoveEdge.setDisable(true);
 
-        btnAddEdge.setOnAction(e    -> handleAddEdge());
+        btnAddEdge.setOnAction(e -> handleAddEdge());
         btnRemoveEdge.setOnAction(e -> handleRemoveEdge());
 
         // ---- Séparateur ----
@@ -149,8 +166,7 @@ public class PropertiesPanel extends VBox {
                 sep2,
                 lblEdgeSection, edgeCapBox, lblEdgeDir, btnToggleDir, btnAddEdge, btnRemoveEdge,
                 sep3,
-                lblAgentSection, btnAddAgent
-        );
+                lblAgentSection, btnAddAgent);
     }
 
     // ================================================================= setters
@@ -160,16 +176,30 @@ public class PropertiesPanel extends VBox {
         // Quand l'utilisateur clique dans le vide → activer btnAddNode
         ss.setOnEmptyClick((x, y) -> {
             btnAddNode.setDisable(false);
-            btnAddNode.setText("➕  Placer ici (" + (int)x + "," + (int)y + ")");
+            btnAddNode.setText("➕  Placer ici (" + (int) x + "," + (int) y + ")");
         });
+        // Desactiver le bouton addAgent
+        btnAddAgent.setDisable(true);
     }
 
-    public void setOnAddNode(Runnable r)    { this.onAddNode    = r; }
-    public void setOnRemoveNode(Runnable r) { this.onRemoveNode = r; }
-    public void setOnRemoveEdge(Runnable r) { this.onRemoveEdge = r; }
-    public void setOnAddAgent(Runnable r)   { this.onAddAgent   = r; }
+    public void setOnAddNode(Runnable r) {
+        this.onAddNode = r;
+    }
 
-    // ================================================================= refresh (60×/s)
+    public void setOnRemoveNode(Runnable r) {
+        this.onRemoveNode = r;
+    }
+
+    public void setOnRemoveEdge(Runnable r) {
+        this.onRemoveEdge = r;
+    }
+
+    public void setOnAddAgent(Runnable r) {
+        this.onAddAgent = r;
+    }
+
+    // ================================================================= refresh
+    // (60×/s)
 
     public void refresh() {
         Object selected = findSelectedItem();
@@ -186,7 +216,7 @@ public class PropertiesPanel extends VBox {
                 sb.append("Trajet  : ").append(a.currentNode.id).append(" ➔ ").append(a.destination.id).append("\n")
                         .append("Sur arête : ").append(a.currentEdge.id);
             else if (a.currentNode != null)
-                sb.append("Position : nœud ").append(a.currentNode.id);
+                sb.append("Position : nœud ").append(a.currentNode.id + "\n ");
             infoLabel.setText(sb.toString());
 
         } else if (selected instanceof Node) {
@@ -194,7 +224,7 @@ public class PropertiesPanel extends VBox {
             infoLabel.setText(
                     "Type     : Nœud\n"
                             + "ID       : " + n.id + "\n"
-                            + "Position : (" + (int)n.x + ", " + (int)n.y + ")\n"
+                            + "Position : (" + (int) n.x + ", " + (int) n.y + ")\n"
                             + "Capacité : " + n.capacity + "\n"
                             + "État     : " + n.state + "\n"
                             + "Occupants: " + n.currentOccupants + "/" + n.capacity);
@@ -206,17 +236,17 @@ public class PropertiesPanel extends VBox {
                     "Type      : Arête\n"
                             + "ID        : " + ed.id + "\n"
                             + "Connexion : " + ed.source.id + dir + ed.target.id + "\n"
-                            + "Longueur  : " + (int)ed.length + " px\n"
+                            + "Longueur  : " + (int) ed.length + " px\n"
                             + "Direction : " + (ed.direction ? "unidirect." : "bidirect.") + "\n"
                             + "État      : " + ed.state);
 
         } else {
-            infoLabel.setText("Cliquez sur un élément\npour voir ses détails.");
+            infoLabel.setText("Cliquez sur un élément\npour voir ses détails.\n \n \n \n ");
         }
 
         // ---- état des boutons ----
-        boolean nodeSelected  = (selected instanceof Node);
-        boolean edgeSelected  = (selected instanceof Edge);
+        boolean nodeSelected = (selected instanceof Node);
+        boolean edgeSelected = (selected instanceof Edge);
 
         btnRemoveNode.setDisable(!nodeSelected);
         btnAddAgent.setDisable(!nodeSelected);
@@ -235,37 +265,43 @@ public class PropertiesPanel extends VBox {
     // ================================================================= handlers
 
     private void handleAddNode() {
-        if (onAddNode != null) onAddNode.run();
+        if (onAddNode != null)
+            onAddNode.run();
         else {
             if (selectionSystem != null && selectionSystem.hasPendingPosition()) {
-                graph.addNode((int)selectionSystem.getPendingNodeX(),
-                        (int)selectionSystem.getPendingNodeY(), nodeCapacity);
+                graph.addNode((int) selectionSystem.getPendingNodeX(),
+                        (int) selectionSystem.getPendingNodeY(), nodeCapacity);
             } else {
                 graph.addNode(400, 300, nodeCapacity);
             }
         }
         // Reset bouton après utilisation
-        btnAddNode.setText("➕  Ajouter un nœud ici");
+        btnAddNode.setText("➕ Ajouter un nœud ici");
         btnAddNode.setDisable(true);
-        if (selectionSystem != null) selectionSystem.clearPendingPosition();
+        if (selectionSystem != null)
+            selectionSystem.clearPendingPosition();
     }
 
     private void handleRemoveNode() {
         Node sel = selectionSystem != null ? selectionSystem.getLastSelectedNode() : null;
-        if (sel == null) return;
-        if (onRemoveNode != null) onRemoveNode.run();
-        else graph.removeNode(sel);
+        if (sel == null)
+            return;
+        if (onRemoveNode != null)
+            onRemoveNode.run();
+        else
+            graph.removeNode(sel);
     }
 
     private void handleAddEdge() {
-        if (selectionSystem == null) return;
+        if (selectionSystem == null)
+            return;
         if (linkingActive) {
             selectionSystem.cancelEdgeLinking();
             linkingActive = false;
         } else {
             linkingActive = true;
             // Capture des paramètres au moment du clic (pas au moment de la création)
-            final int    cap = edgeCapacity;
+            final int cap = edgeCapacity;
             final boolean dir = edgeDirection;
             selectionSystem.startEdgeLinking((source, target) -> {
                 graph.addEdge(source, target, cap, dir);
@@ -278,9 +314,12 @@ public class PropertiesPanel extends VBox {
 
     private void handleRemoveEdge() {
         Edge sel = selectionSystem != null ? selectionSystem.getLastSelectedEdge() : null;
-        if (sel == null) return;
-        if (onRemoveEdge != null) onRemoveEdge.run();
-        else removeEdgeFromGraph(sel);
+        if (sel == null)
+            return;
+        if (onRemoveEdge != null)
+            onRemoveEdge.run();
+        else
+            removeEdgeFromGraph(sel);
     }
 
     private void removeEdgeFromGraph(Edge edge) {
@@ -292,39 +331,53 @@ public class PropertiesPanel extends VBox {
 
     private void handleAddAgent() {
         Node sel = selectionSystem != null ? selectionSystem.getLastSelectedNode() : null;
-        if (sel == null) return;
-        if (onAddAgent != null) onAddAgent.run();
+        if (sel == null)
+            return;
+        if (onAddAgent != null)
+            onAddAgent.run();
     }
 
     // ================================================================= helpers
 
     private Object findSelectedItem() {
-        for (Agent a : agents)       if (a.isSelected) return a;
-        for (Node n : graph.Nodes)   if (n.isSelected) return n;
+        for (Agent a : agents)
+            if (a.isSelected)
+                return a;
+        for (Node n : graph.Nodes)
+            if (n.isSelected)
+                return n;
         for (List<Edge> edges : graph.Edges)
-            for (Edge e : edges)     if (e.isSelected) return e;
+            for (Edge e : edges)
+                if (e.isSelected)
+                    return e;
         return null;
     }
 
     public Node getSelectedNode() {
-        for (Node n : graph.Nodes) if (n.isSelected) return n;
+        for (Node n : graph.Nodes)
+            if (n.isSelected)
+                return n;
         return null;
     }
 
     public Edge getSelectedEdge() {
         for (List<Edge> edges : graph.Edges)
-            for (Edge e : edges) if (e.isSelected) return e;
+            for (Edge e : edges)
+                if (e.isSelected)
+                    return e;
         return null;
     }
 
-    public int  getNodeCapacity()  { return nodeCapacity; }
+    public int getNodeCapacity() {
+        return nodeCapacity;
+    }
 
     private Button buildButton(String text, String hexColor) {
         Button btn = new Button(text);
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setStyle(buttonStyle(hexColor));
         btn.setOnMouseEntered(e -> btn.setOpacity(0.85));
-        btn.setOnMouseExited(e  -> btn.setOpacity(1.0));
+        btn.setOnMouseExited(e -> btn.setOpacity(1.0));
         return btn;
     }
 

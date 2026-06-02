@@ -5,7 +5,7 @@ module ProjetGroupeD {
 
     opens UI.renderers to javafx.fxml;
 
-    exports app;
+    exports application;
     exports UI;
     exports UI.renderers;
     exports controllers;
