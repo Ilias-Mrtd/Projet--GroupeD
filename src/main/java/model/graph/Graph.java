@@ -54,7 +54,8 @@ public class Graph {
 
         // Ajout du noeud a Nodes
         Nodes.add(newNode);
-        Edges.add(new ArrayList<>()); // Ajout d'une liste d'aretes vide
+        List<Edge> emptyList = new ArrayList<>();
+        Edges.add(emptyList); // Ajout d'une liste d'aretes vide
 
         System.out.println("Node " + newId + " succesfuly added to Graph");
     }
@@ -119,7 +120,7 @@ public class Graph {
 
         return s;
     }
-    
+
     public List<Node> getNodes() {
         return Nodes;
     }

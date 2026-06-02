@@ -76,7 +76,6 @@ public class Dijkstra implements PathFinder {
             } else {
                 double minimumLength = Double.POSITIVE_INFINITY;
                 if (graph.Edges.get(indiceSource).size() > 0) {
-
                     // 1er phase
                     for (int i = 0; i < graph.Edges.get(indiceSource).size(); i++) {
                         Edge edge = graph.Edges.get(indiceSource).get(i);
@@ -124,8 +123,17 @@ public class Dijkstra implements PathFinder {
                     // phase de validation
                     for (int i = 0; i < graphSize; i++) {
                         if (pathLength.get(i) <= minimumLength && foundVertice.get(i) == false) {
-                            minimumLength = graph.Edges.get(indiceSource).get(i).length;
-                            indiceMinimum = i;
+                            System.out.println("ICI1!");
+                            if (graph.Edges.size() > indiceSource && graph.Edges.get(indiceMinimum).size() > i) {
+                                minimumLength = graph.Edges.get(indiceSource).get(i).length;
+                                indiceMinimum = i;
+                            } else {
+                                // Case where the path doesn't exist ಥ_ಥ
+                                System.out.println("The assigned objective is not accessible for this agent.");
+                                // Il serait interessant de reassigner l'objectif a un autre agent
+                                path.clear();
+                                return;
+                            }
                         }
                         foundVertice.set(indiceMinimum, true);
                         indiceSource = indiceMinimum;
@@ -206,5 +214,5 @@ public class Dijkstra implements PathFinder {
     public static double getTrafficPenalty() {
         return TRAFFIC_PENALTY;
     }
-    
+
 }
