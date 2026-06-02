@@ -15,6 +15,22 @@ public class Graph {
     // 2: [1,2,3]
     public List<Node> Nodes = new ArrayList<>(); // Les noeuds dans un ordre quelconque
     public List<List<Edge>> Edges = new ArrayList<>(); // Les listes d'aretes dans le meme ordre
+    
+    public List<Node> getNodes() {
+        return Nodes;
+    }
+
+    public void setNodes(List<Node> nodes) {
+        Nodes = nodes;
+    }
+
+    public List<List<Edge>> getEdges() {
+        return Edges;
+    }
+
+    public void setEdges(List<List<Edge>> edges) {
+        Edges = edges;
+    }
 
     private int newNodeId() {
         Random random = new Random();

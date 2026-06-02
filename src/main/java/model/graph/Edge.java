@@ -29,6 +29,90 @@ public class Edge {
         this.capacity = capacity;
         this.direction = direction;
     }
+    
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public Node getSource() {
+        return source;
+    }
+
+    public void setSource(Node source) {
+        this.source = source;
+    }
+
+    public Node getTarget() {
+        return target;
+    }
+
+    public void setTarget(Node target) {
+        this.target = target;
+    }
+
+    public boolean isDirection() {
+        return direction;
+    }
+
+    public void setDirection(boolean direction) {
+        this.direction = direction;
+    }
+
+    public double getLength() {
+        return length;
+    }
+
+    public void setLength(double length) {
+        this.length = length;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
+    }
+
+    public edgeState getState() {
+        return state;
+    }
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean isSelected) {
+        this.isSelected = isSelected;
+    }
+
+    public int getCurrentOccupants() {
+        return currentOccupants;
+    }
+
+    public void setCurrentOccupants(int currentOccupants) {
+        this.currentOccupants = currentOccupants;
+    }
+
+    public int getExpectedOccupants() {
+        return expectedOccupants;
+    }
+
+    public void setExpectedOccupants(int expectedOccupants) {
+        this.expectedOccupants = expectedOccupants;
+    }
+
+    public Queue<Agent> getWaitingQueue() {
+        return waitingQueue;
+    }
+
+    public void setWaitingQueue(Queue<Agent> waitingQueue) {
+        this.waitingQueue = waitingQueue;
+    }
 
     public enum edgeState {
         OUT,
