@@ -207,4 +207,85 @@ public class SelectionSystem {
         Node   to   = (from == edge.source)              ? edge.target : edge.source;
         return new Point2D(from.x + t*(to.x-from.x), from.y + t*(to.y-from.y));
     }
+
+    public Graph getGraph() {
+        return graph;
+    }
+
+    public GraphCanvas getCanvas() {
+        return canvas;
+    }
+
+    public List<Agent> getAgents() {
+        return agents;
+    }
+
+    public static double getNodeRadius() {
+        return NODE_RADIUS;
+    }
+
+    public static double getAgentRadius() {
+        return AGENT_RADIUS;
+    }
+
+    public static double getEdgeTol() {
+        return EDGE_TOL;
+    }
+
+    public void setLastSelectedNode(Node lastSelectedNode) {
+        this.lastSelectedNode = lastSelectedNode;
+    }
+
+    public void setLastSelectedEdge(Edge lastSelectedEdge) {
+        this.lastSelectedEdge = lastSelectedEdge;
+    }
+
+    public void setLastSelectedAgent(Agent lastSelectedAgent) {
+        this.lastSelectedAgent = lastSelectedAgent;
+    }
+
+    public void setPendingNodeX(double pendingNodeX) {
+        this.pendingNodeX = pendingNodeX;
+    }
+
+    public void setPendingNodeY(double pendingNodeY) {
+        this.pendingNodeY = pendingNodeY;
+    }
+
+    public boolean isHasPendingPosition() {
+        return hasPendingPosition;
+    }
+
+    public void setHasPendingPosition(boolean hasPendingPosition) {
+        this.hasPendingPosition = hasPendingPosition;
+    }
+
+    public void setMode(Mode mode) {
+        this.mode = mode;
+    }
+
+    public Node getLinkSource() {
+        return linkSource;
+    }
+
+    public void setLinkSource(Node linkSource) {
+        this.linkSource = linkSource;
+    }
+
+    public EdgeLinkCallback getEdgeLinkCallback() {
+        return edgeLinkCallback;
+    }
+
+    public void setEdgeLinkCallback(EdgeLinkCallback edgeLinkCallback) {
+        this.edgeLinkCallback = edgeLinkCallback;
+    }
+
+    public EmptyClickCallback getEmptyClickCallback() {
+        return emptyClickCallback;
+    }
+
+    public void setEmptyClickCallback(EmptyClickCallback emptyClickCallback) {
+        this.emptyClickCallback = emptyClickCallback;
+    }
+    
 }

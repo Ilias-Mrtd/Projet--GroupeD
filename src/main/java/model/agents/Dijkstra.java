@@ -170,4 +170,41 @@ public class Dijkstra implements PathFinder {
          * System.out.println();
          */
     }
+
+    public Graph getGraph() {
+        return graph;
+    }
+
+    public void setGraph(Graph graph) {
+        this.graph = graph;
+    }
+
+    public Node getCurrentNode() {
+        return currentNode;
+    }
+
+    public void setCurrentNode(Node currentNode) {
+        this.currentNode = currentNode;
+    }
+
+    public Node getDestination() {
+        return Destination;
+    }
+
+    public void setDestination(Node destination) {
+        Destination = destination;
+    }
+
+    public List<Node> getPath() {
+        return path;
+    }
+
+    public void setPath(List<Node> path) {
+        this.path = path;
+    }
+
+    public static double getTrafficPenalty() {
+        return TRAFFIC_PENALTY;
+    }
+    
 }

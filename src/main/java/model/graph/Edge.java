@@ -30,6 +30,67 @@ public class Edge {
         this.direction = direction;
     }
     
+    public enum edgeState {
+        OUT,
+        AVAILABLE,
+        FULL
+    }
+
+    public boolean isFull() {
+        return currentOccupants >= capacity;
+    }
+
+    public boolean canEnter(Agent a) {
+        return !isFull() && (waitingQueue.isEmpty() || waitingQueue.peek() == a);
+    }
+
+    public boolean tryEnter(Agent a) {
+        if (canEnter(a)) {
+            waitingQueue.remove(a);
+            currentOccupants++;
+            if (isFull()) {
+                this.state = edgeState.FULL;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public void leave() {
+        if (currentOccupants > 0) {
+            currentOccupants--;
+        }
+        if (!isFull()) {
+            this.state = edgeState.AVAILABLE;
+        }
+    }
+
+    public void enqueue(Agent a) {
+        if (!waitingQueue.contains(a)) {
+            waitingQueue.add(a);
+        }
+    }
+
+    public void removeQueue(Agent a) {
+        waitingQueue.remove(a);
+    }
+
+    @Override
+    public String toString() {
+        String s = "id:" + id + "\r \n"
+                + "source:" + source.id + "\r \n"
+                + "target:" + target.id + "\r \n"
+                + "length:" + length + "\r \n"
+                + "capacity:" + capacity + "\r \n"
+                + "direction:" + direction + "\r \n";
+
+        return s;
+    }
+
+    public void setState(edgeState state) {
+        this.state = state;
+    }
+    
     public int getId() {
         return id;
     }
@@ -114,64 +175,4 @@ public class Edge {
         this.waitingQueue = waitingQueue;
     }
 
-    public enum edgeState {
-        OUT,
-        AVAILABLE,
-        FULL
-    }
-
-    public boolean isFull() {
-        return currentOccupants >= capacity;
-    }
-
-    public boolean canEnter(Agent a) {
-        return !isFull() && (waitingQueue.isEmpty() || waitingQueue.peek() == a);
-    }
-
-    public boolean tryEnter(Agent a) {
-        if (canEnter(a)) {
-            waitingQueue.remove(a);
-            currentOccupants++;
-            if (isFull()) {
-                this.state = edgeState.FULL;
-            }
-            return true;
-        }
-        return false;
-    }
-
-    public void leave() {
-        if (currentOccupants > 0) {
-            currentOccupants--;
-        }
-        if (!isFull()) {
-            this.state = edgeState.AVAILABLE;
-        }
-    }
-
-    public void enqueue(Agent a) {
-        if (!waitingQueue.contains(a)) {
-            waitingQueue.add(a);
-        }
-    }
-
-    public void removeQueue(Agent a) {
-        waitingQueue.remove(a);
-    }
-
-    @Override
-    public String toString() {
-        String s = "id:" + id + "\r \n"
-                + "source:" + source.id + "\r \n"
-                + "target:" + target.id + "\r \n"
-                + "length:" + length + "\r \n"
-                + "capacity:" + capacity + "\r \n"
-                + "direction:" + direction + "\r \n";
-
-        return s;
-    }
-
-    public void setState(edgeState state) {
-        this.state = state;
-    }
 }

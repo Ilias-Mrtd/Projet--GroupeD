@@ -29,7 +29,7 @@ public class Agent {
     public List<Edge> reservedEdges = new ArrayList<>();
 
     public boolean isRetreating = false;
-
+    
     public enum EndBehavior {
         STOP,
         REMOVE,
@@ -404,4 +404,145 @@ public class Agent {
         }
 
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public float getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
+    public agentState getState() {
+        return state;
+    }
+
+    public void setState(agentState state) {
+        this.state = state;
+    }
+
+    public Graph getGraph() {
+        return graph;
+    }
+
+    public void setGraph(Graph graph) {
+        this.graph = graph;
+    }
+
+    public Node getStartingNode() {
+        return startingNode;
+    }
+
+    public Node getCurrentNode() {
+        return currentNode;
+    }
+
+    public void setCurrentNode(Node currentNode) {
+        this.currentNode = currentNode;
+    }
+
+    public Edge getCurrentEdge() {
+        return currentEdge;
+    }
+
+    public void setCurrentEdge(Edge currentEdge) {
+        this.currentEdge = currentEdge;
+    }
+
+    public Node getDestination() {
+        return destination;
+    }
+
+    public void setDestination(Node destination) {
+        this.destination = destination;
+    }
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean isSelected) {
+        this.isSelected = isSelected;
+    }
+
+    public float getDistanceTraveledOnEdge() {
+        return distanceTraveledOnEdge;
+    }
+
+    public void setDistanceTraveledOnEdge(float distanceTraveledOnEdge) {
+        this.distanceTraveledOnEdge = distanceTraveledOnEdge;
+    }
+
+    public List<Node> getObjectives() {
+        return objectives;
+    }
+
+    public void setObjectives(List<Node> objectives) {
+        this.objectives = objectives;
+    }
+
+    public List<Node> getPath() {
+        return path;
+    }
+
+    public void setPath(List<Node> path) {
+        this.path = path;
+    }
+
+    public int getMaxPatience() {
+        return maxPatience;
+    }
+
+    public void setMaxPatience(int maxPatience) {
+        this.maxPatience = maxPatience;
+    }
+
+    public int getCurrentPatience() {
+        return currentPatience;
+    }
+
+    public void setCurrentPatience(int currentPatience) {
+        this.currentPatience = currentPatience;
+    }
+
+    public EndBehavior getEndBehavior() {
+        return endBehavior;
+    }
+
+    public void setEndBehavior(EndBehavior endBehavior) {
+        this.endBehavior = endBehavior;
+    }
+
+    public List<Node> getReservedNodes() {
+        return reservedNodes;
+    }
+
+    public void setReservedNodes(List<Node> reservedNodes) {
+        this.reservedNodes = reservedNodes;
+    }
+
+    public List<Edge> getReservedEdges() {
+        return reservedEdges;
+    }
+
+    public void setReservedEdges(List<Edge> reservedEdges) {
+        this.reservedEdges = reservedEdges;
+    }
+
+    public boolean isRetreating() {
+        return isRetreating;
+    }
+
+    public void setRetreating(boolean isRetreating) {
+        this.isRetreating = isRetreating;
+    }
+    
 }

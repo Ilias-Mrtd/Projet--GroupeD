@@ -18,12 +18,36 @@ public class SimulationEngine extends AnimationTimer {
 
     // Pour stocker le temps de la frame précédente
     private long lastUpdate = 0;
-
+    
     public SimulationEngine(Graph graph, List<Agent> agents, GraphCanvas canvas, PropertiesPanel propertiesPanel) {
         this.graph = graph;
         this.agents = agents;
         this.canvas = canvas;
         this.propertiesPanel = propertiesPanel;
+    }
+
+    public Graph getGraph() {
+        return graph;
+    }
+
+    public List<Agent> getAgents() {
+        return agents;
+    }
+
+    public GraphCanvas getCanvas() {
+        return canvas;
+    }
+
+    public PropertiesPanel getPropertiesPanel() {
+        return propertiesPanel;
+    }
+
+    public long getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(long lastUpdate) {
+        this.lastUpdate = lastUpdate;
     }
 
     public void addAgent(Agent agent) {

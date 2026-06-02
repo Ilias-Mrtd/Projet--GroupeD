@@ -25,6 +25,86 @@ public class Node {
         this.y = y;
         this.capacity = capacity;
     }
+    
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public float getX() {
+        return x;
+    }
+
+    public void setX(float x) {
+        this.x = x;
+    }
+
+    public float getY() {
+        return y;
+    }
+
+    public void setY(float y) {
+        this.y = y;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
+    }
+
+    public nodeState getState() {
+        return state;
+    }
+
+    public void setState(nodeState state) {
+        this.state = state;
+    }
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean isSelected) {
+        this.isSelected = isSelected;
+    }
+
+    public int getCurrentOccupants() {
+        return currentOccupants;
+    }
+
+    public void setCurrentOccupants(int currentOccupants) {
+        this.currentOccupants = currentOccupants;
+    }
+
+    public int getExpectedOccupants() {
+        return expectedOccupants;
+    }
+
+    public void setExpectedOccupants(int expectedOccupants) {
+        this.expectedOccupants = expectedOccupants;
+    }
+
+    public int getIncomingOccupants() {
+        return incomingOccupants;
+    }
+
+    public void setIncomingOccupants(int incomingOccupants) {
+        this.incomingOccupants = incomingOccupants;
+    }
+
+    public Queue<Agent> getWaitingQueue() {
+        return waitingQueue;
+    }
+
+    public void setWaitingQueue(Queue<Agent> waitingQueue) {
+        this.waitingQueue = waitingQueue;
+    }
 
     public boolean isFull() {
         return currentOccupants >= capacity;
