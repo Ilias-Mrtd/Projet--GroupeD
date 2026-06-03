@@ -142,24 +142,26 @@ public class Main extends Application {
 
         Node[][] grid = new Node[rows][cols];
 
+        // Test de degrader de couleurs node
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                graph.addNode(startX + c * spacing, startY + r * spacing, 1);
+                graph.addNode(startX + c * spacing, startY + r * spacing, c + 1);
                 grid[r][c] = graph.Nodes.get(graph.Nodes.size() - 1);
             }
         }
 
+        // Test de degrader de couleurs edge
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 if (c + 1 < cols)
-                    graph.addEdge(grid[r][c], grid[r][c + 1], 1, true);
+                    graph.addEdge(grid[r][c], grid[r][c + 1], r + c + 1, true);
                 if (r + 1 < rows)
-                    graph.addEdge(grid[r][c], grid[r + 1][c], 1, true);
+                    graph.addEdge(grid[r][c], grid[r + 1][c], r + c + 1, true);
             }
         }
 
         Agent a1 = new Agent("007", 2.5f, "AVAILABLE");
-        a1.setStartingNode(grid[0][0]);
+        a1.currentNode = grid[0][0];
         engine.addAgent(a1);
 
         Random random = new Random();

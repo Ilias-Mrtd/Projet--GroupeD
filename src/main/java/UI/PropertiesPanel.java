@@ -236,7 +236,7 @@ public class PropertiesPanel extends VBox {
                     "Type      : Arête\n"
                             + "ID        : " + ed.id + "\n"
                             + "Connexion : " + ed.source.id + dir + ed.target.id + "\n"
-                            + "Longueur  : " + (int) ed.length + " px\n"
+                            + "Capacité  : " + ed.capacity + "\n"
                             + "Direction : " + (ed.direction ? "unidirect." : "bidirect.") + "\n"
                             + "État      : " + ed.state);
 

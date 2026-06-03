@@ -2,7 +2,6 @@ package UI.renderers;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-
 import model.graph.Edge;
 
 public class EdgeRenderer implements EdgeRendering {
@@ -22,11 +21,14 @@ public class EdgeRenderer implements EdgeRendering {
             case OUT:
                 gc.setStroke(Color.BLACK);
                 break;
+            case AVAILABLE:
+                Color edgeStress = Color.GREY.interpolate(Color.RED,
+                        ((double) edge.currentOccupants / (double) edge.capacity));
+                gc.setStroke(edgeStress);
+                break;
             case FULL:
                 gc.setStroke(Color.RED);
                 break;
-            case AVAILABLE:
-                gc.setStroke(Color.GREY);
         }
 
         gc.setLineWidth(EDGE_WIDTH);

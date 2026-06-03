@@ -67,7 +67,6 @@ public class Agent {
                 break;
             case RANDOM_WANDER:
                 this.state = agentState.AVAILABLE;
-                this.currentNode.leave();
                 /*
                  * if (graph != null && !graph.Nodes.isEmpty()) {
                  * int randomIndex = (int) (Math.random() * graph.Nodes.size());

@@ -22,7 +22,9 @@ public class NodeRenderer implements NodeRendering {
                 gc.setFill(Color.BLACK);
                 break;
             case AVAILABLE:
-                gc.setFill(Color.DARKGREY);
+                Color nodeStress = Color.GREY.interpolate(Color.RED,
+                        ((double) node.currentOccupants / (double) node.capacity));
+                gc.setFill(nodeStress);
                 break;
             case FULL:
                 gc.setFill(Color.RED);
