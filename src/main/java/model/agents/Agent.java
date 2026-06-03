@@ -17,6 +17,9 @@ public class Agent {
     public Node destination;
     public boolean isSelected = false;
 
+    private int isBlockedSince = 0;
+    private Node auxNode;
+
     public float distanceTraveledOnEdge = 0.0f;
     public List<Node> objectives = new ArrayList<>();
     public List<Node> path = new ArrayList<>();
@@ -29,7 +32,7 @@ public class Agent {
     public List<Edge> reservedEdges = new ArrayList<>();
 
     public boolean isRetreating = false;
-    
+
     public enum EndBehavior {
         STOP,
         REMOVE,
@@ -248,6 +251,22 @@ public class Agent {
         }
 
         if (this.state == agentState.RUNNING || this.state == agentState.WAITING) {
+
+            // Verifier qu'une arete n'a pas ete suprimer du chemin
+            if (this.state == agentState.RUNNING && this.currentNode != null && this.currentEdge == null) {
+                if (this.auxNode != null && this.currentNode == this.auxNode) {
+                    this.isBlockedSince++;
+                    if (this.isBlockedSince > 3) {
+                        this.isBlockedSince = 0;
+                        System.out.println("Etape 3");
+                        this.path.clear();
+                        this.objectives.add(0, destination);
+                        startNextObjective();
+                    }
+                } else {
+                    this.auxNode = this.currentNode;
+                }
+            }
 
             // ETAPE 1 : Chercher à entrer sur l'arête suivante
 
@@ -544,5 +563,5 @@ public class Agent {
     public void setRetreating(boolean isRetreating) {
         this.isRetreating = isRetreating;
     }
-    
+
 }

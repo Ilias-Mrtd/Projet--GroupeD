@@ -123,7 +123,6 @@ public class Dijkstra implements PathFinder {
                     // phase de validation
                     for (int i = 0; i < graphSize; i++) {
                         if (pathLength.get(i) <= minimumLength && foundVertice.get(i) == false) {
-                            System.out.println("ICI1!");
                             if (graph.Edges.size() > indiceSource && graph.Edges.get(indiceMinimum).size() > i) {
                                 minimumLength = graph.Edges.get(indiceSource).get(i).length;
                                 indiceMinimum = i;
@@ -145,17 +144,27 @@ public class Dijkstra implements PathFinder {
         Node auxNode = target;
         for (int v = 0; v < graphSize; v++) {
             for (int u = 0; u < graphSize; u++) {
-                if (auxNode.id == source.id) {
+                if (auxNode == null) {
+                    path.clear();
                     break;
                 } else {
-                    if (graph.Nodes.get(u).id == auxNode.id) {
-                        path.add(0, graph.Nodes.get(u));
-                        auxNode = nearestVertice.get(u);
+                    if (auxNode.id == source.id) {
+                        break;
+                    } else {
+                        if (graph.Nodes.get(u).id == auxNode.id) {
+                            path.add(0, graph.Nodes.get(u));
+                            auxNode = nearestVertice.get(u);
+                        }
                     }
                 }
-            }
-            if (auxNode.id == source.id) {
-                break;
+                if (auxNode == null) {
+                    path.clear();
+                    break;
+                } else {
+                    if (auxNode.id == source.id) {
+                        break;
+                    }
+                }
             }
         }
         /**
