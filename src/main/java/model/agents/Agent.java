@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.graph.*;
+import simulationEngine.Dijkstra;
 
 public class Agent {
 

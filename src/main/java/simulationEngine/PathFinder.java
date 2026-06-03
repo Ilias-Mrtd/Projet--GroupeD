@@ -1,4 +1,4 @@
-package model.agents;
+package simulationEngine;
 
 import model.graph.*;
 
