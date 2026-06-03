@@ -11,6 +11,7 @@ import model.graph.Node;
 public class AgentRenderer implements AgentRendering {
     private final int NODE_RADIUS = 15;
     private final int AGENT_RADIUS = 10;
+    private final float EDGE_WIDTH = 8.0f;
 
     @Override
     public void drawAgent(GraphicsContext gc, Agent agent) {
@@ -21,10 +22,42 @@ public class AgentRenderer implements AgentRendering {
         double x = pos.getX() - (AGENT_RADIUS / 2);
         double y = pos.getY() - (AGENT_RADIUS / 2);
 
-        // Halo de selection
         if (agent.isSelected) {
+            // Halo de selection
             gc.setFill(Color.YELLOWGREEN);
             gc.fillOval(x - 3, y - 3, AGENT_RADIUS + 6, AGENT_RADIUS + 6);
+
+            Node auxNode = null;
+
+            // Affichage du chemin de l'agent sur l'arete
+            if (agent.currentEdge != null && agent.currentNode != null) {
+                gc.setStroke(Color.BLUE);
+                gc.setLineWidth(EDGE_WIDTH / 3);
+                if (agent.currentEdge.source == agent.currentNode) {
+                    gc.strokeLine(x + AGENT_RADIUS / 2, y + AGENT_RADIUS / 2, agent.currentEdge.target.x,
+                            agent.currentEdge.target.y);
+                    auxNode = agent.currentEdge.target;
+                } else {
+                    gc.strokeLine(x + AGENT_RADIUS / 2, y + AGENT_RADIUS / 2, agent.currentEdge.source.x,
+                            agent.currentEdge.source.y);
+                    auxNode = agent.currentEdge.source;
+                }
+            }
+
+            // Affichage du chemin sur le reste des aretes
+            if (auxNode != null) {
+                gc.setFill(Color.BLUE);
+                gc.fillOval(auxNode.x - AGENT_RADIUS / 3, auxNode.y - AGENT_RADIUS / 3, AGENT_RADIUS / 1.5,
+                        AGENT_RADIUS / 1.5);
+                for (Node node : agent.path) {
+                    gc.strokeLine(auxNode.x, auxNode.y, node.x,
+                            node.y);
+                    auxNode = node;
+                    gc.setFill(Color.BLUE);
+                    gc.fillOval(auxNode.x - AGENT_RADIUS / 3, auxNode.y - AGENT_RADIUS / 3, AGENT_RADIUS / 1.5,
+                            AGENT_RADIUS / 1.5);
+                }
+            }
         }
 
         switch (agent.state) {
