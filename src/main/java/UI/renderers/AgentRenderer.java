@@ -22,7 +22,7 @@ public class AgentRenderer implements AgentRendering {
         double x = pos.getX() - (AGENT_RADIUS / 2);
         double y = pos.getY() - (AGENT_RADIUS / 2);
 
-        if (agent.isSelected) {
+        if (agent.isSelected()) {
             // Halo de selection
             gc.setFill(Color.YELLOWGREEN);
             gc.fillOval(x - 3, y - 3, AGENT_RADIUS + 6, AGENT_RADIUS + 6);
@@ -30,37 +30,37 @@ public class AgentRenderer implements AgentRendering {
             Node auxNode = null;
 
             // Affichage du chemin de l'agent sur l'arete
-            if (agent.currentEdge != null && agent.currentNode != null) {
+            if (agent.getCurrentEdge() != null && agent.getCurrentNode() != null) {
                 gc.setStroke(Color.BLUE);
                 gc.setLineWidth(EDGE_WIDTH / 3);
-                if (agent.currentEdge.source == agent.currentNode) {
-                    gc.strokeLine(x + AGENT_RADIUS / 2, y + AGENT_RADIUS / 2, agent.currentEdge.target.x,
-                            agent.currentEdge.target.y);
-                    auxNode = agent.currentEdge.target;
+                if (agent.getCurrentEdge().source == agent.getCurrentNode()) {
+                    gc.strokeLine(x + AGENT_RADIUS / 2, y + AGENT_RADIUS / 2, agent.getCurrentEdge().target.getX(),
+                            agent.getCurrentEdge().target.getY());
+                    auxNode = agent.getCurrentEdge().target;
                 } else {
-                    gc.strokeLine(x + AGENT_RADIUS / 2, y + AGENT_RADIUS / 2, agent.currentEdge.source.x,
-                            agent.currentEdge.source.y);
-                    auxNode = agent.currentEdge.source;
+                    gc.strokeLine(x + AGENT_RADIUS / 2, y + AGENT_RADIUS / 2, agent.getCurrentEdge().source.getX(),
+                            agent.getCurrentEdge().source.getY());
+                    auxNode = agent.getCurrentEdge().source;
                 }
             }
 
             // Affichage du chemin sur le reste des aretes
             if (auxNode != null) {
                 gc.setFill(Color.BLUE);
-                gc.fillOval(auxNode.x - AGENT_RADIUS / 3, auxNode.y - AGENT_RADIUS / 3, AGENT_RADIUS / 1.5,
+                gc.fillOval(auxNode.getX() - AGENT_RADIUS / 3, auxNode.getY() - AGENT_RADIUS / 3, AGENT_RADIUS / 1.5,
                         AGENT_RADIUS / 1.5);
-                for (Node node : agent.path) {
-                    gc.strokeLine(auxNode.x, auxNode.y, node.x,
-                            node.y);
+                for (Node node : agent.getPath()) {
+                    gc.strokeLine(auxNode.getX(), auxNode.getY(), node.getX(),
+                            node.getY());
                     auxNode = node;
                     gc.setFill(Color.BLUE);
-                    gc.fillOval(auxNode.x - AGENT_RADIUS / 3, auxNode.y - AGENT_RADIUS / 3, AGENT_RADIUS / 1.5,
+                    gc.fillOval(auxNode.getX() - AGENT_RADIUS / 3, auxNode.getY() - AGENT_RADIUS / 3, AGENT_RADIUS / 1.5,
                             AGENT_RADIUS / 1.5);
                 }
             }
         }
 
-        switch (agent.state) {
+        switch (agent.getState()) {
             case AVAILABLE:
                 gc.setFill(Color.GREEN);
                 break;
@@ -81,23 +81,23 @@ public class AgentRenderer implements AgentRendering {
 
         // etickette
         gc.setFill(Color.BLACK);
-        gc.fillText("id: " + agent.id, x + 5, y + 10);
+        gc.fillText("id: " + agent.getId(), x + 5, y + 10);
     }
 
     private Point2D computeAgentPosition(Agent agent) {
-        if (agent.currentNode == null)
+        if (agent.getCurrentNode() == null)
             return null;
 
         // L'agent est sur un nœud, pas sur une arête
-        if (agent.currentEdge == null) {
-            return new Point2D(agent.currentNode.x, agent.currentNode.y);
+        if (agent.getCurrentEdge() == null) {
+            return new Point2D(agent.getCurrentNode().getX(), agent.getCurrentNode().getY());
         }
 
-        Edge edge = agent.currentEdge;
+        Edge edge = agent.getCurrentEdge();
         double edgeLength = edge.length;
 
         // t = progression de 0.0 (source) à 1.0 (target)
-        double visualDist = agent.distanceTraveledOnEdge;
+        double visualDist = agent.getDistanceTraveledOnEdge();
         if (visualDist >= edgeLength) {
             // On le dessine juste avant le noeud (on soustrait le rayon du noeud et la
             // taille de l'agent)
@@ -109,11 +109,11 @@ public class AgentRenderer implements AgentRendering {
         // ← FIX : "from" est toujours edge.source, "to" toujours edge.target
         // La direction de marche est gérée par distanceTraveledOnEdge
         // (qui diminue quand isRetreating=true)
-        Node from = (edge.source == agent.currentNode) ? edge.source : edge.target;
+        Node from = (edge.source == agent.getCurrentNode()) ? edge.source : edge.target;
         Node to = (from == edge.source) ? edge.target : edge.source;
 
-        double px = from.x + t * (to.x - from.x);
-        double py = from.y + t * (to.y - from.y);
+        double px = from.getX() + t * (to.getX() - from.getX());
+        double py = from.getY() + t * (to.getY() - from.getY());
 
         return new Point2D(px, py);
     }

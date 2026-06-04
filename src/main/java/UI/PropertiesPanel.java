@@ -209,14 +209,14 @@ public class PropertiesPanel extends VBox {
             Agent a = (Agent) selected;
             StringBuilder sb = new StringBuilder();
             sb.append("Type    : Agent\n")
-                    .append("ID      : ").append(a.id).append("\n")
-                    .append("État    : ").append(a.state).append("\n")
-                    .append("Vitesse : ").append(a.speed).append(" px/s\n");
-            if (a.currentEdge != null && a.destination != null)
-                sb.append("Trajet  : ").append(a.currentNode.id).append(" ➔ ").append(a.destination.id).append("\n")
-                        .append("Sur arête : ").append(a.currentEdge.id);
-            else if (a.currentNode != null)
-                sb.append("Position : nœud ").append(a.currentNode.id + "\n ");
+                    .append("ID      : ").append(a.getId()).append("\n")
+                    .append("État    : ").append(a.getState()).append("\n")
+                    .append("Vitesse : ").append(a.getSpeed()).append(" px/s\n");
+            if (a.getCurrentEdge() != null && a.getDestination() != null)
+                sb.append("Trajet  : ").append(a.getCurrentNode().id).append(" ➔ ").append(a.getDestination().id).append("\n")
+                        .append("Sur arête : ").append(a.getCurrentEdge().id);
+            else if (a.getCurrentNode() != null)
+                sb.append("Position : nœud ").append(a.getCurrentNode().id + "\n ");
             infoLabel.setText(sb.toString());
 
         } else if (selected instanceof Node) {
@@ -341,14 +341,14 @@ public class PropertiesPanel extends VBox {
 
     private Object findSelectedItem() {
         for (Agent a : agents)
-            if (a.isSelected)
+            if (a.isSelected())
                 return a;
         for (Node n : graph.Nodes)
-            if (n.isSelected)
+            if (n.isSelected())
                 return n;
         for (List<Edge> edges : graph.Edges)
             for (Edge e : edges)
-                if (e.isSelected)
+                if (e.isSelected())
                     return e;
         return null;
     }

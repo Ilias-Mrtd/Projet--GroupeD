@@ -79,7 +79,7 @@ public class Main extends Application {
             Node sel = propertiesPanel.getSelectedNode();
             if (sel == null)
                 return;
-            boolean occupied = agents.stream().anyMatch(a -> a.currentNode == sel);
+            boolean occupied = agents.stream().anyMatch(a -> a.getCurrentNode() == sel);
             if (occupied) {
                 System.out.println("[Main] Nœud " + sel.id + " occupé, suppression impossible.");
                 return;
@@ -94,7 +94,7 @@ public class Main extends Application {
             if (sel == null)
                 return;
             // Vérifier qu'aucun agent n'est dessus
-            boolean occupied = agents.stream().anyMatch(a -> a.currentEdge == sel);
+            boolean occupied = agents.stream().anyMatch(a -> a.getCurrentEdge() == sel);
             if (occupied) {
                 System.out.println("[Main] Arête " + sel.id + " occupée, suppression impossible.");
                 return;
@@ -161,7 +161,7 @@ public class Main extends Application {
         }
 
         Agent a1 = new Agent("007", 2.5f, "AVAILABLE");
-        a1.currentNode = grid[0][0];
+        a1.setCurrentNode(grid[0][0]);
         engine.addAgent(a1);
 
         Random random = new Random();

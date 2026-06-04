@@ -122,7 +122,7 @@ public class SelectionSystem {
         Agent clickedAgent = findAgentAt(x, y);
         if (clickedAgent != null) {
             lastSelectedAgent = clickedAgent;
-            clickedAgent.isSelected = true;
+            clickedAgent.setSelected(true);
             canvas.draw();
             return;
         }
@@ -154,9 +154,9 @@ public class SelectionSystem {
     // ================================================================= helpers
 
     private void clearAllSelections() {
-        if (lastSelectedNode  != null) { lastSelectedNode.isSelected  = false; lastSelectedNode  = null; }
-        if (lastSelectedEdge  != null) { lastSelectedEdge.isSelected  = false; lastSelectedEdge  = null; }
-        if (lastSelectedAgent != null) { lastSelectedAgent.isSelected = false; lastSelectedAgent = null; }
+        if (getLastSelectedNode()  != null) { getLastSelectedNode().setSelected(false); setLastSelectedNode(null); }
+        if (getLastSelectedEdge()  != null) { getLastSelectedEdge().setSelected(false); setLastSelectedEdge(null); }
+        if (getLastSelectedAgent() != null) { getLastSelectedAgent().setSelected(false); setLastSelectedAgent(null); }
     }
 
     private Node findNodeAt(double x, double y) {
@@ -193,17 +193,17 @@ public class SelectionSystem {
     }
 
     private Point2D computeAgentPosition(Agent agent) {
-        if (agent.currentNode == null) return null;
-        if (agent.currentEdge == null) return new Point2D(agent.currentNode.x, agent.currentNode.y);
+        if (agent.getCurrentNode() == null) return null;
+        if (agent.getCurrentEdge() == null) return new Point2D(agent.getCurrentNode().getX(), agent.getCurrentNode().getY());
 
-        Edge   edge       = agent.currentEdge;
-        double edgeLength = edge.length;
-        double visualDist = agent.distanceTraveledOnEdge;
+        Edge   edge       = agent.getCurrentEdge();
+        double edgeLength = edge.getLength();
+        double visualDist = agent.getDistanceTraveledOnEdge();
         if (visualDist >= edgeLength)
             visualDist = Math.max(0, edgeLength - NODE_RADIUS - (AGENT_RADIUS / 2.0));
 
         double t    = (edgeLength > 0) ? Math.min(visualDist / edgeLength, 1.0) : 1.0;
-        Node   from = (edge.source == agent.currentNode) ? edge.source : edge.target;
+        Node   from = (edge.getSource() == agent.getCurrentNode()) ? edge.source : edge.target;
         Node   to   = (from == edge.source)              ? edge.target : edge.source;
         return new Point2D(from.x + t*(to.x-from.x), from.y + t*(to.y-from.y));
     }

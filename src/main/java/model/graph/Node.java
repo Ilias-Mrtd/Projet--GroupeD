@@ -83,7 +83,7 @@ public class Node {
     }
 
     public int getExpectedOccupants() {
-        return expectedOccupants;
+        return this.expectedOccupants;
     }
 
     public void setExpectedOccupants(int expectedOccupants) {

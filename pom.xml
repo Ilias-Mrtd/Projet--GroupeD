@@ -55,7 +55,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>ProjetGroupeD/application.Main</mainClass> <!-- Chemin vers ta classe contenant le main -->
+                    <mainClass>application.Main</mainClass> <!-- Chemin vers ta classe contenant le main -->
                 </configuration>
             </plugin>
         </plugins>

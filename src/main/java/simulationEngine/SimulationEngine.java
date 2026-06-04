@@ -51,14 +51,14 @@ public class SimulationEngine extends AnimationTimer {
     }
 
     public void addAgent(Agent agent) {
-        agent.graph = this.graph;
+        agent.setGraph(getGraph());
         this.agents.add(agent);
 
-        if (agent.currentNode != null) {
-            agent.currentNode.forceEnter();
-            agent.setStartingNode(agent.currentNode);
+        if (agent.getCurrentNode() != null) {
+            agent.getCurrentNode().forceEnter();
+            agent.setStartingNode(agent.getCurrentNode());
         }
-        System.out.println("Agent " + agent.id + " ajouté au moteur de simulation.");
+        System.out.println("Agent " + agent.getId() + " ajouté au moteur de simulation.");
     }
 
     /**
@@ -101,22 +101,22 @@ public class SimulationEngine extends AnimationTimer {
 
         for (Agent a : agents) {
             // Libérer proprement les ressources occupées
-            if (a.currentEdge != null)
-                a.currentEdge.leave();
-            if (a.currentNode != null)
-                a.currentNode.leave();
+            if (a.getCurrentEdge() != null)
+                a.getCurrentEdge().leave();
+            if (a.getCurrentNode() != null)
+                a.getCurrentNode().leave();
 
             // Remettre à zéro
-            a.distanceTraveledOnEdge = 0.0f;
-            a.currentEdge = null;
-            a.state = Agent.agentState.AVAILABLE;
-            a.objectives.clear();
-            a.path.clear();
-            a.isRetreating = false;
+            a.setDistanceTraveledOnEdge(0.0f);
+            a.setCurrentEdge(null);
+            a.setState(Agent.agentState.AVAILABLE);
+            a.getObjectives().clear();
+            a.getPath().clear();
+            a.setRetreating(false);
 
             // Retour au nœud de départ
-            a.setStartingNode(a.startingNode);
-            a.currentNode.forceEnter();
+            a.setStartingNode(a.getStartingNode());
+            a.getCurrentNode().forceEnter();
 
             // Reinitialisation des etats des noeuds
             Random random = new Random();
@@ -128,8 +128,8 @@ public class SimulationEngine extends AnimationTimer {
 
             // Reassignation d'objetifs
             for (Agent agent : this.agents) {
-                System.out.println("Agent ID : " + agent.id);
-                System.out.println("État     : " + agent.state);
+                System.out.println("Agent ID : " + agent.getId());
+                System.out.println("État     : " + agent.getState());
 
                 // Objectifs
                 agent.addObjective(this.graph.Nodes.get(11));
