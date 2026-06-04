@@ -139,6 +139,34 @@ public class Agent {
         getReservedEdges().clear();
     }
 
+    public void releaseAll() {
+        clearReservations();
+
+        // 2. Si l'agent est sur une arête : libérer l'arête + l'incomingOccupants du nœud cible
+        if (getCurrentEdge() != null) {
+            Node targetNode = (getCurrentEdge().getSource() == getCurrentNode())
+                    ? getCurrentEdge().getTarget()
+                    : getCurrentEdge().getSource();
+            if (targetNode != null && targetNode.getIncomingOccupants() > 0) {
+                targetNode.setIncomingOccupants(targetNode.getIncomingOccupants() - 1);
+            }
+            getCurrentEdge().leave();
+            getCurrentEdge().removeQueue(this);
+            setCurrentEdge(null);
+        }
+
+        // 3. Si l'agent occupe un nœud : libérer la place physique
+        if (getCurrentNode() != null) {
+            getCurrentNode().leave();
+            getCurrentNode().removeQueue(this);
+        }
+
+        // 4. Nettoyer l'état interne
+        getPath().clear();
+        getObjectives().clear();
+        setState(agentState.OUT);
+    }
+
     public Agent(int id, float speed, agentState state) {
         setId(id);
         setSpeed(speed);

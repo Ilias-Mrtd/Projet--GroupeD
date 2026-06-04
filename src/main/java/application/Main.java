@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import model.graph.*;
@@ -24,6 +25,8 @@ import simulationEngine.SimulationEngine;
 public class Main extends Application {
 
     private final AtomicInteger nextAgentId = new AtomicInteger(1000);
+    private final Random random = new Random();
+
 
     @Override
     public void start(Stage primaryStage) {
@@ -59,10 +62,8 @@ public class Main extends Application {
         SimulationEngine engine = new SimulationEngine(graph, agents, graphCanvas, propertiesPanel);
 
         // 4. CALLBACKS D'ÉDITION
-        // Important : on ne touche JAMAIS à engine.stop()/start() ici
         propertiesPanel.setSelectionSystem(selectionSystem);
 
-        // Ajouter un nœud à la position du clic dans le vide
         propertiesPanel.setOnAddNode(() -> {
             int cap = propertiesPanel.getNodeCapacity();
             if (selectionSystem.hasPendingPosition()) {
@@ -75,11 +76,9 @@ public class Main extends Application {
             graphCanvas.draw();
         });
 
-        // Supprimer le nœud sélectionné (seulement si aucun agent dessus)
         propertiesPanel.setOnRemoveNode(() -> {
             Node sel = propertiesPanel.getSelectedNode();
-            if (sel == null)
-                return;
+            if (sel == null) return;
             boolean occupied = agents.stream().anyMatch(a -> a.getCurrentNode() == sel);
             if (occupied) {
                 System.out.println("[Main] Nœud " + sel.getId() + " occupé, suppression impossible.");
@@ -89,12 +88,9 @@ public class Main extends Application {
             graphCanvas.draw();
         });
 
-        // Supprimer l'arête sélectionnée
         propertiesPanel.setOnRemoveEdge(() -> {
             Edge sel = propertiesPanel.getSelectedEdge();
-            if (sel == null)
-                return;
-            // Vérifier qu'aucun agent n'est dessus
+            if (sel == null) return;
             boolean occupied = agents.stream().anyMatch(a -> a.getCurrentEdge() == sel);
             if (occupied) {
                 System.out.println("[Main] Arête " + sel.getId() + " occupée, suppression impossible.");
@@ -106,17 +102,39 @@ public class Main extends Application {
             graphCanvas.draw();
         });
 
-        // Ajouter un agent sur le nœud sélectionné
         propertiesPanel.setOnAddAgent(() -> {
             Node sel = propertiesPanel.getSelectedNode();
-            if (sel == null)
-                return;
+            if (sel == null) return;
             int newId = nextAgentId.getAndIncrement();
             Agent newAgent = new Agent(newId, 2.5f, agentState.AVAILABLE);
             newAgent.setStartingNode(sel);
             engine.addAgent(newAgent);
             System.out.println("[Main] Agent " + newId + " ajouté sur nœud " + sel.getId());
             graphCanvas.draw();
+        });
+
+        // Supprimer l'agent sélectionné (libère toutes ses ressources)
+        propertiesPanel.setOnRemoveAgent(() -> {
+            Agent sel = propertiesPanel.getSelectedAgent();
+            if (sel == null) return;
+            sel.releaseAll();          // libère réservations + occupants + files
+            agents.remove(sel);        // retire de la liste du moteur
+            System.out.println("[Main] Agent " + sel.getId() + " supprimé de la simulation.");
+            graphCanvas.draw();
+        });
+
+        // ====================================================== GÉNÉRATION DE MASSE
+
+        // "Générer un graphe" : crée un réseau aléatoire connexe
+        propertiesPanel.setOnGenerateGraph(() -> {
+            int side = propertiesPanel.getGenGridSide();
+            generateRandomGraph(graph, agents, engine, graphCanvas, side);
+        });
+
+        // "Faire apparaître les agents" : N agents répartis aléatoirement
+        propertiesPanel.setOnSpawnAgents(() -> {
+            int n = propertiesPanel.getGenAgentCount();
+            spawnRandomAgents(graph, engine, graphCanvas, n);
         });
 
         btnPlay.setOnAction(e -> engine.restartSimulation());
@@ -134,6 +152,99 @@ public class Main extends Application {
         engine.start();
     }
 
+    // ============================================================== GRAPHE ALÉATOIRE
+
+    /**
+     * Génère un graphe en GRILLE CARRÉE de côté "side" (side x side nœuds).
+     *
+     * Principe simple (facile à présenter) :
+     *  - "side" vient directement du panneau (+/-), donc chaque clic change la grille.
+     *  - L'espacement entre nœuds s'adapte à la taille du canvas → la grille rentre toujours.
+     *  - Chaque nœud est relié à son voisin de DROITE et du BAS (grille classique, connexe).
+     *  - Capacités des nœuds et des arêtes aléatoires entre 1 et 5.
+     */
+    private void generateRandomGraph(Graph graph, List<Agent> agents,
+                                     SimulationEngine engine, GraphCanvas canvas, int side) {
+
+        // 1. On vide le graphe et les agents existants
+        agents.clear();
+        graph.setNodes(new ArrayList<>());
+        graph.setEdges(new ArrayList<>());
+
+        if (side < 2) side = 2;
+
+        // 2. Espacement adaptatif : on répartit la grille dans le canvas avec une marge
+        int margin = 80;
+        double w = Math.max(canvas.getWidth(), 600);
+        double h = Math.max(canvas.getHeight(), 400);
+
+        // (side - 1) intervalles entre les nœuds sur chaque axe
+        double spacingX = (w - 2 * margin) / Math.max(1, side - 1);
+        double spacingY = (h - 2 * margin) / Math.max(1, side - 1);
+        double spacing  = Math.min(spacingX, spacingY); // on garde des carrés réguliers
+
+        Node[][] grid = new Node[side][side];
+
+        // 3. Création des nœuds (capacité aléatoire 1 à 5)
+        for (int r = 0; r < side; r++) {
+            for (int c = 0; c < side; c++) {
+                int x = (int) (margin + c * spacing);
+                int y = (int) (margin + r * spacing);
+                int cap = 1 + random.nextInt(5); // 1 à 5
+                graph.addNode(x, y, cap);
+                grid[r][c] = graph.getNodes().get(graph.getNodes().size() - 1);
+            }
+        }
+
+        // 4. Arêtes : voisin de droite + voisin du bas (capacité aléatoire 1 à 5)
+        for (int r = 0; r < side; r++) {
+            for (int c = 0; c < side; c++) {
+                if (c + 1 < side)
+                    graph.addEdge(grid[r][c], grid[r][c + 1], 1 + random.nextInt(5), true);
+                if (r + 1 < side)
+                    graph.addEdge(grid[r][c], grid[r + 1][c], 1 + random.nextInt(5), true);
+            }
+        }
+
+        System.out.println("[Main] Grille " + side + "x" + side + " générée ("
+                + graph.getNodes().size() + " nœuds).");
+        canvas.draw();
+    }
+
+    // ============================================================== AGENTS EN MASSE
+
+    /**
+     * Fait apparaître n agents sur des nœuds choisis au hasard,
+     * avec un objectif aléatoire chacun.
+     */
+    private void spawnRandomAgents(Graph graph, SimulationEngine engine,
+                                   GraphCanvas canvas, int n) {
+        List<Node> nodes = graph.getNodes();
+        if (nodes.isEmpty()) {
+            System.out.println("[Main] Aucun nœud : générez d'abord un graphe.");
+            return;
+        }
+
+        for (int i = 0; i < n; i++) {
+            Node start = nodes.get(random.nextInt(nodes.size()));
+            int id = nextAgentId.getAndIncrement();
+            float speed = 2.0f + random.nextFloat() * 2.0f; // vitesse 2.0 à 4.0
+            Agent agent = new Agent(id, speed, agentState.AVAILABLE);
+            agent.setStartingNode(start);
+            // comportement aléatoire
+            agent.setAgentBehavior(random.nextBoolean() ? agentBehavior.PATIENT : agentBehavior.HURRIED);
+            engine.addAgent(agent);
+            // un objectif aléatoire différent du départ si possible
+            Node objective = nodes.get(random.nextInt(nodes.size()));
+            agent.addObjective(objective);
+        }
+
+        System.out.println("[Main] " + n + " agents générés.");
+        canvas.draw();
+    }
+
+    // ============================================================== SCÉNARIO TEST
+
     private void setupSampleGraph(Graph graph, List<Agent> agents, SimulationEngine engine) {
         int cols = 5;
         int rows = 4;
@@ -143,7 +254,6 @@ public class Main extends Application {
 
         Node[][] grid = new Node[rows][cols];
 
-        // Test de degrader de couleurs node
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 graph.addNode(startX + c * spacing, startY + r * spacing, 1);
@@ -151,7 +261,6 @@ public class Main extends Application {
             }
         }
 
-        // Test de degrader de couleurs edge
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 if (c + 1 < cols)
