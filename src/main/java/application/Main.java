@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+
 import model.graph.*;
 import model.agents.Agent;
 import model.agents.Agent.agentBehavior;
@@ -72,7 +73,16 @@ public class Main extends Application {
         SelectionSystem selectionSystem = new SelectionSystem(graph, agents, graphCanvas);
         graphCanvas.setSelectionSystem(selectionSystem);
 
-        SimulationEngine engine = new SimulationEngine(graph, agents, graphCanvas, propertiesPanel);
+        // NOUVEAU : Instanciation propre (sans GraphCanvas ni PropertiesPanel)
+        SimulationEngine engine = new SimulationEngine(graph, agents);
+        
+        // NOUVEAU : On donne au moteur l'instruction de redessin
+        engine.setOnTick(() -> {
+            graphCanvas.draw();
+            propertiesPanel.refresh();
+        });
+
+   
 
         // 4. CALLBACKS D'ÉDITION
         propertiesPanel.setSelectionSystem(selectionSystem);

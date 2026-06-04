@@ -5,32 +5,32 @@ import java.util.Random;
 import java.util.Comparator;
 import java.util.List;
 
-import UI.GraphCanvas;
 import model.graph.*;
 import model.graph.Node.nodeState;
 import model.agents.Agent;
-import UI.PropertiesPanel;
 
 public class SimulationEngine extends AnimationTimer {
     public final Graph graph;
     public final List<Agent> agents;
-    private final GraphCanvas canvas;
-    private final PropertiesPanel propertiesPanel;
+
+    // L'Observer : une action générique à exécuter à chaque fin de boucle
+    private Runnable onTick;
 
     // Pour stocker le temps de la frame précédente
     private long lastUpdate = 0;
-
     private double timeMultiplier = 1.0;
+
+    public SimulationEngine(Graph graph, List<Agent> agents) {
+        this.graph = graph;
+        this.agents = agents;
+    }
 
     public void setTimeMultiplier(double multiplier) {
         this.timeMultiplier = multiplier;
     }
-    
-    public SimulationEngine(Graph graph, List<Agent> agents, GraphCanvas canvas, PropertiesPanel propertiesPanel) {
-        this.graph = graph;
-        this.agents = agents;
-        this.canvas = canvas;
-        this.propertiesPanel = propertiesPanel;
+
+    public void setOnTick(Runnable onTick) {
+        this.onTick = onTick;
     }
 
     public Graph getGraph() {
@@ -39,14 +39,6 @@ public class SimulationEngine extends AnimationTimer {
 
     public List<Agent> getAgents() {
         return agents;
-    }
-
-    public GraphCanvas getCanvas() {
-        return canvas;
-    }
-
-    public PropertiesPanel getPropertiesPanel() {
-        return propertiesPanel;
     }
 
     public long getLastUpdate() {
@@ -60,8 +52,7 @@ public class SimulationEngine extends AnimationTimer {
     public void addAgent(Agent agent) {
         agent.setGraph(getGraph());
         this.agents.add(agent);
-        agents.sort(Comparator.comparingInt(a -> a.getAgentBehavior().getPriority())); // Priority of HURRIED > PATIENT
-                                                                                       // > BROKEN
+        agents.sort(Comparator.comparingInt(a -> a.getAgentBehavior().getPriority())); // Priority of HURRIED > PATIENT > BROKEN
 
         if (agent.getCurrentNode() != null) {
             agent.getCurrentNode().forceEnter();
@@ -70,12 +61,6 @@ public class SimulationEngine extends AnimationTimer {
         System.out.println("Agent " + agent.getId() + " ajouté au moteur de simulation.");
     }
 
-    /**
-     * Cette méthode tourne en boucle ~60 fois par seconde tant que le moteur est
-     * "start()"
-     * 
-     * @param now Le temps actuel en nanosecondes
-     */
     @Override
     public void start() {
         this.lastUpdate = 0; // Évite un bond dans le temps quand on fait "Pause" puis "Play"
@@ -98,12 +83,14 @@ public class SimulationEngine extends AnimationTimer {
 
     // Extrait la logique d'une frame pour l'utiliser avec le bouton Step
     public void performStep(double deltaTime) {
+        // 2. Mise à jour de la logique (La physique et les décisions)
         for (Agent agent : agents) {
             agent.update(deltaTime);
         }
-        canvas.draw();
-        if (propertiesPanel != null) {
-            propertiesPanel.refresh();
+        
+        // 3. Notifier l'interface graphique qu'elle peut se redessiner
+        if (onTick != null) {
+            onTick.run();
         }
     }
 
@@ -112,10 +99,6 @@ public class SimulationEngine extends AnimationTimer {
         performStep((1.0 / 60.0) * timeMultiplier);
     }
 
-    /**
-     * Méthode appelée par ton bouton "Relancer" dans la Toolbar
-     */
-    // SimulationEngine.java
     public void restartSimulation() {
         this.stop();
 
@@ -158,7 +141,12 @@ public class SimulationEngine extends AnimationTimer {
         }
 
         lastUpdate = 0;
-        canvas.draw();
+        
+        // Redessiner après reset
+        if (onTick != null) {
+            onTick.run();
+        }
+        
         this.start();
     }
 }
