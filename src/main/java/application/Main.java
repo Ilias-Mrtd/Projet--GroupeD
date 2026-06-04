@@ -5,12 +5,15 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.geometry.Insets;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
 
 import model.graph.*;
 import model.agents.Agent;
@@ -41,12 +44,26 @@ public class Main extends Application {
 
         PropertiesPanel propertiesPanel = new PropertiesPanel(graph, agents);
 
-        HBox toolbar = new HBox(10);
+        // --- NOUVELLE TOOLBAR DE CONTRÔLE ---
+        HBox toolbar = new HBox(15);
         toolbar.setPadding(new Insets(10));
-        toolbar.setStyle("-fx-background-color: #E0E0E0;");
-        Button btnPlay = new Button("RELANCER");
-        toolbar.getChildren().add(btnPlay);
+        toolbar.setStyle("-fx-background-color: #E0E0E0; -fx-alignment: center-left;");
 
+        Button btnRestart = new Button("🔄 Relancer");
+        Button btnPlay = new Button("▶️ Play");
+        Button btnPause = new Button("⏸️ Pause");
+        Button btnStep = new Button("⏭️ Step");
+
+        Label lblSpeed = new Label("Vitesse : 1.0x");
+        Slider speedSlider = new Slider(0.1, 5.0, 1.0);
+        speedSlider.setShowTickMarks(true);
+        speedSlider.setShowTickLabels(true);
+        speedSlider.setMajorTickUnit(1.0);
+        speedSlider.setBlockIncrement(0.1);
+
+        toolbar.getChildren().addAll(btnRestart, btnPlay, btnPause, btnStep, lblSpeed, speedSlider);
+
+        // --- C'EST CE QUI AVAIT DISPARU : LA CRÉATION DU ROOT ---
         BorderPane root = new BorderPane();
         root.setTop(toolbar);
         root.setCenter(graphCanvas);
@@ -56,13 +73,20 @@ public class Main extends Application {
         SelectionSystem selectionSystem = new SelectionSystem(graph, agents, graphCanvas);
         graphCanvas.setSelectionSystem(selectionSystem);
 
-        SimulationEngine engine = new SimulationEngine(graph, agents, graphCanvas, propertiesPanel);
+        // NOUVEAU : Instanciation propre (sans GraphCanvas ni PropertiesPanel)
+        SimulationEngine engine = new SimulationEngine(graph, agents);
+        
+        // NOUVEAU : On donne au moteur l'instruction de redessin
+        engine.setOnTick(() -> {
+            graphCanvas.draw();
+            propertiesPanel.refresh();
+        });
+
+   
 
         // 4. CALLBACKS D'ÉDITION
-        // Important : on ne touche JAMAIS à engine.stop()/start() ici
         propertiesPanel.setSelectionSystem(selectionSystem);
 
-        // Ajouter un nœud à la position du clic dans le vide
         propertiesPanel.setOnAddNode(() -> {
             int cap = propertiesPanel.getNodeCapacity();
             if (selectionSystem.hasPendingPosition()) {
@@ -70,16 +94,14 @@ public class Main extends Application {
                         (int) selectionSystem.getPendingNodeY(), cap);
                 selectionSystem.clearPendingPosition();
             } else {
-                System.out.println("You tried to add a Node but did not selected a place.");
+                System.out.println("You tried to add a Node but did not select a place.");
             }
             graphCanvas.draw();
         });
 
-        // Supprimer le nœud sélectionné (seulement si aucun agent dessus)
         propertiesPanel.setOnRemoveNode(() -> {
             Node sel = propertiesPanel.getSelectedNode();
-            if (sel == null)
-                return;
+            if (sel == null) return;
             boolean occupied = agents.stream().anyMatch(a -> a.getCurrentNode() == sel);
             if (occupied) {
                 System.out.println("[Main] Nœud " + sel.getId() + " occupé, suppression impossible.");
@@ -89,12 +111,9 @@ public class Main extends Application {
             graphCanvas.draw();
         });
 
-        // Supprimer l'arête sélectionnée
         propertiesPanel.setOnRemoveEdge(() -> {
             Edge sel = propertiesPanel.getSelectedEdge();
-            if (sel == null)
-                return;
-            // Vérifier qu'aucun agent n'est dessus
+            if (sel == null) return;
             boolean occupied = agents.stream().anyMatch(a -> a.getCurrentEdge() == sel);
             if (occupied) {
                 System.out.println("[Main] Arête " + sel.getId() + " occupée, suppression impossible.");
@@ -106,7 +125,6 @@ public class Main extends Application {
             graphCanvas.draw();
         });
 
-        // Ajouter un agent sur le nœud sélectionné
         propertiesPanel.setOnAddAgent(() -> {
             Node sel = propertiesPanel.getSelectedNode();
             if (sel == null)
@@ -119,7 +137,23 @@ public class Main extends Application {
             graphCanvas.draw();
         });
 
-        btnPlay.setOnAction(e -> engine.restartSimulation());
+        // --- ÉVÉNEMENTS DES BOUTONS DE LECTURE ---
+        btnRestart.setOnAction(e -> engine.restartSimulation());
+        
+        btnPlay.setOnAction(e -> engine.start());
+        
+        btnPause.setOnAction(e -> engine.stop());
+        
+        btnStep.setOnAction(e -> {
+            engine.stop();
+            engine.doSingleStep();
+        });
+
+        speedSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            double speed = Math.round(newVal.doubleValue() * 10.0) / 10.0;
+            engine.setTimeMultiplier(speed);
+            lblSpeed.setText("Vitesse : " + speed + "x");
+        });
 
         // 5. SCÉNARIO DE TEST
         setupSampleGraph(graph, agents, engine);
@@ -143,7 +177,6 @@ public class Main extends Application {
 
         Node[][] grid = new Node[rows][cols];
 
-        // Test de degrader de couleurs node
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 graph.addNode(startX + c * spacing, startY + r * spacing, c + 1);
@@ -151,7 +184,6 @@ public class Main extends Application {
             }
         }
 
-        // Test de degrader de couleurs edge
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 if (c + 1 < cols)
