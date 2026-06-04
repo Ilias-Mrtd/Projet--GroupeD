@@ -10,11 +10,12 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import model.graph.*;
 import model.agents.Agent;
+import model.agents.Agent.agentBehavior;
+import model.agents.Agent.agentState;
 import UI.*;
 import UI.renderers.*;
 import controllers.SelectionSystem;
@@ -110,8 +111,8 @@ public class Main extends Application {
             Node sel = propertiesPanel.getSelectedNode();
             if (sel == null)
                 return;
-            String newId = String.valueOf(nextAgentId.getAndIncrement());
-            Agent newAgent = new Agent(newId, 2.5f, "AVAILABLE");
+            int newId = nextAgentId.getAndIncrement();
+            Agent newAgent = new Agent(newId, 2.5f, agentState.AVAILABLE);
             newAgent.setStartingNode(sel);
             engine.addAgent(newAgent);
             System.out.println("[Main] Agent " + newId + " ajouté sur nœud " + sel.getId());
@@ -145,7 +146,7 @@ public class Main extends Application {
         // Test de degrader de couleurs node
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                graph.addNode(startX + c * spacing, startY + r * spacing, c + 1);
+                graph.addNode(startX + c * spacing, startY + r * spacing, 1);
                 grid[r][c] = graph.getNodes().get(graph.getNodes().size() - 1);
             }
         }
@@ -160,14 +161,18 @@ public class Main extends Application {
             }
         }
 
-        Agent a1 = new Agent("007", 2.5f, "AVAILABLE");
+        Agent a1 = new Agent(007, 2.5f, Agent.agentState.AVAILABLE);
         a1.setCurrentNode(grid[0][0]);
+        a1.setAgentBehavior(agentBehavior.PATIENT);
         engine.addAgent(a1);
+        Agent a2 = new Agent(15, 3.0f, Agent.agentState.AVAILABLE);
+        a2.setCurrentNode(grid[0][1]);
+        a2.setAgentBehavior(agentBehavior.HURRIED);
+        engine.addAgent(a2);
 
-        Random random = new Random();
         for (Agent agent : engine.agents) {
-            agent.addObjective(grid[rows - 1][cols - 1]);
-            agent.addObjective(grid[random.nextInt(rows)][random.nextInt(cols)]);
+            agent.addObjective(grid[3][4]);
+            agent.addObjective(grid[3][0]);
         }
     }
 
