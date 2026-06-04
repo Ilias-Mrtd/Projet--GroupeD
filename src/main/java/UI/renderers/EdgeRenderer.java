@@ -11,19 +11,19 @@ public class EdgeRenderer implements EdgeRendering {
     public void drawEdge(GraphicsContext gc, Edge edge) {
 
         // Halo autour de l'arete
-        if (edge.isSelected) {
+        if (edge.isSelected()) {
             gc.setStroke(Color.YELLOWGREEN);
             gc.setLineWidth(EDGE_WIDTH + 6.0f);
-            gc.strokeLine(edge.source.x, edge.source.y, edge.target.x, edge.target.y);
+            gc.strokeLine(edge.getSource().getX(), edge.getSource().getY(), edge.getTarget().getX(), edge.getTarget().getY());
         }
 
-        switch (edge.state) {
+        switch (edge.getState()) {
             case OUT:
                 gc.setStroke(Color.BLACK);
                 break;
             case AVAILABLE:
                 Color edgeStress = Color.GREY.interpolate(Color.RED,
-                        ((double) edge.currentOccupants / (double) edge.capacity));
+                        ((double) edge.getCurrentOccupants() / (double) edge.getCapacity()));
                 gc.setStroke(edgeStress);
                 break;
             case FULL:
@@ -32,20 +32,20 @@ public class EdgeRenderer implements EdgeRendering {
         }
 
         gc.setLineWidth(EDGE_WIDTH);
-        gc.strokeLine(edge.source.x, edge.source.y, edge.target.x, edge.target.y);
+        gc.strokeLine(edge.getSource().getX(), edge.getSource().getY(), edge.getTarget().getX(), edge.getTarget().getY());
         gc.setLineWidth(1.0f);
 
         // etickette
         gc.setFill(Color.WHITE); // setFill et non setStroke pour le fillText !
-        gc.fillText("id: " + edge.id, (edge.source.x + edge.target.x) / 2, (edge.source.y + edge.target.y) / 2 + 20);
+        gc.fillText("id: " + edge.getId(), (edge.getSource().getX() + edge.getTarget().getX()) / 2, (edge.getSource().getY() + edge.getTarget().getY()) / 2 + 20);
 
         // fleche directionelle
-        if (!edge.direction) {
-            int mx = (int) ((edge.source.x + edge.target.x) / 2);
-            int my = (int) ((edge.source.y + edge.target.y) / 2);
+        if (!edge.isDirection()) {
+            int mx = (int) ((edge.getSource().getX() + edge.getTarget().getX()) / 2);
+            int my = (int) ((edge.getSource().getY() + edge.getTarget().getY()) / 2);
 
-            double angle = Math.atan2(edge.target.y - edge.source.y,
-                    edge.target.x - edge.source.x);
+            double angle = Math.atan2(edge.getTarget().getY() - edge.getSource().getY(),
+                    edge.getTarget().getX() - edge.getSource().getX());
             double headAng = Math.PI / 6;
             int len = 8;
             int head = 7;

@@ -81,7 +81,7 @@ public class Main extends Application {
                 return;
             boolean occupied = agents.stream().anyMatch(a -> a.getCurrentNode() == sel);
             if (occupied) {
-                System.out.println("[Main] Nœud " + sel.id + " occupé, suppression impossible.");
+                System.out.println("[Main] Nœud " + sel.getId() + " occupé, suppression impossible.");
                 return;
             }
             graph.removeNode(sel);
@@ -96,12 +96,12 @@ public class Main extends Application {
             // Vérifier qu'aucun agent n'est dessus
             boolean occupied = agents.stream().anyMatch(a -> a.getCurrentEdge() == sel);
             if (occupied) {
-                System.out.println("[Main] Arête " + sel.id + " occupée, suppression impossible.");
+                System.out.println("[Main] Arête " + sel.getId() + " occupée, suppression impossible.");
                 return;
             }
             for (List<Edge> list : graph.Edges)
-                list.removeIf(e -> e.id == sel.id);
-            System.out.println("[Main] Arête " + sel.id + " supprimée.");
+                list.removeIf(e -> e.getId() == sel.getId());
+            System.out.println("[Main] Arête " + sel.getId() + " supprimée.");
             graphCanvas.draw();
         });
 
@@ -114,7 +114,7 @@ public class Main extends Application {
             Agent newAgent = new Agent(newId, 2.5f, "AVAILABLE");
             newAgent.setStartingNode(sel);
             engine.addAgent(newAgent);
-            System.out.println("[Main] Agent " + newId + " ajouté sur nœud " + sel.id);
+            System.out.println("[Main] Agent " + newId + " ajouté sur nœud " + sel.getId());
             graphCanvas.draw();
         });
 

@@ -24,7 +24,6 @@ public class SelectionSystem {
     private Edge  lastSelectedEdge  = null;
     private Agent lastSelectedAgent = null;
 
-    // Position mémorisée lors d'un clic dans le vide
     private double pendingNodeX = -1;
     private double pendingNodeY = -1;
     private boolean hasPendingPosition = false;
@@ -39,7 +38,6 @@ public class SelectionSystem {
     }
     private EdgeLinkCallback edgeLinkCallback = null;
 
-    // Callback notifié quand l'utilisateur clique dans le vide
     @FunctionalInterface
     public interface EmptyClickCallback {
         void onEmptyClick(double x, double y);
@@ -63,7 +61,7 @@ public class SelectionSystem {
     }
 
     public void cancelEdgeLinking() {
-        if (linkSource != null) linkSource.isSelected = false;
+        if (linkSource != null) linkSource.setSelected(false);
         mode             = Mode.NORMAL;
         linkSource       = null;
         edgeLinkCallback = null;
@@ -101,11 +99,11 @@ public class SelectionSystem {
         if (linkSource == null) {
             linkSource = clicked;
             clearAllSelections();
-            linkSource.isSelected = true;
+            linkSource.setSelected(true);
             canvas.draw();
         } else {
             if (clicked == linkSource) return;
-            linkSource.isSelected = false;
+            linkSource.setSelected(false);
             Node target = clicked;
             mode = Mode.NORMAL;
             edgeLinkCallback.onEdgeLink(linkSource, target);
@@ -130,7 +128,7 @@ public class SelectionSystem {
         Node clickedNode = findNodeAt(x, y);
         if (clickedNode != null) {
             lastSelectedNode = clickedNode;
-            clickedNode.isSelected = true;
+            clickedNode.setSelected(true);
             canvas.draw();
             return;
         }
@@ -138,12 +136,11 @@ public class SelectionSystem {
         Edge clickedEdge = findEdgeAt(x, y);
         if (clickedEdge != null) {
             lastSelectedEdge = clickedEdge;
-            clickedEdge.isSelected = true;
+            clickedEdge.setSelected(true);
             canvas.draw();
             return;
         }
 
-        // Clic dans le vide → mémorise la position pour placement de nœud
         pendingNodeX       = x;
         pendingNodeY       = y;
         hasPendingPosition = true;
@@ -161,8 +158,8 @@ public class SelectionSystem {
 
     private Node findNodeAt(double x, double y) {
         Point2D click = new Point2D(x, y);
-        for (Node node : graph.Nodes)
-            if (click.distance(new Point2D(node.x, node.y)) <= NODE_RADIUS)
+        for (Node node : graph.getNodes())
+            if (click.distance(new Point2D(node.getX(), node.getY())) <= NODE_RADIUS)
                 return node;
         return null;
     }
@@ -178,14 +175,14 @@ public class SelectionSystem {
 
     private Edge findEdgeAt(double x, double y) {
         Point2D click = new Point2D(x, y);
-        for (List<Edge> edges : graph.Edges) {
+        for (List<Edge> edges : graph.getEdges()) {
             for (Edge edge : edges) {
-                Node n1 = edge.source, n2 = edge.target;
-                double l2 = Math.pow(n2.x - n1.x, 2) + Math.pow(n2.y - n1.y, 2);
+                Node n1 = edge.getSource(), n2 = edge.getTarget();
+                double l2 = Math.pow(n2.getX() - n1.getX(), 2) + Math.pow(n2.getY() - n1.getY(), 2);
                 if (l2 == 0) continue;
                 double t = Math.max(0, Math.min(1,
-                        ((x-n1.x)*(n2.x-n1.x) + (y-n1.y)*(n2.y-n1.y)) / l2));
-                if (click.distance(new Point2D(n1.x + t*(n2.x-n1.x), n1.y + t*(n2.y-n1.y))) <= EDGE_TOL)
+                        ((x-n1.getX())*(n2.getX()-n1.getX()) + (y-n1.getY())*(n2.getY()-n1.getY())) / l2));
+                if (click.distance(new Point2D(n1.getX() + t*(n2.getX()-n1.getX()), n1.getY() + t*(n2.getY()-n1.getY()))) <= EDGE_TOL)
                     return edge;
             }
         }
@@ -203,9 +200,9 @@ public class SelectionSystem {
             visualDist = Math.max(0, edgeLength - NODE_RADIUS - (AGENT_RADIUS / 2.0));
 
         double t    = (edgeLength > 0) ? Math.min(visualDist / edgeLength, 1.0) : 1.0;
-        Node   from = (edge.getSource() == agent.getCurrentNode()) ? edge.source : edge.target;
-        Node   to   = (from == edge.source)              ? edge.target : edge.source;
-        return new Point2D(from.x + t*(to.x-from.x), from.y + t*(to.y-from.y));
+        Node   from = (edge.getSource() == agent.getCurrentNode()) ? edge.getSource() : edge.getTarget();
+        Node   to   = (from == edge.getSource())              ? edge.getTarget() : edge.getSource();
+        return new Point2D(from.getX() + t*(to.getX()-from.getX()), from.getY() + t*(to.getY()-from.getY()));
     }
 
     public Graph getGraph() {

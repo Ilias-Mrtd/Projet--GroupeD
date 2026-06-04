@@ -33,14 +33,14 @@ public class AgentRenderer implements AgentRendering {
             if (agent.getCurrentEdge() != null && agent.getCurrentNode() != null) {
                 gc.setStroke(Color.BLUE);
                 gc.setLineWidth(EDGE_WIDTH / 3);
-                if (agent.getCurrentEdge().source == agent.getCurrentNode()) {
-                    gc.strokeLine(x + AGENT_RADIUS / 2, y + AGENT_RADIUS / 2, agent.getCurrentEdge().target.getX(),
-                            agent.getCurrentEdge().target.getY());
-                    auxNode = agent.getCurrentEdge().target;
+                if (agent.getCurrentEdge().getSource() == agent.getCurrentNode()) {
+                    gc.strokeLine(x + AGENT_RADIUS / 2, y + AGENT_RADIUS / 2, agent.getCurrentEdge().getTarget().getX(),
+                            agent.getCurrentEdge().getTarget().getY());
+                    auxNode = agent.getCurrentEdge().getTarget();
                 } else {
-                    gc.strokeLine(x + AGENT_RADIUS / 2, y + AGENT_RADIUS / 2, agent.getCurrentEdge().source.getX(),
-                            agent.getCurrentEdge().source.getY());
-                    auxNode = agent.getCurrentEdge().source;
+                    gc.strokeLine(x + AGENT_RADIUS / 2, y + AGENT_RADIUS / 2, agent.getCurrentEdge().getSource().getX(),
+                            agent.getCurrentEdge().getSource().getY());
+                    auxNode = agent.getCurrentEdge().getSource();
                 }
             }
 
@@ -94,9 +94,9 @@ public class AgentRenderer implements AgentRendering {
         }
 
         Edge edge = agent.getCurrentEdge();
-        double edgeLength = edge.length;
+        double edgeLength = edge.getLength();
 
-        // t = progression de 0.0 (source) à 1.0 (target)
+        // t = progression de 0.0 (getSource()) à 1.0 (getTarget())
         double visualDist = agent.getDistanceTraveledOnEdge();
         if (visualDist >= edgeLength) {
             // On le dessine juste avant le noeud (on soustrait le rayon du noeud et la
@@ -106,11 +106,11 @@ public class AgentRenderer implements AgentRendering {
 
         double t = (edgeLength > 0) ? Math.min(visualDist / edgeLength, 1.0) : 1.0;
 
-        // ← FIX : "from" est toujours edge.source, "to" toujours edge.target
+        // ← FIX : "from" est toujours edge.getSource(), "to" toujours edge.getTarget()
         // La direction de marche est gérée par distanceTraveledOnEdge
         // (qui diminue quand isRetreating=true)
-        Node from = (edge.source == agent.getCurrentNode()) ? edge.source : edge.target;
-        Node to = (from == edge.source) ? edge.target : edge.source;
+        Node from = (edge.getSource() == agent.getCurrentNode()) ? edge.getSource() : edge.getTarget();
+        Node to = (from == edge.getSource()) ? edge.getTarget() : edge.getSource();
 
         double px = from.getX() + t * (to.getX() - from.getX());
         double py = from.getY() + t * (to.getY() - from.getY());

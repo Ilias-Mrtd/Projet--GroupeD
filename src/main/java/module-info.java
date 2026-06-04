@@ -3,13 +3,18 @@ module ProjetGroupeD {
     requires javafx.fxml;
     requires transitive javafx.graphics;
 
-    opens UI.renderers to javafx.fxml;
+    // Permissions de réflexion pour JavaFX
+    opens application to javafx.graphics, javafx.fxml;
+    opens controllers to javafx.graphics, javafx.fxml, javafx.controls;
+    opens UI to javafx.graphics, javafx.fxml;
+    opens UI.renderers to javafx.fxml, javafx.graphics;
 
+    // Exportations de tes packages
     exports application;
     exports UI;
     exports UI.renderers;
-    exports controllers;
     exports simulationEngine;
     exports model.graph;
     exports model.agents;
+    exports controllers;
 }

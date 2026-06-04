@@ -21,7 +21,7 @@ public class Graph {
         int newId = random.nextInt(500);
 
         for (int i = 0; i < Nodes.size(); i++) {
-            if (Nodes.get(i).id == newId) {
+            if (Nodes.get(i).getId() == newId) {
                 newId = random.nextInt(500);
                 i = 0; // recommence la boucle tant que un id unique n'a pas ete creer
             }
@@ -36,7 +36,7 @@ public class Graph {
 
         for (int i = 0; i < Edges.size(); i++) {
             for (int j = 0; j < Edges.get(i).size(); j++) {
-                if (Edges.get(i).get(j).id == newId) {
+                if (Edges.get(i).get(j).getId() == newId) {
                     newId = random.nextInt(500);
                     i = 0; // recommence la boucle tant que un id unique n'a pas ete creer
                 }
@@ -67,10 +67,10 @@ public class Graph {
 
         // Ajout de l'arete a Edges
         for (int i = 0; i < Nodes.size(); i++) {
-            if (Nodes.get(i).id == source.id) {
+            if (Nodes.get(i).getId() == source.getId()) {
                 Edges.get(i).add(newEdge);// exception
             }
-            if (direction && Nodes.get(i).id == target.id) {
+            if (direction && Nodes.get(i).getId() == target.getId()) {
                 Edges.get(i).add(newEdge);// exception
             }
         }
@@ -81,24 +81,24 @@ public class Graph {
     private void removeEdge(Edge edgeToRemove) {
         for (List<Edge> edgeList : Edges) {
             for (int j = 0; j < edgeList.size(); j++) {
-                if (edgeList.get(j).id == edgeToRemove.id) {
+                if (edgeList.get(j).getId() == edgeToRemove.getId()) {
                     edgeList.remove(j);
                 }
             }
         }
-        System.out.println("Edge " + edgeToRemove.id + " has been succesfuly removed.");
+        System.out.println("Edge " + edgeToRemove.getId() + " has been succesfuly removed.");
     }
 
     public boolean removeNode(Node nodeToRemove) {
         for (int i = 0; i < Nodes.size(); i++) {
-            if (Nodes.get(i).id == nodeToRemove.id) {
+            if (Nodes.get(i).getId() == nodeToRemove.getId()) {
                 int length = Edges.get(i).size();
                 for (int j = 0; j < length; j++) {
                     removeEdge(Edges.get(i).get(0));
                 }
                 Edges.remove(i);
                 Nodes.remove(i);
-                System.out.println("Node" + nodeToRemove.id + " has succesfully removed.");
+                System.out.println("Node" + nodeToRemove.getId() + " has succesfully removed.");
                 return true;
             }
         }
@@ -111,9 +111,9 @@ public class Graph {
         String s = new String();
 
         for (int i = 0; i < Nodes.size(); i++) {
-            s += Nodes.get(i).id + ":";
+            s += Nodes.get(i).getId() + ":";
             for (int j = 0; j < Edges.get(i).size(); j++) {
-                s += Edges.get(i).get(j).id + ",";
+                s += Edges.get(i).get(j).getId() + ",";
             }
             s += "\r\n";
         }

@@ -213,17 +213,17 @@ public class PropertiesPanel extends VBox {
                     .append("État    : ").append(a.getState()).append("\n")
                     .append("Vitesse : ").append(a.getSpeed()).append(" px/s\n");
             if (a.getCurrentEdge() != null && a.getDestination() != null)
-                sb.append("Trajet  : ").append(a.getCurrentNode().id).append(" ➔ ").append(a.getDestination().id).append("\n")
-                        .append("Sur arête : ").append(a.getCurrentEdge().id);
+                sb.append("Trajet  : ").append(a.getCurrentNode().getId()).append(" ➔ ").append(a.getDestination().getId()).append("\n")
+                        .append("Sur arête : ").append(a.getCurrentEdge().getId());
             else if (a.getCurrentNode() != null)
-                sb.append("Position : nœud ").append(a.getCurrentNode().id + "\n ");
+                sb.append("Position : nœud ").append(a.getCurrentNode().getId() + "\n ");
             infoLabel.setText(sb.toString());
 
         } else if (selected instanceof Node) {
             Node n = (Node) selected;
             infoLabel.setText(
                     "Type     : Nœud\n"
-                            + "ID       : " + n.id + "\n"
+                            + "ID       : " + n.getId() + "\n"
                             + "Position : (" + (int) n.x + ", " + (int) n.y + ")\n"
                             + "Capacité : " + n.capacity + "\n"
                             + "État     : " + n.state + "\n"
@@ -231,14 +231,14 @@ public class PropertiesPanel extends VBox {
 
         } else if (selected instanceof Edge) {
             Edge ed = (Edge) selected;
-            String dir = ed.direction ? " --> " : " <--> ";
+            String dir = ed.isDirection() ? " --> " : " <--> ";
             infoLabel.setText(
                     "Type      : Arête\n"
-                            + "ID        : " + ed.id + "\n"
-                            + "Connexion : " + ed.source.id + dir + ed.target.id + "\n"
-                            + "Capacité  : " + ed.capacity + "\n"
-                            + "Direction : " + (ed.direction ? "unidirect." : "bidirect.") + "\n"
-                            + "État      : " + ed.state);
+                            + "ID        : " + ed.getId() + "\n"
+                            + "Connexion : " + ed.getSource().getId() + dir + ed.getTarget().getId() + "\n"
+                            + "Capacité  : " + ed.getCapacity() + "\n"
+                            + "Direction : " + (ed.isDirection() ? "unidirect." : "bidirect.") + "\n"
+                            + "État      : " + ed.getState());
 
         } else {
             infoLabel.setText("Cliquez sur un élément\npour voir ses détails.\n \n \n \n ");
@@ -306,8 +306,8 @@ public class PropertiesPanel extends VBox {
             selectionSystem.startEdgeLinking((source, target) -> {
                 graph.addEdge(source, target, cap, dir);
                 linkingActive = false;
-                System.out.println("[PropertiesPanel] Arête créée : " + source.id
-                        + (dir ? " → " : " ⇄ ") + target.id + " cap=" + cap);
+                System.out.println("[PropertiesPanel] Arête créée : " + source.getId()
+                        + (dir ? " → " : " ⇄ ") + target.getId() + " cap=" + cap);
             });
         }
     }
@@ -324,9 +324,9 @@ public class PropertiesPanel extends VBox {
 
     private void removeEdgeFromGraph(Edge edge) {
         for (List<Edge> list : graph.Edges) {
-            list.removeIf(e -> e.id == edge.id);
+            list.removeIf(e -> e.getId() == edge.getId());
         }
-        System.out.println("[PropertiesPanel] Arête " + edge.id + " supprimée.");
+        System.out.println("[PropertiesPanel] Arête " + edge.getId() + " supprimée.");
     }
 
     private void handleAddAgent() {
@@ -363,7 +363,7 @@ public class PropertiesPanel extends VBox {
     public Edge getSelectedEdge() {
         for (List<Edge> edges : graph.Edges)
             for (Edge e : edges)
-                if (e.isSelected)
+                if (e.isSelected())
                     return e;
         return null;
     }

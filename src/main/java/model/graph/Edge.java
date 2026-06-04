@@ -7,19 +7,19 @@ import model.agents.Agent;
 
 public class Edge {
 
-    public int id;
-    public Node source;
-    public Node target;
-    public boolean direction;
-    public double length;
-    public int capacity;
-    public edgeState state = edgeState.AVAILABLE;
-    public boolean isSelected = false;
+    private int id;
+    private Node source;
+    private Node target;
+    private boolean direction;
+    private double length;
+    private int capacity;
+    private edgeState state = edgeState.AVAILABLE;
+    private boolean isSelected = false;
 
-    public int currentOccupants = 0;
-    public int expectedOccupants = 0;
+    private int currentOccupants = 0;
+    private int expectedOccupants = 0;
 
-    public Queue<Agent> waitingQueue = new LinkedList<>();
+    private Queue<Agent> waitingQueue = new LinkedList<>();
 
     public Edge(int id, Node source, Node target, int capacity, boolean direction) {
         this.id = id;
@@ -37,19 +37,19 @@ public class Edge {
     }
 
     public boolean isFull() {
-        return currentOccupants >= capacity;
+        return getCurrentOccupants() >= getCapacity();
     }
 
     public boolean canEnter(Agent a) {
-        return !isFull() && (waitingQueue.isEmpty() || waitingQueue.peek() == a);
+        return !isFull() && (getWaitingQueue().isEmpty() || getWaitingQueue().peek() == a);
     }
 
     public boolean tryEnter(Agent a) {
         if (canEnter(a)) {
-            waitingQueue.remove(a);
-            currentOccupants++;
+            getWaitingQueue().remove(a);
+            setCurrentOccupants(getCurrentOccupants()+1);
             if (isFull()) {
-                this.state = edgeState.FULL;
+                setState(edgeState.FULL);
             }
             return true;
         }
@@ -57,32 +57,32 @@ public class Edge {
     }
 
     public void leave() {
-        if (currentOccupants > 0) {
-            currentOccupants--;
+        if (getCurrentOccupants() > 0) {
+            setCurrentOccupants(getCurrentOccupants()-1);
         }
         if (!isFull()) {
-            this.state = edgeState.AVAILABLE;
+            setState(edgeState.AVAILABLE);
         }
     }
 
     public void enqueue(Agent a) {
-        if (!waitingQueue.contains(a)) {
-            waitingQueue.add(a);
+        if (!getWaitingQueue().contains(a)) {
+            getWaitingQueue().add(a);
         }
     }
 
     public void removeQueue(Agent a) {
-        waitingQueue.remove(a);
+        getWaitingQueue().remove(a);
     }
 
     @Override
     public String toString() {
-        String s = "id:" + id + "\r \n"
-                + "source:" + source.id + "\r \n"
-                + "target:" + target.id + "\r \n"
-                + "length:" + length + "\r \n"
-                + "capacity:" + capacity + "\r \n"
-                + "direction:" + direction + "\r \n";
+        String s = "id:" + getId() + "\r \n"
+                + "source:" + getSource().getId() + "\r \n"
+                + "target:" + getTarget().getId() + "\r \n"
+                + "length:" + getLength() + "\r \n"
+                + "capacity:" + getCapacity() + "\r \n"
+                + "direction:" + isDirection() + "\r \n";
 
         return s;
     }
@@ -92,7 +92,7 @@ public class Edge {
     }
     
     public int getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(int id) {
@@ -100,7 +100,7 @@ public class Edge {
     }
 
     public Node getSource() {
-        return source;
+        return this.source;
     }
 
     public void setSource(Node source) {
@@ -108,7 +108,7 @@ public class Edge {
     }
 
     public Node getTarget() {
-        return target;
+        return this.target;
     }
 
     public void setTarget(Node target) {
@@ -116,7 +116,7 @@ public class Edge {
     }
 
     public boolean isDirection() {
-        return direction;
+        return this.direction;
     }
 
     public void setDirection(boolean direction) {
@@ -124,7 +124,7 @@ public class Edge {
     }
 
     public double getLength() {
-        return length;
+        return this.length;
     }
 
     public void setLength(double length) {
@@ -132,7 +132,7 @@ public class Edge {
     }
 
     public int getCapacity() {
-        return capacity;
+        return this.capacity;
     }
 
     public void setCapacity(int capacity) {
@@ -140,11 +140,11 @@ public class Edge {
     }
 
     public edgeState getState() {
-        return state;
+        return this.state;
     }
 
     public boolean isSelected() {
-        return isSelected;
+        return this.isSelected;
     }
 
     public void setSelected(boolean isSelected) {
@@ -152,7 +152,7 @@ public class Edge {
     }
 
     public int getCurrentOccupants() {
-        return currentOccupants;
+        return this.currentOccupants;
     }
 
     public void setCurrentOccupants(int currentOccupants) {
@@ -160,7 +160,7 @@ public class Edge {
     }
 
     public int getExpectedOccupants() {
-        return expectedOccupants;
+        return this.expectedOccupants;
     }
 
     public void setExpectedOccupants(int expectedOccupants) {
@@ -168,7 +168,7 @@ public class Edge {
     }
 
     public Queue<Agent> getWaitingQueue() {
-        return waitingQueue;
+        return this.waitingQueue;
     }
 
     public void setWaitingQueue(Queue<Agent> waitingQueue) {
