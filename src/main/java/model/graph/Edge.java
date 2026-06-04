@@ -19,6 +19,8 @@ public class Edge {
     private int currentOccupants = 0;
     private int expectedOccupants = 0;
 
+    private float speedModifier = 1.0f;
+
     private Queue<Agent> waitingQueue = new LinkedList<>();
 
     public Edge(int id, Node source, Node target, int capacity, boolean direction) {
@@ -28,6 +30,14 @@ public class Edge {
         this.length = Math.sqrt(Math.pow((source.getX() - target.getX()), 2) + Math.pow((source.getY() - target.getY()), 2));
         this.capacity = capacity;
         this.direction = direction;
+    }
+
+    public float getSpeedModifier() {
+        return speedModifier;
+    }
+
+    public void setSpeedModifier(float speedModifier) {
+        this.speedModifier = speedModifier;
     }
     
     public enum edgeState {

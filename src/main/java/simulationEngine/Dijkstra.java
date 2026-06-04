@@ -82,7 +82,11 @@ public class Dijkstra implements PathFinder {
                         if (edge.isDirection()) {
                             Node destNode = destination(graph.getNodes().get(indiceSource), edge);
 
-                            double dynamicCost = edge.getLength()
+                            // NOUVEAU : On ignore totalement les noeuds en travaux !
+                            if (destNode.isUnderConstruction()) continue;
+
+                            // NOUVEAU : On divise la longueur par le multiplicateur de vitesse
+                            double dynamicCost = (edge.getLength() / edge.getSpeedModifier())
                                     + (edge.getExpectedOccupants() * TRAFFIC_PENALTY)
                                     + (destNode.getExpectedOccupants() * TRAFFIC_PENALTY);
 
@@ -96,7 +100,11 @@ public class Dijkstra implements PathFinder {
                             if (edge.getTarget() != graph.getNodes().get(indiceSource)) {
                                 Node destNode = edge.getTarget();
 
-                                double dynamicCost = edge.getLength()
+                                // NOUVEAU : Pareil pour le sens inverse
+                                if (destNode.isUnderConstruction()) continue;
+
+                                // NOUVEAU : Division par la vitesse
+                                double dynamicCost = (edge.getLength() / edge.getSpeedModifier())
                                         + (edge.getExpectedOccupants() * TRAFFIC_PENALTY)
                                         + (destNode.getExpectedOccupants() * TRAFFIC_PENALTY);
 
@@ -109,7 +117,6 @@ public class Dijkstra implements PathFinder {
                             }
                         }
                     }
-
                     // phase de validation
                     for (int i = 0; i < graphSize; i++) {
                         if (pathLength.get(i) <= minimumLength && foundVertice.get(i) == false) {

@@ -10,16 +10,6 @@ import controllers.SelectionSystem;
 
 import java.util.List;
 
-/**
- * PropertiesPanel — panneau latéral droit.
- *
- * Améliorations v2 :
- * - Ajouter un nœud : placement à l'endroit du clic dans le vide + champ
- * capacité
- * - Ajouter une arête : choix capacité (+/-) et direction avant liaison
- * - Supprimer une arête : bouton actif quand une arête est sélectionnée
- * - Bug timer corrigé : les callbacks ne touchent JAMAIS au moteur (stop/start)
- */
 public class PropertiesPanel extends VBox {
 
     private final Graph graph;
@@ -31,11 +21,9 @@ public class PropertiesPanel extends VBox {
     private Runnable onRemoveEdge;
     private Runnable onAddAgent;
 
-    // ---- inspecteur ----
     private final Label titleLabel;
     private final Label infoLabel;
 
-    // ---- boutons principaux ----
     private final Button btnAddNode;
     private final Button btnRemoveNode;
     private final Button btnAddEdge;
@@ -44,17 +32,17 @@ public class PropertiesPanel extends VBox {
 
     // ---- paramètres arête ----
     private int edgeCapacity = 1;
-    private boolean edgeDirection = true; // false = unidirectionnel
+    private boolean edgeDirection = true;
     private final Label lblEdgeCap;
     private final Label lblEdgeDir;
+    private final Label lblEdgeSpeed; // NOUVEAU
 
     // ---- paramètres nœud ----
     private int nodeCapacity = 1;
     private final Label lblNodeCap;
+    private final CheckBox chkUnderConstruction; // NOUVEAU
 
     private boolean linkingActive = false;
-
-    // ================================================================= ctor
 
     public PropertiesPanel(Graph graph, List<Agent> agents) {
         this.graph = graph;
@@ -65,7 +53,6 @@ public class PropertiesPanel extends VBox {
         setPrefWidth(260);
         setStyle("-fx-background-color: #FAFAFA; -fx-border-color: #E0E0E0; -fx-border-width: 0 0 0 1;");
 
-        // ---- Inspecteur ----
         titleLabel = new Label("Inspecteur");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #333;");
 
@@ -73,71 +60,96 @@ public class PropertiesPanel extends VBox {
         infoLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #555;");
         infoLabel.setWrapText(true);
 
-        // ---- Séparateur ----
         Separator sep1 = new Separator();
 
         // ---- Section nœud ----
         Label lblNodeSection = new Label("Nœud");
         lblNodeSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #333;");
 
-        // Capacité nœud
         lblNodeCap = new Label("Capacité : 1");
         lblNodeCap.setStyle("-fx-font-size: 12px;");
         Button btnNodeCapMinus = smallButton("−");
         Button btnNodeCapPlus = smallButton("+");
         btnNodeCapMinus.setOnAction(e -> {
-            if (nodeCapacity > 1) {
-                nodeCapacity--;
-                lblNodeCap.setText("Capacité : " + nodeCapacity);
-            }
+            Node sel = getSelectedNode();
+            if (sel != null) { if (sel.getCapacity() > 1) sel.setCapacity(sel.getCapacity() - 1); } 
+            else if (nodeCapacity > 1) { nodeCapacity--; }
+            refresh(); redrawCanvas();
         });
         btnNodeCapPlus.setOnAction(e -> {
-            nodeCapacity++;
-            lblNodeCap.setText("Capacité : " + nodeCapacity);
+            Node sel = getSelectedNode();
+            if (sel != null) { sel.setCapacity(sel.getCapacity() + 1); } else { nodeCapacity++; }
+            refresh(); redrawCanvas();
         });
         HBox nodeCapBox = new HBox(6, btnNodeCapMinus, lblNodeCap, btnNodeCapPlus);
         nodeCapBox.setStyle("-fx-alignment: center-left;");
 
+        // NOUVEAU : Checkbox Travaux
+        chkUnderConstruction = new CheckBox("En travaux (Fermé)");
+        chkUnderConstruction.setDisable(true);
+        chkUnderConstruction.setOnAction(e -> {
+            Node sel = getSelectedNode();
+            if (sel != null) sel.setUnderConstruction(chkUnderConstruction.isSelected());
+            refresh(); redrawCanvas();
+        });
+
         btnAddNode = buildButton("➕  Ajouter un nœud ici", "#2196F3");
-        btnAddNode.setDisable(true); // actif seulement après clic dans le vide
+        btnAddNode.setDisable(true);
         btnRemoveNode = buildButton("🗑  Supprimer le nœud", "#F44336");
         btnRemoveNode.setDisable(true);
 
         btnAddNode.setOnAction(e -> handleAddNode());
         btnRemoveNode.setOnAction(e -> handleRemoveNode());
 
-        // ---- Séparateur ----
         Separator sep2 = new Separator();
 
         // ---- Section arête ----
         Label lblEdgeSection = new Label("Arête");
         lblEdgeSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #333;");
 
-        // Capacité arête
         lblEdgeCap = new Label("Capacité : 1");
         lblEdgeCap.setStyle("-fx-font-size: 12px;");
         Button btnEdgeCapMinus = smallButton("−");
         Button btnEdgeCapPlus = smallButton("+");
         btnEdgeCapMinus.setOnAction(e -> {
-            if (edgeCapacity > 1) {
-                edgeCapacity--;
-                lblEdgeCap.setText("Capacité : " + edgeCapacity);
-            }
+            Edge sel = getSelectedEdge();
+            if (sel != null) { if (sel.getCapacity() > 1) sel.setCapacity(sel.getCapacity() - 1); } 
+            else if (edgeCapacity > 1) { edgeCapacity--; }
+            refresh(); redrawCanvas();
         });
         btnEdgeCapPlus.setOnAction(e -> {
-            edgeCapacity++;
-            lblEdgeCap.setText("Capacité : " + edgeCapacity);
+            Edge sel = getSelectedEdge();
+            if (sel != null) { sel.setCapacity(sel.getCapacity() + 1); } else { edgeCapacity++; }
+            refresh(); redrawCanvas();
         });
         HBox edgeCapBox = new HBox(6, btnEdgeCapMinus, lblEdgeCap, btnEdgeCapPlus);
         edgeCapBox.setStyle("-fx-alignment: center-left;");
 
-        // Direction arête
+        // NOUVEAU : Modificateur Vitesse Arete
+        lblEdgeSpeed = new Label("Vitesse : x1.0");
+        lblEdgeSpeed.setStyle("-fx-font-size: 12px;");
+        Button btnEdgeSpeedMinus = smallButton("−");
+        Button btnEdgeSpeedPlus = smallButton("+");
+        btnEdgeSpeedMinus.setOnAction(e -> {
+            Edge sel = getSelectedEdge();
+            if (sel != null && sel.getSpeedModifier() > 0.2f) sel.setSpeedModifier(sel.getSpeedModifier() - 0.2f);
+            refresh(); redrawCanvas();
+        });
+        btnEdgeSpeedPlus.setOnAction(e -> {
+            Edge sel = getSelectedEdge();
+            if (sel != null && sel.getSpeedModifier() < 5.0f) sel.setSpeedModifier(sel.getSpeedModifier() + 0.2f);
+            refresh(); redrawCanvas();
+        });
+        HBox edgeSpeedBox = new HBox(6, btnEdgeSpeedMinus, lblEdgeSpeed, btnEdgeSpeedPlus);
+        edgeSpeedBox.setStyle("-fx-alignment: center-left;");
+
         lblEdgeDir = new Label("Direction : Bidirect.");
         lblEdgeDir.setStyle("-fx-font-size: 12px;");
         Button btnToggleDir = buildButton("⇄  Changer direction", "#607D8B");
         btnToggleDir.setOnAction(e -> {
-            edgeDirection = !edgeDirection;
-            lblEdgeDir.setText("Direction : " + (edgeDirection ? "Unidirect. →" : "Bidirect. ⇄"));
+            Edge sel = getSelectedEdge();
+            if (sel != null) { sel.setDirection(!sel.isDirection()); } else { edgeDirection = !edgeDirection; }
+            refresh(); redrawCanvas();
         });
 
         btnAddEdge = buildButton("🔗  Ajouter une arête", "#9C27B0");
@@ -147,7 +159,6 @@ public class PropertiesPanel extends VBox {
         btnAddEdge.setOnAction(e -> handleAddEdge());
         btnRemoveEdge.setOnAction(e -> handleRemoveEdge());
 
-        // ---- Séparateur ----
         Separator sep3 = new Separator();
 
         // ---- Section agent ----
@@ -158,53 +169,33 @@ public class PropertiesPanel extends VBox {
         btnAddAgent.setDisable(true);
         btnAddAgent.setOnAction(e -> handleAddAgent());
 
-        // ---- Assemblage ----
         getChildren().addAll(
                 titleLabel, infoLabel,
                 sep1,
-                lblNodeSection, nodeCapBox, btnAddNode, btnRemoveNode,
+                lblNodeSection, nodeCapBox, chkUnderConstruction, btnAddNode, btnRemoveNode,
                 sep2,
-                lblEdgeSection, edgeCapBox, lblEdgeDir, btnToggleDir, btnAddEdge, btnRemoveEdge,
+                lblEdgeSection, edgeCapBox, edgeSpeedBox, lblEdgeDir, btnToggleDir, btnAddEdge, btnRemoveEdge,
                 sep3,
                 lblAgentSection, btnAddAgent);
     }
 
-    // ================================================================= setters
-
     public void setSelectionSystem(SelectionSystem ss) {
         this.selectionSystem = ss;
-        // Quand l'utilisateur clique dans le vide → activer btnAddNode
         ss.setOnEmptyClick((x, y) -> {
             btnAddNode.setDisable(false);
             btnAddNode.setText("➕  Placer ici (" + (int) x + "," + (int) y + ")");
         });
-        // Desactiver le bouton addAgent
         btnAddAgent.setDisable(true);
     }
 
-    public void setOnAddNode(Runnable r) {
-        this.onAddNode = r;
-    }
-
-    public void setOnRemoveNode(Runnable r) {
-        this.onRemoveNode = r;
-    }
-
-    public void setOnRemoveEdge(Runnable r) {
-        this.onRemoveEdge = r;
-    }
-
-    public void setOnAddAgent(Runnable r) {
-        this.onAddAgent = r;
-    }
-
-    // ================================================================= refresh
-    // (60×/s)
+    public void setOnAddNode(Runnable r) { this.onAddNode = r; }
+    public void setOnRemoveNode(Runnable r) { this.onRemoveNode = r; }
+    public void setOnRemoveEdge(Runnable r) { this.onRemoveEdge = r; }
+    public void setOnAddAgent(Runnable r) { this.onAddAgent = r; }
 
     public void refresh() {
         Object selected = findSelectedItem();
 
-        // ---- inspecteur ----
         if (selected instanceof Agent) {
             Agent a = (Agent) selected;
             StringBuilder sb = new StringBuilder();
@@ -217,8 +208,7 @@ public class PropertiesPanel extends VBox {
                         .append(a.getDestination().getId()).append("\n")
                         .append("Sur arête : ").append(a.getCurrentEdge().getId());
             else if (a.getCurrentNode() != null)
-                sb.append("Position : nœud ")
-                        .append(a.getCurrentNode().getId() + "\nBehavior : " + a.getAgentBehavior());
+                sb.append("Position : nœud ").append(a.getCurrentNode().getId() + "\nBehavior : " + a.getAgentBehavior());
             infoLabel.setText(sb.toString());
 
         } else if (selected instanceof Node) {
@@ -226,7 +216,7 @@ public class PropertiesPanel extends VBox {
             infoLabel.setText(
                     "Type     : Nœud\n"
                             + "ID       : " + n.getId() + "\n"
-                            + "Position : (" + (int) n.getX() + ", " + (int) n.getY() + ")\n"
+                            + "Travaux  : " + (n.isUnderConstruction() ? "OUI (Fermé)" : "Non") + "\n"
                             + "Capacité : " + n.getCapacity() + "\n"
                             + "État     : " + n.getState() + "\n"
                             + "Occupants: " + n.getCurrentOccupants() + "/" + n.getCapacity());
@@ -238,23 +228,40 @@ public class PropertiesPanel extends VBox {
                     "Type      : Arête\n"
                             + "ID        : " + ed.getId() + "\n"
                             + "Connexion : " + ed.getSource().getId() + dir + ed.getTarget().getId() + "\n"
+                            + "Vitesse   : x" + String.format("%.1f", ed.getSpeedModifier()) + "\n"
                             + "Capacité  : " + ed.getCapacity() + "\n"
-                            + "Direction : " + (ed.isDirection() ? "unidirect." : "bidirect.") + "\n"
                             + "État      : " + ed.getState());
-
         } else {
             infoLabel.setText("Cliquez sur un élément\npour voir ses détails.\n \n \n \n ");
         }
 
-        // ---- état des boutons ----
         boolean nodeSelected = (selected instanceof Node);
         boolean edgeSelected = (selected instanceof Edge);
+
+        if (nodeSelected) {
+            lblNodeCap.setText("Capacité : " + ((Node) selected).getCapacity());
+            chkUnderConstruction.setSelected(((Node) selected).isUnderConstruction());
+            chkUnderConstruction.setDisable(false);
+        } else {
+            lblNodeCap.setText("Capacité : " + nodeCapacity);
+            chkUnderConstruction.setSelected(false);
+            chkUnderConstruction.setDisable(true);
+        }
+
+        if (edgeSelected) {
+            lblEdgeCap.setText("Capacité : " + ((Edge) selected).getCapacity());
+            lblEdgeDir.setText("Direction : " + (((Edge) selected).isDirection() ? "Unidirect. →" : "Bidirect. ⇄"));
+            lblEdgeSpeed.setText(String.format("Vitesse : x%.1f", ((Edge) selected).getSpeedModifier()));
+        } else {
+            lblEdgeCap.setText("Capacité : " + edgeCapacity);
+            lblEdgeDir.setText("Direction : " + (edgeDirection ? "Unidirect. →" : "Bidirect. ⇄"));
+            lblEdgeSpeed.setText("Vitesse : x1.0");
+        }
 
         btnRemoveNode.setDisable(!nodeSelected);
         btnAddAgent.setDisable(!nodeSelected);
         btnRemoveEdge.setDisable(!edgeSelected);
 
-        // bouton liaison arête
         if (linkingActive) {
             btnAddEdge.setText("↩  Annuler liaison");
             btnAddEdge.setStyle(buttonStyle("#FF9800"));
@@ -264,7 +271,11 @@ public class PropertiesPanel extends VBox {
         }
     }
 
-    // ================================================================= handlers
+    private void redrawCanvas() {
+        if (selectionSystem != null && selectionSystem.getCanvas() != null) {
+            selectionSystem.getCanvas().draw();
+        }
+    }
 
     private void handleAddNode() {
         if (onAddNode != null)
@@ -277,7 +288,6 @@ public class PropertiesPanel extends VBox {
                 graph.addNode(400, 300, nodeCapacity);
             }
         }
-        // Reset bouton après utilisation
         btnAddNode.setText("➕ Ajouter un nœud ici");
         btnAddNode.setDisable(true);
         if (selectionSystem != null)
@@ -286,87 +296,62 @@ public class PropertiesPanel extends VBox {
 
     private void handleRemoveNode() {
         Node sel = selectionSystem != null ? selectionSystem.getLastSelectedNode() : null;
-        if (sel == null)
-            return;
-        if (onRemoveNode != null)
-            onRemoveNode.run();
-        else
-            graph.removeNode(sel);
+        if (sel == null) return;
+        if (onRemoveNode != null) onRemoveNode.run();
+        else graph.removeNode(sel);
     }
 
     private void handleAddEdge() {
-        if (selectionSystem == null)
-            return;
+        if (selectionSystem == null) return;
         if (linkingActive) {
             selectionSystem.cancelEdgeLinking();
             linkingActive = false;
         } else {
             linkingActive = true;
-            // Capture des paramètres au moment du clic (pas au moment de la création)
             final int cap = edgeCapacity;
             final boolean dir = edgeDirection;
             selectionSystem.startEdgeLinking((source, target) -> {
                 graph.addEdge(source, target, cap, dir);
                 linkingActive = false;
-                System.out.println("[PropertiesPanel] Arête créée : " + source.getId()
-                        + (dir ? " → " : " ⇄ ") + target.getId() + " cap=" + cap);
             });
         }
     }
 
     private void handleRemoveEdge() {
         Edge sel = selectionSystem != null ? selectionSystem.getLastSelectedEdge() : null;
-        if (sel == null)
-            return;
-        if (onRemoveEdge != null)
-            onRemoveEdge.run();
-        else
-            removeEdgeFromGraph(sel);
+        if (sel == null) return;
+        if (onRemoveEdge != null) onRemoveEdge.run();
+        else removeEdgeFromGraph(sel);
     }
 
     private void removeEdgeFromGraph(Edge edge) {
         for (List<Edge> list : graph.getEdges()) {
             list.removeIf(e -> e.getId() == edge.getId());
         }
-        System.out.println("[PropertiesPanel] Arête " + edge.getId() + " supprimée.");
     }
 
     private void handleAddAgent() {
         Node sel = selectionSystem != null ? selectionSystem.getLastSelectedNode() : null;
-        if (sel == null)
-            return;
-        if (onAddAgent != null)
-            onAddAgent.run();
+        if (sel == null) return;
+        if (onAddAgent != null) onAddAgent.run();
     }
 
-    // ================================================================= helpers
-
     private Object findSelectedItem() {
-        for (Agent a : agents)
-            if (a.isSelected())
-                return a;
-        for (Node n : graph.getNodes())
-            if (n.isSelected())
-                return n;
+        for (Agent a : agents) if (a.isSelected()) return a;
+        for (Node n : graph.getNodes()) if (n.isSelected()) return n;
         for (List<Edge> edges : graph.getEdges())
-            for (Edge e : edges)
-                if (e.isSelected())
-                    return e;
+            for (Edge e : edges) if (e.isSelected()) return e;
         return null;
     }
 
     public Node getSelectedNode() {
-        for (Node n : graph.getNodes())
-            if (n.isSelected())
-                return n;
+        for (Node n : graph.getNodes()) if (n.isSelected()) return n;
         return null;
     }
 
     public Edge getSelectedEdge() {
         for (List<Edge> edges : graph.getEdges())
-            for (Edge e : edges)
-                if (e.isSelected())
-                    return e;
+            for (Edge e : edges) if (e.isSelected()) return e;
         return null;
     }
 
