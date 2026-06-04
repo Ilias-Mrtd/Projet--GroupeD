@@ -179,7 +179,7 @@ public class Main extends Application {
 
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                graph.addNode(startX + c * spacing, startY + r * spacing, 1);
+                graph.addNode(startX + c * spacing, startY + r * spacing, c + 1);
                 grid[r][c] = graph.getNodes().get(graph.getNodes().size() - 1);
             }
         }
@@ -196,6 +196,7 @@ public class Main extends Application {
         Agent a1 = new Agent(007, 2.5f, Agent.agentState.AVAILABLE);
         a1.setCurrentNode(grid[0][0]);
         a1.setAgentBehavior(agentBehavior.PATIENT);
+        a1.setPriority(1);
         engine.addAgent(a1);
         Agent a2 = new Agent(15, 3.0f, Agent.agentState.AVAILABLE);
         a2.setCurrentNode(grid[0][1]);

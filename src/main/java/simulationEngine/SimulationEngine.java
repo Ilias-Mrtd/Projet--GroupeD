@@ -52,7 +52,9 @@ public class SimulationEngine extends AnimationTimer {
     public void addAgent(Agent agent) {
         agent.setGraph(getGraph());
         this.agents.add(agent);
-        agents.sort(Comparator.comparingInt(a -> a.getAgentBehavior().getPriority())); // Priority of HURRIED > PATIENT > BROKEN
+        agents.sort(Comparator.comparingInt((Agent a) -> a.getCurrentPriority())
+                .thenComparingInt(a -> a.getAgentBehavior().getPriority())); // Priority of HURRIED > PATIENT
+        // > BROKEN
 
         if (agent.getCurrentNode() != null) {
             agent.getCurrentNode().forceEnter();
@@ -87,7 +89,7 @@ public class SimulationEngine extends AnimationTimer {
         for (Agent agent : agents) {
             agent.update(deltaTime);
         }
-        
+
         // 3. Notifier l'interface graphique qu'elle peut se redessiner
         if (onTick != null) {
             onTick.run();
@@ -148,12 +150,12 @@ public class SimulationEngine extends AnimationTimer {
         }
 
         lastUpdate = 0;
-        
+
         // Redessiner après reset
         if (onTick != null) {
             onTick.run();
         }
-        
+
         this.start();
     }
 }
