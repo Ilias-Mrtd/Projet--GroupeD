@@ -89,16 +89,19 @@ public class Agent {
                 break;
             case REMOVE:
                 setState(agentState.OUT);
-                if (getCurrentNode() != null) getCurrentNode().leave();
+                if (getCurrentNode() != null)
+                    getCurrentNode().leave();
                 break;
             case RANDOM_WANDER:
                 setState(agentState.AVAILABLE);
-                if (this.currentNode != null) this.currentNode.leave();
+                if (this.currentNode != null)
+                    this.currentNode.leave();
                 /*
                  * if (graph != null && !graph.getNodes().isEmpty()) {
                  * int randomIndex = (int) (Math.random() * graph.getNodes().size());
                  * Node randomNode = graph.getNodes().get(randomIndex);
-                 * System.out.println("🎲 L'agent " + getId() + " choisit une destination aléatoire : " + randomNode.getId());
+                 * System.out.println("🎲 L'agent " + getId() +
+                 * " choisit une destination aléatoire : " + randomNode.getId());
                  * addObjective(randomNode);
                  * }
                  */
@@ -172,11 +175,11 @@ public class Agent {
 
             if (getGraph() != null && getCurrentNode() != null) {
                 Dijkstra calculator = new Dijkstra(getGraph(), getCurrentNode(), getDestination());
-                
-               
+
                 if (calculator.getPath().isEmpty() && getCurrentNode().getId() != getDestination().getId()) {
-                    System.out.println("❌ Agent " + getId() + " : AUCUN CHEMIN vers le Noeud " + getDestination().getId() + " ! Objectif abandonné.");
-                    startNextObjective(); 
+                    System.out.println("❌ Agent " + getId() + " : AUCUN CHEMIN vers le Noeud "
+                            + getDestination().getId() + " ! Objectif abandonné.");
+                    startNextObjective();
                     return;
                 }
 
@@ -186,10 +189,11 @@ public class Agent {
 
             setState(agentState.RUNNING);
             setCurrentPatience(getMaxPatience());
-            System.out.println(">>> Agent " + getId() + " en route vers l'objectif : Noeud " + getDestination().getId());
+            System.out
+                    .println(">>> Agent " + getId() + " en route vers l'objectif : Noeud " + getDestination().getId());
 
         } else {
-            handleEndBehavior(); 
+            handleEndBehavior();
         }
     }
 
@@ -220,14 +224,14 @@ public class Agent {
         } else {
             System.out.println("Agent " + getId() + " ne trouve aucune rue pour s'écarter, il recalcule sa route...");
             Dijkstra calculator = new Dijkstra(getGraph(), getCurrentNode(), getDestination());
-            
-            
+
             if (calculator.getPath().isEmpty() && getCurrentNode().getId() != getDestination().getId()) {
-                System.out.println("❌ Agent " + getId() + " : Complètement bloqué vers " + getDestination().getId() + ". Objectif abandonné !");
+                System.out.println("❌ Agent " + getId() + " : Complètement bloqué vers " + getDestination().getId()
+                        + ". Objectif abandonné !");
                 startNextObjective();
                 return;
             }
-            
+
             setPath(calculator.getPath());
             makeReservations();
         }
@@ -253,7 +257,8 @@ public class Agent {
             if (nextEdge != null && nextEdge.getCurrentOccupants() >= nextEdge.getCapacity()) {
                 return false;
             }
-            if (nextNode.getCurrentOccupants() + nextNode.getIncomingOccupants() >= nextNode.getCapacity()) { // FIX: incomingOccupants
+            if (nextNode.getCurrentOccupants() + nextNode.getIncomingOccupants() >= nextNode.getCapacity()) { // FIX:
+                                                                                                              // incomingOccupants
                 return false;
             }
             prev = nextNode;
@@ -266,12 +271,19 @@ public class Agent {
         if (getState() == agentState.WAITING) {
             int decrease = 1;
             switch (getAgentBehavior()) {
-                case HURRIED: decrease = 3; break;
-                case PATIENT: decrease = 1; break;
-                case BROKEN: decrease = 1; break;
+                case HURRIED:
+                    decrease = 3;
+                    break;
+                case PATIENT:
+                    decrease = 1;
+                    break;
+                case BROKEN:
+                    decrease = 1;
+                    break;
             }
             if (getCurrentNode() == getStartingNode() && getCurrentEdge() == null) {
-                if (Math.random() < 0.5) setCurrentPatience(getCurrentPatience() - decrease);
+                if (Math.random() < 0.5)
+                    setCurrentPatience(getCurrentPatience() - decrease);
             } else {
                 setCurrentPatience(getCurrentPatience() - decrease * 2);
             }
@@ -281,7 +293,8 @@ public class Agent {
                     getCurrentNode().removeQueue(this);
                 } else if (getCurrentEdge() == null && !getPath().isEmpty()) {
                     Edge nextEdge = findEdgeBetween(getCurrentNode(), getPath().get(0));
-                    if (nextEdge != null) nextEdge.removeQueue(this);
+                    if (nextEdge != null)
+                        nextEdge.removeQueue(this);
                 } else if (getCurrentEdge() != null) {
                     Node targetNode = (getCurrentEdge().getSource() == getCurrentNode()) ? getCurrentEdge().getTarget()
                             : getCurrentEdge().getSource();
@@ -289,7 +302,8 @@ public class Agent {
                 }
 
                 if (getCurrentEdge() != null) {
-                    System.out.println("!!! Agent " + getId() + " perd patience et fait MARCHE ARRIÈRE sur l'arête !!!");
+                    System.out
+                            .println("!!! Agent " + getId() + " perd patience et fait MARCHE ARRIÈRE sur l'arête !!!");
                     setRetreating(true);
                     setState(agentState.RUNNING);
                 } else {
@@ -358,11 +372,13 @@ public class Agent {
                         }
                     }
                 } else {
-                    // CORRECTION : On s'assure qu'il est vraiment sur le noeud de destination avant de dire "Atteint"
-                    if (getCurrentNode() != null && getDestination() != null && getCurrentNode().getId() == getDestination().getId()) {
+                    // CORRECTION : On s'assure qu'il est vraiment sur le noeud de destination avant
+                    // de dire "Atteint"
+                    if (getCurrentNode() != null && getDestination() != null
+                            && getCurrentNode().getId() == getDestination().getId()) {
                         System.out.println("✅ Objectif Noeud " + getDestination().getId() + " ATTEINT !");
                     }
-                    
+
                     if (getObjectives().isEmpty()) {
                         handleEndBehavior();
                     } else {
@@ -427,19 +443,23 @@ public class Agent {
 
                             if (getPath().isEmpty()) {
                                 if (getCurrentNode().getId() == getDestination().getId()) {
-                                    System.out.println("✅ Objectif final Noeud " + getDestination().getId() + " ATTEINT !");
+                                    System.out.println(
+                                            "✅ Objectif final Noeud " + getDestination().getId() + " ATTEINT !");
                                     if (!getObjectives().isEmpty()) {
                                         startNextObjective();
                                     } else {
                                         handleEndBehavior();
                                     }
                                 } else {
-                                    System.out.println("🔄 Agent " + getId() + " a terminé son évitement. Recalcul vers l'objectif " + getDestination().getId());
+                                    System.out.println("🔄 Agent " + getId()
+                                            + " a terminé son évitement. Recalcul vers l'objectif "
+                                            + getDestination().getId());
                                     Dijkstra calculator = new Dijkstra(getGraph(), getCurrentNode(), getDestination());
-                                    
+
                                     // NOUVEAU : S'il est arrivé ici et que la route a été détruite entre temps
                                     if (calculator.getPath().isEmpty()) {
-                                        System.out.println("❌ Agent " + getId() + " : Route détruite vers " + getDestination().getId() + ". Objectif abandonné !");
+                                        System.out.println("❌ Agent " + getId() + " : Route détruite vers "
+                                                + getDestination().getId() + ". Objectif abandonné !");
                                         startNextObjective();
                                     } else {
                                         setPath(calculator.getPath());
@@ -459,12 +479,12 @@ public class Agent {
         }
     }
 
-    // =========================================
-    // GETTERS & SETTERS (Inchangés)
-    // =========================================
-
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getId() {
+        return this.id;
     }
 
     public float getSpeed() {
