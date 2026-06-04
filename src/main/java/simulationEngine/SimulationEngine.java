@@ -18,6 +18,12 @@ public class SimulationEngine extends AnimationTimer {
 
     // Pour stocker le temps de la frame précédente
     private long lastUpdate = 0;
+
+    private double timeMultiplier = 1.0;
+
+    public void setTimeMultiplier(double multiplier) {
+        this.timeMultiplier = multiplier;
+    }
     
     public SimulationEngine(Graph graph, List<Agent> agents, GraphCanvas canvas, PropertiesPanel propertiesPanel) {
         this.graph = graph;
@@ -68,28 +74,39 @@ public class SimulationEngine extends AnimationTimer {
      * @param now Le temps actuel en nanosecondes
      */
     @Override
+    public void start() {
+        this.lastUpdate = 0; // Évite un bond dans le temps quand on fait "Pause" puis "Play"
+        super.start();
+    }
+
+    @Override
     public void handle(long now) {
-        // Initialisation du temps au tout premier passage
         if (lastUpdate == 0) {
             lastUpdate = now;
             return;
         }
 
-        // 1. Calcul du Delta Time (Conversion des nanosecondes en secondes)
-        double deltaTime = (now - lastUpdate) / 1_000_000_000.0;
+        // 1. Calcul du Delta Time APPLIQUÉ avec la vitesse
+        double deltaTime = ((now - lastUpdate) / 1_000_000_000.0) * timeMultiplier;
         lastUpdate = now;
 
-        // 2. Mise à jour de la logique (La physique et les décisions)
+        performStep(deltaTime);
+    }
+
+    // Extrait la logique d'une frame pour l'utiliser avec le bouton Step
+    public void performStep(double deltaTime) {
         for (Agent agent : agents) {
             agent.update(deltaTime);
         }
-
-        // 3. Demander à la vue de dessiner la nouvelle frame
         canvas.draw();
-
         if (propertiesPanel != null) {
             propertiesPanel.refresh();
         }
+    }
+
+    // Exécute 1 frame fixe manuellement
+    public void doSingleStep() {
+        performStep((1.0 / 60.0) * timeMultiplier);
     }
 
     /**
