@@ -5,6 +5,8 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.geometry.Insets;
 import javafx.stage.Stage;
 
@@ -27,7 +29,6 @@ public class Main extends Application {
     private final AtomicInteger nextAgentId = new AtomicInteger(1000);
     private final Random random = new Random();
 
-
     @Override
     public void start(Stage primaryStage) {
 
@@ -44,11 +45,24 @@ public class Main extends Application {
 
         PropertiesPanel propertiesPanel = new PropertiesPanel(graph, agents);
 
-        HBox toolbar = new HBox(10);
+        // --- TOOLBAR DE CONTRÔLE ---
+        HBox toolbar = new HBox(15);
         toolbar.setPadding(new Insets(10));
-        toolbar.setStyle("-fx-background-color: #E0E0E0;");
-        Button btnPlay = new Button("RELANCER");
-        toolbar.getChildren().add(btnPlay);
+        toolbar.setStyle("-fx-background-color: #E0E0E0; -fx-alignment: center-left;");
+
+        Button btnRestart = new Button("🔄 Relancer");
+        Button btnPlay = new Button("▶️ Play");
+        Button btnPause = new Button("⏸️ Pause");
+        Button btnStep = new Button("⏭️ Step");
+
+        Label lblSpeed = new Label("Vitesse : 1.0x");
+        Slider speedSlider = new Slider(0.1, 5.0, 1.0);
+        speedSlider.setShowTickMarks(true);
+        speedSlider.setShowTickLabels(true);
+        speedSlider.setMajorTickUnit(1.0);
+        speedSlider.setBlockIncrement(0.1);
+
+        toolbar.getChildren().addAll(btnRestart, btnPlay, btnPause, btnStep, lblSpeed, speedSlider);
 
         BorderPane root = new BorderPane();
         root.setTop(toolbar);
@@ -59,7 +73,14 @@ public class Main extends Application {
         SelectionSystem selectionSystem = new SelectionSystem(graph, agents, graphCanvas);
         graphCanvas.setSelectionSystem(selectionSystem);
 
-        SimulationEngine engine = new SimulationEngine(graph, agents, graphCanvas, propertiesPanel);
+        // Instanciation propre (sans GraphCanvas ni PropertiesPanel)
+        SimulationEngine engine = new SimulationEngine(graph, agents);
+
+        // On donne au moteur l'instruction de redessin
+        engine.setOnTick(() -> {
+            graphCanvas.draw();
+            propertiesPanel.refresh();
+        });
 
         // 4. CALLBACKS D'ÉDITION
         propertiesPanel.setSelectionSystem(selectionSystem);
@@ -71,7 +92,7 @@ public class Main extends Application {
                         (int) selectionSystem.getPendingNodeY(), cap);
                 selectionSystem.clearPendingPosition();
             } else {
-                System.out.println("You tried to add a Node but did not selected a place.");
+                System.out.println("You tried to add a Node but did not select a place.");
             }
             graphCanvas.draw();
         });
@@ -124,20 +145,30 @@ public class Main extends Application {
         });
 
         // ====================================================== GÉNÉRATION DE MASSE
-
-        // "Générer un graphe" : crée un réseau aléatoire connexe
         propertiesPanel.setOnGenerateGraph(() -> {
             int side = propertiesPanel.getGenGridSide();
             generateRandomGraph(graph, agents, engine, graphCanvas, side);
         });
 
-        // "Faire apparaître les agents" : N agents répartis aléatoirement
         propertiesPanel.setOnSpawnAgents(() -> {
             int n = propertiesPanel.getGenAgentCount();
             spawnRandomAgents(graph, engine, graphCanvas, n);
         });
 
-        btnPlay.setOnAction(e -> engine.restartSimulation());
+        // --- ÉVÉNEMENTS DES BOUTONS DE LECTURE ---
+        btnRestart.setOnAction(e -> engine.restartSimulation());
+        btnPlay.setOnAction(e -> engine.start());
+        btnPause.setOnAction(e -> engine.stop());
+        btnStep.setOnAction(e -> {
+            engine.stop();
+            engine.doSingleStep();
+        });
+
+        speedSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            double speed = Math.round(newVal.doubleValue() * 10.0) / 10.0;
+            engine.setTimeMultiplier(speed);
+            lblSpeed.setText("Vitesse : " + speed + "x");
+        });
 
         // 5. SCÉNARIO DE TEST
         setupSampleGraph(graph, agents, engine);
@@ -152,7 +183,7 @@ public class Main extends Application {
         engine.start();
     }
 
-    // ============================================================== GRAPHE ALÉATOIRE
+    // ============================================================== GRAPHE EN GRILLE
 
     /**
      * Génère un graphe en GRILLE CARRÉE de côté "side" (side x side nœuds).
@@ -178,10 +209,9 @@ public class Main extends Application {
         double w = Math.max(canvas.getWidth(), 600);
         double h = Math.max(canvas.getHeight(), 400);
 
-        // (side - 1) intervalles entre les nœuds sur chaque axe
         double spacingX = (w - 2 * margin) / Math.max(1, side - 1);
         double spacingY = (h - 2 * margin) / Math.max(1, side - 1);
-        double spacing  = Math.min(spacingX, spacingY); // on garde des carrés réguliers
+        double spacing  = Math.min(spacingX, spacingY); // carrés réguliers
 
         Node[][] grid = new Node[side][side];
 
@@ -190,7 +220,7 @@ public class Main extends Application {
             for (int c = 0; c < side; c++) {
                 int x = (int) (margin + c * spacing);
                 int y = (int) (margin + r * spacing);
-                int cap = 1 + random.nextInt(5); // 1 à 5
+                int cap = 1 + random.nextInt(5);
                 graph.addNode(x, y, cap);
                 grid[r][c] = graph.getNodes().get(graph.getNodes().size() - 1);
             }
@@ -228,13 +258,11 @@ public class Main extends Application {
         for (int i = 0; i < n; i++) {
             Node start = nodes.get(random.nextInt(nodes.size()));
             int id = nextAgentId.getAndIncrement();
-            float speed = 2.0f + random.nextFloat() * 2.0f; // vitesse 2.0 à 4.0
+            float speed = 2.0f + random.nextFloat() * 2.0f; // 2.0 à 4.0
             Agent agent = new Agent(id, speed, agentState.AVAILABLE);
             agent.setStartingNode(start);
-            // comportement aléatoire
             agent.setAgentBehavior(random.nextBoolean() ? agentBehavior.PATIENT : agentBehavior.HURRIED);
             engine.addAgent(agent);
-            // un objectif aléatoire différent du départ si possible
             Node objective = nodes.get(random.nextInt(nodes.size()));
             agent.addObjective(objective);
         }
@@ -256,7 +284,7 @@ public class Main extends Application {
 
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                graph.addNode(startX + c * spacing, startY + r * spacing, 1);
+                graph.addNode(startX + c * spacing, startY + r * spacing, c + 1);
                 grid[r][c] = graph.getNodes().get(graph.getNodes().size() - 1);
             }
         }
@@ -273,6 +301,7 @@ public class Main extends Application {
         Agent a1 = new Agent(007, 2.5f, Agent.agentState.AVAILABLE);
         a1.setCurrentNode(grid[0][0]);
         a1.setAgentBehavior(agentBehavior.PATIENT);
+        a1.setPriority(1);
         engine.addAgent(a1);
         Agent a2 = new Agent(15, 3.0f, Agent.agentState.AVAILABLE);
         a2.setCurrentNode(grid[0][1]);

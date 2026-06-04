@@ -19,11 +19,35 @@ public class Node {
 
     private Queue<Agent> waitingQueue = new LinkedList<>();
 
+    private boolean isUnderConstruction = false;
+    private int savedCapacity = 1;
+
     public Node(int id, float x, float y, int capacity) {
         this.id = id;
         this.x = x;
         this.y = y;
         this.capacity = capacity;
+    }
+
+    public boolean isUnderConstruction() {
+        return isUnderConstruction;
+    }
+
+   public void setUnderConstruction(boolean underConstruction) {
+        this.isUnderConstruction = underConstruction;
+        if (underConstruction) {
+            this.savedCapacity = this.capacity;
+            this.capacity = 0;
+          
+            this.setState(nodeState.FULL);
+        } else {
+            
+            this.capacity = this.savedCapacity;
+            
+            if (this.currentOccupants < this.capacity) {
+                this.setState(nodeState.AVAILABLE);
+            }
+        }
     }
 
     public boolean isFull() {
