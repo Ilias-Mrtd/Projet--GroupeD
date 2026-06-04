@@ -7,10 +7,10 @@ import model.graph.*;
 
 public class Dijkstra implements PathFinder {
 
-    public Graph graph;
-    public Node currentNode;
-    public Node Destination;
-    public List<Node> path = new ArrayList<>();
+    private Graph graph;
+    private Node currentNode;
+    private Node destination;
+    private List<Node> path = new ArrayList<>();
 
     private static final double TRAFFIC_PENALTY = 5000.0;
 
@@ -26,7 +26,7 @@ public class Dijkstra implements PathFinder {
     public Dijkstra(Graph graph, Node source, Node target) {
         this.graph = graph;
         this.currentNode = source;
-        this.Destination = target;
+        this.destination = target;
         findPath(graph, source, target);
     }
 
@@ -130,7 +130,7 @@ public class Dijkstra implements PathFinder {
                                 // Case where the path doesn't exist ಥ_ಥ
                                 System.out.println("The assigned objective is not accessible for this agent.");
                                 // Il serait interessant de reassigner l'objectif a un autre agent
-                                path.clear();
+                                getPath().clear();
                                 return;
                             }
                         }
@@ -145,14 +145,14 @@ public class Dijkstra implements PathFinder {
         for (int v = 0; v < graphSize; v++) {
             for (int u = 0; u < graphSize; u++) {
                 if (auxNode == null) {
-                    path.clear();
+                    getPath().clear();
                     break;
                 } else {
                     if (auxNode.getId() == source.getId()) {
                         break;
                     } else {
                         if (graph.getNodes().get(u).getId() == auxNode.getId()) {
-                            path.add(0, graph.getNodes().get(u));
+                            getPath().add(0, graph.getNodes().get(u));
                             auxNode = nearestVertice.get(u);
                         }
                     }
@@ -205,11 +205,11 @@ public class Dijkstra implements PathFinder {
     }
 
     public Node getDestination() {
-        return Destination;
+        return this.destination;
     }
 
     public void setDestination(Node destination) {
-        Destination = destination;
+        this.destination = destination;
     }
 
     public List<Node> getPath() {

@@ -48,23 +48,41 @@ public class GraphCanvas extends Canvas {
 
         // Un seul listener : le SelectionSystem trie lui-même bouton gauche/droit
         this.setOnMouseClicked(event -> {
-            if (this.selectionSystem != null) {
-                this.selectionSystem.handleMouseClick(event);
+            if (getSelectionSystem() != null) {
+                getSelectionSystem().handleMouseClick(event);
             }
         });
     }
 
-    // ================================================================ dessin
+    public SelectionSystem getSelectionSystem() {
+        return this.selectionSystem;
+    }
+    
+    public Graph getGraph() {
+        return graph;
+    }
+
+    public void setGraph(Graph graph) {
+        this.graph = graph;
+    }
+
+    public List<Agent> getAgents() {
+        return agents;
+    }
+
+    public GraphRenderer getRenderer() {
+        return renderer;
+    }
 
     public void draw() {
         GraphicsContext gc = getGraphicsContext2D();
         gc.clearRect(0, 0, getWidth(), getHeight());
 
-        renderer.draw(gc, graph, agents);
+        renderer.draw(gc, getGraph(), getAgents());
 
         // Bandeau d'aide visuel en mode liaison d'arête
-        if (selectionSystem != null
-                && selectionSystem.getMode() == SelectionSystem.Mode.LINKING_EDGE) {
+        if (getSelectionSystem() != null
+                && getSelectionSystem().getMode() == SelectionSystem.Mode.LINKING_EDGE) {
             drawLinkingHint(gc);
         }
     }
