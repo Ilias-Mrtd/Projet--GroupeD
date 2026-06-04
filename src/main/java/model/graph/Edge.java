@@ -25,7 +25,7 @@ public class Edge {
         this.id = id;
         this.source = source;
         this.target = target;
-        this.length = Math.sqrt(Math.pow((source.x - target.x), 2) + Math.pow((source.y - target.y), 2));
+        this.length = Math.sqrt(Math.pow((source.getX() - target.getX()), 2) + Math.pow((source.getY() - target.getY()), 2));
         this.capacity = capacity;
         this.direction = direction;
     }

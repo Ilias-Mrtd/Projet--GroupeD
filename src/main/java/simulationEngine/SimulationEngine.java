@@ -121,9 +121,9 @@ public class SimulationEngine extends AnimationTimer {
             // Reinitialisation des etats des noeuds
             Random random = new Random();
             for (Node node : this.graph.getNodes()) {
-                node.currentOccupants = 0;
-                node.expectedOccupants = 0;
-                node.state = nodeState.AVAILABLE;
+                node.setCurrentOccupants(0);
+                node.setExpectedOccupants(0);
+                node.setState(nodeState.AVAILABLE);
             }
 
             // Reassignation d'objetifs

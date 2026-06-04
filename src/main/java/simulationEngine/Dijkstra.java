@@ -16,9 +16,9 @@ public class Dijkstra implements PathFinder {
 
     @Override
     public String toString() {
-        String s = currentNode.id + ":";
-        for (Node node : path) {
-            s += node.id + ";";
+        String s = getCurrentNode().getId() + ":";
+        for (Node node : getPath()) {
+            s += node.getId() + ";";
         }
         return s;
     }
@@ -32,7 +32,7 @@ public class Dijkstra implements PathFinder {
 
     private int nodeIndice(Graph graph, Node node, int size) {
         for (int i = 0; i < size; i++) {
-            if (node.id == graph.getNodes().get(i).id) {
+            if (node.getId() == graph.getNodes().get(i).getId()) {
                 return i;
             }
         }
@@ -60,7 +60,7 @@ public class Dijkstra implements PathFinder {
             foundVertice.add(false);
             nearestVertice.add(null);
             pathLength.add(Double.POSITIVE_INFINITY);
-            if (graph.getNodes().get(i).id == source.id) {
+            if (graph.getNodes().get(i).getId() == source.getId()) {
                 foundVertice.set(i, true);
                 indiceSource = i;
                 pathLength.set(i, 0.0);
@@ -70,7 +70,7 @@ public class Dijkstra implements PathFinder {
         int indiceMinimum = indiceSource;
 
         for (int j = 0; j < graphSize - 1; j++) {
-            if (graph.getNodes().get(indiceMinimum).id == target.id && foundVertice.get(indiceMinimum)) {
+            if (graph.getNodes().get(indiceMinimum).getId() == target.getId() && foundVertice.get(indiceMinimum)) {
                 System.out.println("Chemin trouver !");
                 break;
             } else {
@@ -148,20 +148,20 @@ public class Dijkstra implements PathFinder {
                     path.clear();
                     break;
                 } else {
-                    if (auxNode.id == source.id) {
+                    if (auxNode.getId() == source.getId()) {
                         break;
                     } else {
-                        if (graph.getNodes().get(u).id == auxNode.id) {
+                        if (graph.getNodes().get(u).getId() == auxNode.getId()) {
                             path.add(0, graph.getNodes().get(u));
                             auxNode = nearestVertice.get(u);
                         }
                     }
                 }
                 if (auxNode == null) {
-                    path.clear();
+                    getPath().clear();
                     break;
                 } else {
-                    if (auxNode.id == source.id) {
+                    if (auxNode.getId() == source.getId()) {
                         break;
                     }
                 }

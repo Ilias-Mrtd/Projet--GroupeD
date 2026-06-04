@@ -7,23 +7,86 @@ import model.agents.Agent;
 
 public class Node {
 
-    public int id;
-    public float x;
-    public float y;
-    public int capacity;
-    public nodeState state = nodeState.AVAILABLE;
-    public boolean isSelected = false;
-    public int currentOccupants = 0;
-    public int expectedOccupants = 0;
-    public int incomingOccupants = 0;
+    private int id;
+    private float x;
+    private float y;
+    private int capacity;
+    private nodeState state = nodeState.AVAILABLE;
+    private boolean isSelected = false;
+    private int currentOccupants = 0;
+    private int expectedOccupants = 0;
+    private int incomingOccupants = 0;
 
-    public Queue<Agent> waitingQueue = new LinkedList<>();
+    private Queue<Agent> waitingQueue = new LinkedList<>();
 
     public Node(int id, float x, float y, int capacity) {
         this.id = id;
         this.x = x;
         this.y = y;
         this.capacity = capacity;
+    }
+
+    public boolean isFull() {
+        return getCurrentOccupants() >= getCapacity();
+    }
+
+    public boolean canEnter(Agent a) {
+        return !isFull() && (getWaitingQueue().isEmpty() || getWaitingQueue().peek() == a);
+    }
+
+    public boolean tryEnter(Agent a) {
+        if (canEnter(a)) {
+            getWaitingQueue().remove(a);
+            setCurrentOccupants(getCurrentOccupants()+1);
+            if (isFull()) {
+                setState(nodeState.FULL);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public void forceEnter() {
+        setCurrentOccupants(getCurrentOccupants()+1);
+        if (isFull()) {
+            setState(nodeState.FULL);
+        }
+    }
+
+    public void leave() {
+        if (getCurrentOccupants() > 0) {
+            setCurrentOccupants(getCurrentOccupants()-1);
+        }
+        if (!isFull()) {
+            setState(nodeState.AVAILABLE);
+        }
+    }
+
+    public void enqueue(Agent a) {
+        if (!getWaitingQueue().contains(a)) {
+            getWaitingQueue().add(a);
+        }
+    }
+
+    public void removeQueue(Agent a) {
+        getWaitingQueue().remove(a);
+    }
+
+    public enum nodeState {
+        OUT,
+        AVAILABLE,
+        FULL
+    }
+
+    @Override
+    public String toString() {
+        String s = "id:" + getId() + "\r \n"
+                + "X:" + getX() + "\r \n"
+                + "Y:" + getY() + "\r \n"
+                + "capacity:" + getCapacity() + "\r \n"
+                + "state:" + getState() + "\r\n";
+
+        return s;
     }
     
     public int getId() {
@@ -104,68 +167,5 @@ public class Node {
 
     public void setWaitingQueue(Queue<Agent> waitingQueue) {
         this.waitingQueue = waitingQueue;
-    }
-
-    public boolean isFull() {
-        return currentOccupants >= capacity;
-    }
-
-    public boolean canEnter(Agent a) {
-        return !isFull() && (waitingQueue.isEmpty() || waitingQueue.peek() == a);
-    }
-
-    public boolean tryEnter(Agent a) {
-        if (canEnter(a)) {
-            waitingQueue.remove(a);
-            currentOccupants++;
-            if (isFull()) {
-                this.state = nodeState.FULL;
-            }
-            return true;
-        }
-        return false;
-    }
-
-    public void forceEnter() {
-        currentOccupants++;
-        if (isFull()) {
-            this.state = nodeState.FULL;
-        }
-    }
-
-    public void leave() {
-        if (currentOccupants > 0) {
-            currentOccupants--;
-        }
-        if (!isFull()) {
-            this.state = nodeState.AVAILABLE;
-        }
-    }
-
-    public void enqueue(Agent a) {
-        if (!waitingQueue.contains(a)) {
-            waitingQueue.add(a);
-        }
-    }
-
-    public void removeQueue(Agent a) {
-        waitingQueue.remove(a);
-    }
-
-    public enum nodeState {
-        OUT,
-        AVAILABLE,
-        FULL
-    }
-
-    @Override
-    public String toString() {
-        String s = "id:" + id + "\r \n"
-                + "X:" + x + "\r \n"
-                + "Y:" + y + "\r \n"
-                + "capacity:" + capacity + "\r \n"
-                + "state:" + state + "\r\n";
-
-        return s;
     }
 }

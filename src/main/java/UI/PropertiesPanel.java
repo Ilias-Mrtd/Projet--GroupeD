@@ -224,10 +224,10 @@ public class PropertiesPanel extends VBox {
             infoLabel.setText(
                     "Type     : Nœud\n"
                             + "ID       : " + n.getId() + "\n"
-                            + "Position : (" + (int) n.x + ", " + (int) n.y + ")\n"
-                            + "Capacité : " + n.capacity + "\n"
-                            + "État     : " + n.state + "\n"
-                            + "Occupants: " + n.currentOccupants + "/" + n.capacity);
+                            + "Position : (" + (int) n.getX() + ", " + (int) n.getY() + ")\n"
+                            + "Capacité : " + n.getCapacity() + "\n"
+                            + "État     : " + n.getState() + "\n"
+                            + "Occupants: " + n.getCurrentOccupants() + "/" + n.getCapacity());
 
         } else if (selected instanceof Edge) {
             Edge ed = (Edge) selected;
@@ -355,7 +355,7 @@ public class PropertiesPanel extends VBox {
 
     public Node getSelectedNode() {
         for (Node n : graph.getNodes())
-            if (n.isSelected)
+            if (n.isSelected())
                 return n;
         return null;
     }
