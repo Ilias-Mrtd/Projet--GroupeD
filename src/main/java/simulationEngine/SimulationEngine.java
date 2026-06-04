@@ -128,13 +128,12 @@ public class SimulationEngine extends AnimationTimer {
             for (Node node : this.graph.getNodes()) {
                 node.setCurrentOccupants(0);
                 node.setExpectedOccupants(0);
-                node.setIncomingOccupants(0); 
-                
-             
+                node.setIncomingOccupants(0);
+
                 if (node.isUnderConstruction()) {
-                    node.setState(nodeState.FULL); 
+                    node.setState(nodeState.FULL);
                 } else {
-                    node.setState(nodeState.AVAILABLE); 
+                    node.setState(nodeState.AVAILABLE);
                 }
             }
 
@@ -144,7 +143,7 @@ public class SimulationEngine extends AnimationTimer {
                 System.out.println("État     : " + agent.getState());
 
                 // Objectifs
-                agent.addObjective(this.graph.getNodes().get(11));
+                agent.addObjective(this.graph.getNodes().get(random.nextInt(this.graph.getNodes().size())));
                 agent.addObjective(this.graph.getNodes().get(random.nextInt(this.graph.getNodes().size())));
             }
         }

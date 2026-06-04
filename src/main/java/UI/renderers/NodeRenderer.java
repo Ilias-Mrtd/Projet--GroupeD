@@ -30,6 +30,10 @@ public class NodeRenderer implements NodeRendering {
                 gc.setFill(Color.RED);
                 break;
         }
+        if (node.isUnderConstruction()) {
+            gc.setFill(Color.BLACK);
+        }
+
         gc.fillOval(node.getX() - RADIUS / 2, node.getY() - RADIUS / 2, RADIUS, RADIUS);
 
         // etickette
