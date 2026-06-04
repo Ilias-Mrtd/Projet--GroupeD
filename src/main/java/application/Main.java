@@ -7,6 +7,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.control.ScrollPane;
 import javafx.geometry.Insets;
 import javafx.stage.Stage;
 
@@ -67,7 +68,11 @@ public class Main extends Application {
         BorderPane root = new BorderPane();
         root.setTop(toolbar);
         root.setCenter(graphCanvas);
-        root.setRight(propertiesPanel);
+        ScrollPane panelScroll = new ScrollPane(propertiesPanel);
+        panelScroll.setFitToWidth(true);                              // le panneau prend toute la largeur dispo
+        panelScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); // pas de scroll horizontal
+        panelScroll.setStyle("-fx-background: #FAFAFA; -fx-background-color: #FAFAFA;");
+        root.setRight(panelScroll);
 
         // 3. CONTRÔLEURS & MOTEUR
         SelectionSystem selectionSystem = new SelectionSystem(graph, agents, graphCanvas);
