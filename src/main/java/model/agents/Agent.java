@@ -29,6 +29,7 @@ public class Agent {
     private int currentPatience;
 
     private EndBehavior endBehavior = EndBehavior.RANDOM_WANDER;
+    private agentBehavior behavior = agentBehavior.PATIENT;
     private List<Node> reservedNodes = new ArrayList<>();
     private List<Edge> reservedEdges = new ArrayList<>();
 
@@ -48,9 +49,33 @@ public class Agent {
         OUT
     }
 
+    public enum agentBehavior {
+        HURRIED(2), // They have the priority so they are virtualy hurried
+        PATIENT(1), // Normal
+        BROKEN(0); // They lose some abilities
+
+        private final int priority;
+
+        agentBehavior(int priority) {
+            this.priority = priority;
+        }
+
+        public int getPriority() {
+            return priority;
+        }
+    }
+
     public void setStartingNode(Node node) {
         this.startingNode = node;
         this.currentNode = node;
+    }
+
+    public void setAgentBehavior(agentBehavior behavior) {
+        this.behavior = behavior;
+    }
+
+    public agentBehavior getAgentBehavior() {
+        return this.behavior;
     }
 
     private void handleEndBehavior() {
@@ -66,7 +91,8 @@ public class Agent {
                 getCurrentNode().leave();
                 break;
             case RANDOM_WANDER:
-                setState(agentState.AVAILABLE);;
+                setState(agentState.AVAILABLE);
+                this.currentNode.leave();
                 /*
                  * if (graph != null && !graph.Nodes.isEmpty()) {
                  * int randomIndex = (int) (Math.random() * graph.Nodes.size());
@@ -82,14 +108,17 @@ public class Agent {
     }
 
     private void makeReservations() {
+        if (getAgentBehavior() == agentBehavior.BROKEN) { // Broken agents lose abilities
+            return;
+        }
         clearReservations();
         Node prev = getCurrentNode();
         for (Node n : getPath()) {
-            n.setExpectedOccupants(n.getExpectedOccupants()+1);
+            n.setExpectedOccupants(n.getExpectedOccupants() + 1);
             getReservedNodes().add(n);
             Edge e = findEdgeBetween(prev, n);
             if (e != null) {
-                e.setExpectedOccupants(e.getExpectedOccupants()+1);
+                e.setExpectedOccupants(e.getExpectedOccupants() + 1);
                 getReservedEdges().add(e);
             }
             prev = n;
@@ -99,21 +128,21 @@ public class Agent {
     private void clearReservations() {
         for (Node n : getReservedNodes()) {
             if (n.getExpectedOccupants() > 0)
-                n.setExpectedOccupants(n.getExpectedOccupants()-1);
+                n.setExpectedOccupants(n.getExpectedOccupants() - 1);
         }
         getReservedNodes().clear();
 
         for (Edge e : getReservedEdges()) {
             if (e.getExpectedOccupants() > 0)
-                e.setExpectedOccupants(e.getExpectedOccupants()-1);
+                e.setExpectedOccupants(e.getExpectedOccupants() - 1);
         }
         getReservedEdges().clear();
     }
 
-    public Agent(String id, float speed, String state) {
-        setId(Integer.parseInt(id));
+    public Agent(int id, float speed, agentState state) {
+        setId(id);
         setSpeed(speed);
-        setState(agentState.valueOf(state.toUpperCase()));
+        setState(state);
         setCurrentPatience(getMaxPatience());
     }
 
@@ -150,7 +179,8 @@ public class Agent {
 
             setState(agentState.RUNNING);
             setCurrentPatience(getMaxPatience());
-            System.out.println(">>> Agent " + getId() + " en route vers l'objectif actuel : Noeud " + getDestination().getId());
+            System.out.println(
+                    ">>> Agent " + getId() + " en route vers l'objectif actuel : Noeud " + getDestination().getId());
 
         }
 
@@ -192,6 +222,9 @@ public class Agent {
     }
 
     private boolean isPathClearAhead(int depth) {
+        if (behavior == agentBehavior.HURRIED) {
+            return true;
+        }
         if (getPath().size() < 2)
             return true;
 
@@ -216,12 +249,24 @@ public class Agent {
     public void update(double deltaTime) {
 
         if (getState() == agentState.WAITING) {
-
+            // decrease variable of an agent
+            int decrease = 1;
+            switch (getAgentBehavior()) {
+                case HURRIED:
+                    decrease = 3;
+                    break;
+                case PATIENT:
+                    decrease = 1;
+                    break;
+                case BROKEN:
+                    decrease = 1;
+                    break;
+            }
             if (getCurrentNode() == getStartingNode() && getCurrentEdge() == null) {
                 if (Math.random() < 0.5)
-                    setCurrentPatience(getCurrentPatience()-1);
+                    setCurrentPatience(getCurrentPatience() - decrease);
             } else {
-                setCurrentPatience(getCurrentPatience()-2);
+                setCurrentPatience(getCurrentPatience() - decrease * 2);
             }
 
             if (getCurrentPatience() <= 0) {
@@ -239,7 +284,8 @@ public class Agent {
                 }
 
                 if (getCurrentEdge() != null) {
-                    System.out.println("!!! Agent " + getId() + " perd patience et fait MARCHE ARRIÈRE sur l'arête !!!");
+                    System.out
+                            .println("!!! Agent " + getId() + " perd patience et fait MARCHE ARRIÈRE sur l'arête !!!");
                     setRetreating(true);
                     setState(agentState.RUNNING);
                 } else {
@@ -254,7 +300,7 @@ public class Agent {
             // Verifier qu'une arete n'a pas ete suprimer du chemin
             if (getState() == agentState.RUNNING && getCurrentNode() != null && getCurrentEdge() == null) {
                 if (getAuxNode() != null && getCurrentNode() == getAuxNode()) {
-                    setBlockedSince(isBlockedSince()+1);
+                    setBlockedSince(isBlockedSince() + 1);
                     if (isBlockedSince() > 3) {
                         setBlockedSince(0);
                         System.out.println("Etape 3");
@@ -274,7 +320,8 @@ public class Agent {
                     if (!isPathClearAhead(2)) {
                         if (getState() != agentState.WAITING) {
                             setState(agentState.WAITING);
-                            System.out.println("🧠 Agent " + getId() + " anticipe un bouchon et fait du SMART WAITING.");
+                            System.out
+                                    .println("🧠 Agent " + getId() + " anticipe un bouchon et fait du SMART WAITING.");
                         }
                         return;
                     }
@@ -287,7 +334,7 @@ public class Agent {
 
                             if (getReservedEdges().contains(nextEdge)) {
                                 if (nextEdge.getExpectedOccupants() > 0)
-                                    nextEdge.setExpectedOccupants(nextEdge.getExpectedOccupants()-1);
+                                    nextEdge.setExpectedOccupants(nextEdge.getExpectedOccupants() - 1);
                                 getReservedEdges().remove(nextEdge);
                             }
 
@@ -296,11 +343,11 @@ public class Agent {
                             }
                             setCurrentEdge(nextEdge);
                             getPath().remove(0);
-                            setDistanceTraveledOnEdge( 0.0f);
+                            setDistanceTraveledOnEdge(0.0f);
                             setState(agentState.RUNNING);
                             setCurrentPatience(getMaxPatience());
 
-                            nextNode.setIncomingOccupants(nextNode.getIncomingOccupants()+1);
+                            nextNode.setIncomingOccupants(nextNode.getIncomingOccupants() + 1);
 
                             System.out.println("🟢 Agent " + getId() + " S'ENGAGE vers le noeud " + nextNode.getId());
                         } else {
@@ -308,8 +355,9 @@ public class Agent {
                             nextEdge.enqueue(this);
                             if (getState() != agentState.WAITING) {
                                 setState(agentState.WAITING);
-                                System.out.println("🟠 Agent " + getId() + " PATIENTE (arête pleine vers " + nextNode.getId()
-                                        + " | Capacité: " + nextEdge.getCapacity() + ")");
+                                System.out.println(
+                                        "🟠 Agent " + getId() + " PATIENTE (arête pleine vers " + nextNode.getId()
+                                                + " | Capacité: " + nextEdge.getCapacity() + ")");
                             }
                             return;
                         }
@@ -332,17 +380,18 @@ public class Agent {
                     setDistanceTraveledOnEdge((float) (getDistanceTraveledOnEdge() - this.speed * deltaTime * 60));
 
                     if (getDistanceTraveledOnEdge() <= 0.0f) {
-                        setDistanceTraveledOnEdge( 0.0f);
+                        setDistanceTraveledOnEdge(0.0f);
 
                         if (getCurrentNode().tryEnter(this)) {
                             System.out.println("Agent " + getId() + " est revenu sur son noeud et libère l'arête.");
-                            Node targetNode = (getCurrentEdge().getSource() == getCurrentNode()) ? getCurrentEdge().getTarget()
+                            Node targetNode = (getCurrentEdge().getSource() == getCurrentNode())
+                                    ? getCurrentEdge().getTarget()
                                     : getCurrentEdge().getSource();
                             if (targetNode.getCurrentOccupants() > 0)
-                                targetNode.setIncomingOccupants(targetNode.getIncomingOccupants()-1);
+                                targetNode.setIncomingOccupants(targetNode.getIncomingOccupants() - 1);
 
                             getCurrentEdge().leave();
-                            setCurrentEdge( null);
+                            setCurrentEdge(null);
                             setRetreating(false);
                             applyDetour();
                         } else {
@@ -350,7 +399,8 @@ public class Agent {
                             if (getState() != agentState.WAITING) {
                                 setState(agentState.WAITING);
                                 System.out.println(
-                                        "🛑 Agent " + getId() + " est bloqué en reculant (le noeud d'origine est PLEIN !)");
+                                        "🛑 Agent " + getId()
+                                                + " est bloqué en reculant (le noeud d'origine est PLEIN !)");
                             }
                         }
                     }
@@ -358,29 +408,30 @@ public class Agent {
 
                 else {
 
-                    if (getDistanceTraveledOnEdge ()< getCurrentEdge().getLength()) {
+                    if (getDistanceTraveledOnEdge() < getCurrentEdge().getLength()) {
                         setDistanceTraveledOnEdge((float) (getDistanceTraveledOnEdge() + this.speed * deltaTime * 60));
                     }
 
-                    if (getDistanceTraveledOnEdge ()>= getCurrentEdge().getLength()) {
+                    if (getDistanceTraveledOnEdge() >= getCurrentEdge().getLength()) {
                         setDistanceTraveledOnEdge((float) getCurrentEdge().getLength());
-                        Node targetNode = (getCurrentEdge().getSource() == getCurrentNode()) ? getCurrentEdge().getTarget()
+                        Node targetNode = (getCurrentEdge().getSource() == getCurrentNode())
+                                ? getCurrentEdge().getTarget()
                                 : getCurrentEdge().getSource();
 
                         if (targetNode.tryEnter(this)) {
 
                             if (targetNode.getCurrentOccupants() > 0)
-                                targetNode.setIncomingOccupants(targetNode.getIncomingOccupants()-1);
+                                targetNode.setIncomingOccupants(targetNode.getIncomingOccupants() - 1);
 
                             if (getReservedNodes().contains(targetNode)) {
                                 if (targetNode.getExpectedOccupants() > 0)
-                                    targetNode.setExpectedOccupants(targetNode.getExpectedOccupants()-1);
+                                    targetNode.setExpectedOccupants(targetNode.getExpectedOccupants() - 1);
                                 getReservedNodes().remove(targetNode);
                             }
 
                             setCurrentNode(targetNode);
                             getCurrentEdge().leave();
-                            setCurrentEdge( null);
+                            setCurrentEdge(null);
                             setState(agentState.RUNNING);
                             setCurrentPatience(getMaxPatience());
 
@@ -388,7 +439,8 @@ public class Agent {
 
                             if (getPath().isEmpty()) {
                                 if (getCurrentNode().getId() == getDestination().getId()) {
-                                    System.out.println("Objectif final Noeud " + getDestination().getId() + " ATTEINT !");
+                                    System.out
+                                            .println("Objectif final Noeud " + getDestination().getId() + " ATTEINT !");
                                     if (!getObjectives().isEmpty()) {
                                         startNextObjective();
                                     } else {
@@ -397,7 +449,8 @@ public class Agent {
                                 } else {
 
                                     System.out.println(
-                                            "🔄 Agent " + getId() + " a terminé son évitement. Recalcul vers l'objectif "
+                                            "🔄 Agent " + getId()
+                                                    + " a terminé son évitement. Recalcul vers l'objectif "
                                                     + getDestination().getId());
                                     Dijkstra calculator = new Dijkstra(getGraph(), getCurrentNode(), getDestination());
                                     setPath(calculator.getPath());

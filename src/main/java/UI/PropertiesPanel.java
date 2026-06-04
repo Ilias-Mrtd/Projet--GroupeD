@@ -213,10 +213,12 @@ public class PropertiesPanel extends VBox {
                     .append("État    : ").append(a.getState()).append("\n")
                     .append("Vitesse : ").append(a.getSpeed()).append(" px/s\n");
             if (a.getCurrentEdge() != null && a.getDestination() != null)
-                sb.append("Trajet  : ").append(a.getCurrentNode().getId()).append(" ➔ ").append(a.getDestination().getId()).append("\n")
+                sb.append("Trajet  : ").append(a.getCurrentNode().getId()).append(" ➔ ")
+                        .append(a.getDestination().getId()).append("\n")
                         .append("Sur arête : ").append(a.getCurrentEdge().getId());
             else if (a.getCurrentNode() != null)
-                sb.append("Position : nœud ").append(a.getCurrentNode().getId() + "\n ");
+                sb.append("Position : nœud ")
+                        .append(a.getCurrentNode().getId() + "\nBehavior : " + a.getAgentBehavior());
             infoLabel.setText(sb.toString());
 
         } else if (selected instanceof Node) {

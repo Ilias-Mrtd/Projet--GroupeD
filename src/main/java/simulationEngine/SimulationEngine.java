@@ -2,6 +2,7 @@ package simulationEngine;
 
 import javafx.animation.AnimationTimer;
 import java.util.Random;
+import java.util.Comparator;
 import java.util.List;
 
 import UI.GraphCanvas;
@@ -59,6 +60,8 @@ public class SimulationEngine extends AnimationTimer {
     public void addAgent(Agent agent) {
         agent.setGraph(getGraph());
         this.agents.add(agent);
+        agents.sort(Comparator.comparingInt(a -> a.getAgentBehavior().getPriority())); // Priority of HURRIED > PATIENT
+                                                                                       // > BROKEN
 
         if (agent.getCurrentNode() != null) {
             agent.getCurrentNode().forceEnter();

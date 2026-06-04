@@ -12,6 +12,7 @@ public class AgentRenderer implements AgentRendering {
     private final int NODE_RADIUS = 15;
     private final int AGENT_RADIUS = 10;
     private final float EDGE_WIDTH = 8.0f;
+    private Color agentColor = Color.GREEN;
 
     @Override
     public void drawAgent(GraphicsContext gc, Agent agent) {
@@ -54,7 +55,8 @@ public class AgentRenderer implements AgentRendering {
                             node.getY());
                     auxNode = node;
                     gc.setFill(Color.BLUE);
-                    gc.fillOval(auxNode.getX() - AGENT_RADIUS / 3, auxNode.getY() - AGENT_RADIUS / 3, AGENT_RADIUS / 1.5,
+                    gc.fillOval(auxNode.getX() - AGENT_RADIUS / 3, auxNode.getY() - AGENT_RADIUS / 3,
+                            AGENT_RADIUS / 1.5,
                             AGENT_RADIUS / 1.5);
                 }
             }
@@ -62,20 +64,34 @@ public class AgentRenderer implements AgentRendering {
 
         switch (agent.getState()) {
             case AVAILABLE:
-                gc.setFill(Color.GREEN);
+                agentColor = Color.GREEN;
                 break;
             case CALCULATING:
-                gc.setFill(Color.RED);
+                agentColor = Color.RED;
                 break;
             case WAITING:
-                gc.setFill(Color.YELLOW);
+                agentColor = Color.YELLOW;
                 break;
             case RUNNING:
-                gc.setFill(Color.BLUE);
+                agentColor = Color.BLUE;
                 break;
             case OUT:
-                return;
+                agentColor = Color.BLACK;
+                break;
         }
+
+        switch (agent.getAgentBehavior()) {
+            case HURRIED:
+                agentColor = agentColor.interpolate(Color.RED, 0.5);
+                break;
+            case PATIENT:
+                break;
+            case BROKEN:
+                agentColor = agentColor.interpolate(Color.BLACK, 0.5);
+                break;
+        }
+
+        gc.setFill(agentColor);
 
         gc.fillOval(x, y, AGENT_RADIUS, AGENT_RADIUS);
 
