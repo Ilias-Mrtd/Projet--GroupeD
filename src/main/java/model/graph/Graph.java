@@ -13,15 +13,15 @@ public class Graph {
     // 7: []
     // 1: [1]
     // 2: [1,2,3]
-    public List<Node> Nodes = new ArrayList<>(); // Les noeuds dans un ordre quelconque
-    public List<List<Edge>> Edges = new ArrayList<>(); // Les listes d'aretes dans le meme ordre
+    private List<Node> Nodes = new ArrayList<>(); // Les noeuds dans un ordre quelconque
+    private List<List<Edge>> Edges = new ArrayList<>(); // Les listes d'aretes dans le meme ordre
 
     private int newNodeId() {
         Random random = new Random();
         int newId = random.nextInt(500);
 
-        for (int i = 0; i < Nodes.size(); i++) {
-            if (Nodes.get(i).getId() == newId) {
+        for (int i = 0; i < getNodes().size(); i++) {
+            if (getNodes().get(i).getId() == newId) {
                 newId = random.nextInt(500);
                 i = 0; // recommence la boucle tant que un id unique n'a pas ete creer
             }
@@ -34,9 +34,9 @@ public class Graph {
         Random random = new Random();
         int newId = random.nextInt(500);
 
-        for (int i = 0; i < Edges.size(); i++) {
-            for (int j = 0; j < Edges.get(i).size(); j++) {
-                if (Edges.get(i).get(j).getId() == newId) {
+        for (int i = 0; i < getEdges().size(); i++) {
+            for (int j = 0; j < getEdges().get(i).size(); j++) {
+                if (getEdges().get(i).get(j).getId() == newId) {
                     newId = random.nextInt(500);
                     i = 0; // recommence la boucle tant que un id unique n'a pas ete creer
                 }
@@ -53,9 +53,9 @@ public class Graph {
         Node newNode = new Node(newId, x, y, capacity);
 
         // Ajout du noeud a Nodes
-        Nodes.add(newNode);
+        getNodes().add(newNode);
         List<Edge> emptyList = new ArrayList<>();
-        Edges.add(emptyList); // Ajout d'une liste d'aretes vide
+        getEdges().add(emptyList); // Ajout d'une liste d'aretes vide
 
         System.out.println("Node " + newId + " succesfuly added to Graph");
     }
@@ -66,12 +66,12 @@ public class Graph {
         Edge newEdge = new Edge(newId, source, target, capacity, direction);
 
         // Ajout de l'arete a Edges
-        for (int i = 0; i < Nodes.size(); i++) {
-            if (Nodes.get(i).getId() == source.getId()) {
-                Edges.get(i).add(newEdge);// exception
+        for (int i = 0; i < getNodes().size(); i++) {
+            if (getNodes().get(i).getId() == source.getId()) {
+                getEdges().get(i).add(newEdge);// exception
             }
-            if (direction && Nodes.get(i).getId() == target.getId()) {
-                Edges.get(i).add(newEdge);// exception
+            if (direction && getNodes().get(i).getId() == target.getId()) {
+                getEdges().get(i).add(newEdge);// exception
             }
         }
 
@@ -79,7 +79,7 @@ public class Graph {
     }
 
     private void removeEdge(Edge edgeToRemove) {
-        for (List<Edge> edgeList : Edges) {
+        for (List<Edge> edgeList : getEdges()) {
             for (int j = 0; j < edgeList.size(); j++) {
                 if (edgeList.get(j).getId() == edgeToRemove.getId()) {
                     edgeList.remove(j);
@@ -90,14 +90,14 @@ public class Graph {
     }
 
     public boolean removeNode(Node nodeToRemove) {
-        for (int i = 0; i < Nodes.size(); i++) {
-            if (Nodes.get(i).getId() == nodeToRemove.getId()) {
-                int length = Edges.get(i).size();
+        for (int i = 0; i < getNodes().size(); i++) {
+            if (getNodes().get(i).getId() == nodeToRemove.getId()) {
+                int length = getEdges().get(i).size();
                 for (int j = 0; j < length; j++) {
-                    removeEdge(Edges.get(i).get(0));
+                    removeEdge(getEdges().get(i).get(0));
                 }
-                Edges.remove(i);
-                Nodes.remove(i);
+                getEdges().remove(i);
+                getNodes().remove(i);
                 System.out.println("Node" + nodeToRemove.getId() + " has succesfully removed.");
                 return true;
             }
@@ -110,10 +110,10 @@ public class Graph {
     public String toString() {
         String s = new String();
 
-        for (int i = 0; i < Nodes.size(); i++) {
-            s += Nodes.get(i).getId() + ":";
-            for (int j = 0; j < Edges.get(i).size(); j++) {
-                s += Edges.get(i).get(j).getId() + ",";
+        for (int i = 0; i < getNodes().size(); i++) {
+            s += getNodes().get(i).getId() + ":";
+            for (int j = 0; j < getEdges().get(i).size(); j++) {
+                s += getEdges().get(i).get(j).getId() + ",";
             }
             s += "\r\n";
         }
@@ -122,7 +122,7 @@ public class Graph {
     }
 
     public List<Node> getNodes() {
-        return Nodes;
+        return this.Nodes;
     }
 
     public void setNodes(List<Node> nodes) {
@@ -130,7 +130,7 @@ public class Graph {
     }
 
     public List<List<Edge>> getEdges() {
-        return Edges;
+        return this.Edges;
     }
 
     public void setEdges(List<List<Edge>> edges) {

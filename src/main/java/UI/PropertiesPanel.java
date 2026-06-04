@@ -323,7 +323,7 @@ public class PropertiesPanel extends VBox {
     }
 
     private void removeEdgeFromGraph(Edge edge) {
-        for (List<Edge> list : graph.Edges) {
+        for (List<Edge> list : graph.getEdges()) {
             list.removeIf(e -> e.getId() == edge.getId());
         }
         System.out.println("[PropertiesPanel] Arête " + edge.getId() + " supprimée.");
@@ -343,10 +343,10 @@ public class PropertiesPanel extends VBox {
         for (Agent a : agents)
             if (a.isSelected())
                 return a;
-        for (Node n : graph.Nodes)
+        for (Node n : graph.getNodes())
             if (n.isSelected())
                 return n;
-        for (List<Edge> edges : graph.Edges)
+        for (List<Edge> edges : graph.getEdges())
             for (Edge e : edges)
                 if (e.isSelected())
                     return e;
@@ -354,14 +354,14 @@ public class PropertiesPanel extends VBox {
     }
 
     public Node getSelectedNode() {
-        for (Node n : graph.Nodes)
+        for (Node n : graph.getNodes())
             if (n.isSelected)
                 return n;
         return null;
     }
 
     public Edge getSelectedEdge() {
-        for (List<Edge> edges : graph.Edges)
+        for (List<Edge> edges : graph.getEdges())
             for (Edge e : edges)
                 if (e.isSelected())
                     return e;

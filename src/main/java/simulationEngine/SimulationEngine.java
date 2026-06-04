@@ -120,7 +120,7 @@ public class SimulationEngine extends AnimationTimer {
 
             // Reinitialisation des etats des noeuds
             Random random = new Random();
-            for (Node node : this.graph.Nodes) {
+            for (Node node : this.graph.getNodes()) {
                 node.currentOccupants = 0;
                 node.expectedOccupants = 0;
                 node.state = nodeState.AVAILABLE;
@@ -132,8 +132,8 @@ public class SimulationEngine extends AnimationTimer {
                 System.out.println("État     : " + agent.getState());
 
                 // Objectifs
-                agent.addObjective(this.graph.Nodes.get(11));
-                agent.addObjective(this.graph.Nodes.get(random.nextInt(this.graph.Nodes.size())));
+                agent.addObjective(this.graph.getNodes().get(11));
+                agent.addObjective(this.graph.getNodes().get(random.nextInt(this.graph.getNodes().size())));
             }
         }
 

@@ -32,7 +32,7 @@ public class Dijkstra implements PathFinder {
 
     private int nodeIndice(Graph graph, Node node, int size) {
         for (int i = 0; i < size; i++) {
-            if (node.id == graph.Nodes.get(i).id) {
+            if (node.id == graph.getNodes().get(i).id) {
                 return i;
             }
         }
@@ -53,14 +53,14 @@ public class Dijkstra implements PathFinder {
         List<Boolean> foundVertice = new ArrayList<>(); // liste de confirmation
         List<Double> pathLength = new ArrayList<>(); // distances a la source
         int indiceSource = 0;
-        int graphSize = graph.Nodes.size();
+        int graphSize = graph.getNodes().size();
 
         // initialisation
         for (int i = 0; i < graphSize; i++) {
             foundVertice.add(false);
             nearestVertice.add(null);
             pathLength.add(Double.POSITIVE_INFINITY);
-            if (graph.Nodes.get(i).id == source.id) {
+            if (graph.getNodes().get(i).id == source.id) {
                 foundVertice.set(i, true);
                 indiceSource = i;
                 pathLength.set(i, 0.0);
@@ -70,17 +70,17 @@ public class Dijkstra implements PathFinder {
         int indiceMinimum = indiceSource;
 
         for (int j = 0; j < graphSize - 1; j++) {
-            if (graph.Nodes.get(indiceMinimum).id == target.id && foundVertice.get(indiceMinimum)) {
+            if (graph.getNodes().get(indiceMinimum).id == target.id && foundVertice.get(indiceMinimum)) {
                 System.out.println("Chemin trouver !");
                 break;
             } else {
                 double minimumLength = Double.POSITIVE_INFINITY;
-                if (graph.Edges.get(indiceSource).size() > 0) {
+                if (graph.getEdges().get(indiceSource).size() > 0) {
                     // 1er phase
-                    for (int i = 0; i < graph.Edges.get(indiceSource).size(); i++) {
-                        Edge edge = graph.Edges.get(indiceSource).get(i);
+                    for (int i = 0; i < graph.getEdges().get(indiceSource).size(); i++) {
+                        Edge edge = graph.getEdges().get(indiceSource).get(i);
                         if (edge.isDirection()) {
-                            Node destNode = destination(graph.Nodes.get(indiceSource), edge);
+                            Node destNode = destination(graph.getNodes().get(indiceSource), edge);
 
                             double dynamicCost = edge.getLength()
                                     + (edge.getExpectedOccupants() * TRAFFIC_PENALTY)
@@ -89,11 +89,11 @@ public class Dijkstra implements PathFinder {
                             int destIndex = nodeIndice(graph, destNode, graphSize);
 
                             if (pathLength.get(indiceSource) + dynamicCost < pathLength.get(destIndex)) {
-                                nearestVertice.set(destIndex, graph.Nodes.get(indiceSource));
+                                nearestVertice.set(destIndex, graph.getNodes().get(indiceSource));
                                 pathLength.set(destIndex, pathLength.get(indiceSource) + dynamicCost);
                             }
                         } else {
-                            if (edge.getTarget() != graph.Nodes.get(indiceSource)) {
+                            if (edge.getTarget() != graph.getNodes().get(indiceSource)) {
                                 Node destNode = edge.getTarget();
 
                                 double dynamicCost = edge.getLength()
@@ -103,7 +103,7 @@ public class Dijkstra implements PathFinder {
                                 int destIndex = nodeIndice(graph, destNode, graphSize);
 
                                 if (pathLength.get(indiceSource) + dynamicCost < pathLength.get(destIndex)) {
-                                    nearestVertice.set(destIndex, graph.Nodes.get(indiceSource));
+                                    nearestVertice.set(destIndex, graph.getNodes().get(indiceSource));
                                     pathLength.set(destIndex, pathLength.get(indiceSource) + dynamicCost);
                                 }
                             }
@@ -123,8 +123,8 @@ public class Dijkstra implements PathFinder {
                     // phase de validation
                     for (int i = 0; i < graphSize; i++) {
                         if (pathLength.get(i) <= minimumLength && foundVertice.get(i) == false) {
-                            if (graph.Edges.size() > indiceSource && graph.Edges.get(indiceMinimum).size() > i) {
-                                minimumLength = graph.Edges.get(indiceSource).get(i).getLength();
+                            if (graph.getEdges().size() > indiceSource && graph.getEdges().get(indiceMinimum).size() > i) {
+                                minimumLength = graph.getEdges().get(indiceSource).get(i).getLength();
                                 indiceMinimum = i;
                             } else {
                                 // Case where the path doesn't exist ಥ_ಥ
@@ -151,8 +151,8 @@ public class Dijkstra implements PathFinder {
                     if (auxNode.id == source.id) {
                         break;
                     } else {
-                        if (graph.Nodes.get(u).id == auxNode.id) {
-                            path.add(0, graph.Nodes.get(u));
+                        if (graph.getNodes().get(u).id == auxNode.id) {
+                            path.add(0, graph.getNodes().get(u));
                             auxNode = nearestVertice.get(u);
                         }
                     }

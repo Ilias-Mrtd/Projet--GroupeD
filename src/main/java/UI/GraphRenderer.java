@@ -21,14 +21,14 @@ public class GraphRenderer {
 
         // On dessine d'abord les arêtes qui seront recouvertent par les noeuds
         // javatenant le dessin de fleche directionnelle dans edgeRenderer
-        for (List<Edge> edges : graph.Edges) {
+        for (List<Edge> edges : graph.getEdges()) {
             for (Edge edge : edges) {
                 edgeRenderer.drawEdge(gc, edge);
             }
         }
 
         // On dessine les nœuds par-dessus
-        for (Node node : graph.Nodes) {
+        for (Node node : graph.getNodes()) {
             nodeRenderer.drawNode(gc, node);
         }
 

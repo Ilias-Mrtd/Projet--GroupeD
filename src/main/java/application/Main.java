@@ -99,7 +99,7 @@ public class Main extends Application {
                 System.out.println("[Main] Arête " + sel.getId() + " occupée, suppression impossible.");
                 return;
             }
-            for (List<Edge> list : graph.Edges)
+            for (List<Edge> list : graph.getEdges())
                 list.removeIf(e -> e.getId() == sel.getId());
             System.out.println("[Main] Arête " + sel.getId() + " supprimée.");
             graphCanvas.draw();
@@ -146,7 +146,7 @@ public class Main extends Application {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 graph.addNode(startX + c * spacing, startY + r * spacing, c + 1);
-                grid[r][c] = graph.Nodes.get(graph.Nodes.size() - 1);
+                grid[r][c] = graph.getNodes().get(graph.getNodes().size() - 1);
             }
         }
 
