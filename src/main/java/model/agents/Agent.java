@@ -27,6 +27,7 @@ public class Agent {
 
     private int maxPatience = 300;
     private int currentPatience;
+    private int currentPriority = 0;
 
     private EndBehavior endBehavior = EndBehavior.RANDOM_WANDER;
     private agentBehavior behavior = agentBehavior.PATIENT;
@@ -630,5 +631,13 @@ public class Agent {
 
     public void setBlockedSince(int n) {
         this.isBlockedSince = n;
+    }
+
+    public void setPriority(int priority) {
+        this.currentPriority = priority;
+    }
+
+    public int getCurrentPriority() {
+        return this.currentPriority;
     }
 }

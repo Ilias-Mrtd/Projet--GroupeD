@@ -54,8 +54,9 @@ public class SimulationEngine extends AnimationTimer {
     public void addAgent(Agent agent) {
         agent.setGraph(getGraph());
         this.agents.add(agent);
-        agents.sort(Comparator.comparingInt(a -> a.getAgentBehavior().getPriority())); // Priority of HURRIED > PATIENT
-                                                                                       // > BROKEN
+        agents.sort(Comparator.comparingInt((Agent a) -> a.getCurrentPriority())
+                .thenComparingInt(a -> a.getAgentBehavior().getPriority())); // Priority of HURRIED > PATIENT
+        // > BROKEN
 
         if (agent.getCurrentNode() != null) {
             agent.getCurrentNode().forceEnter();
