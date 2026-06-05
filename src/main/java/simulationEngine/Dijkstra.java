@@ -5,12 +5,7 @@ import java.util.List;
 
 import model.graph.*;
 
-public class Dijkstra implements PathFinder {
-
-    private Graph graph;
-    private Node currentNode;
-    private Node destination;
-    private List<Node> path = new ArrayList<>();
+public class Dijkstra extends Algo {
 
     private static final double TRAFFIC_PENALTY = 5000.0;
 
@@ -24,27 +19,7 @@ public class Dijkstra implements PathFinder {
     }
 
     public Dijkstra(Graph graph, Node source, Node target) {
-        this.graph = graph;
-        this.currentNode = source;
-        this.destination = target;
-        findPath(graph, source, target);
-    }
-
-    private int nodeIndice(Graph graph, Node node, int size) {
-        for (int i = 0; i < size; i++) {
-            if (node.getId() == graph.getNodes().get(i).getId()) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private Node destination(Node node, Edge edge) {
-        if (edge.getSource() == node) {
-            return edge.getTarget();
-        } else {
-            return edge.getSource();
-        }
+        super(graph, source, target);
     }
 
     @Override
@@ -87,8 +62,8 @@ public class Dijkstra implements PathFinder {
 
                             // NOUVEAU : On divise la longueur par le multiplicateur de vitesse
                             double dynamicCost = (edge.getLength() / edge.getSpeedModifier())
-                                    + (edge.getExpectedOccupants() * TRAFFIC_PENALTY)
-                                    + (destNode.getExpectedOccupants() * TRAFFIC_PENALTY);
+                                    + (edge.getExpectedOccupants() * getTrafficPenalty())
+                                    + (destNode.getExpectedOccupants() * getTrafficPenalty());
 
                             int destIndex = nodeIndice(graph, destNode, graphSize);
 
@@ -105,8 +80,8 @@ public class Dijkstra implements PathFinder {
 
                                 // NOUVEAU : Division par la vitesse
                                 double dynamicCost = (edge.getLength() / edge.getSpeedModifier())
-                                        + (edge.getExpectedOccupants() * TRAFFIC_PENALTY)
-                                        + (destNode.getExpectedOccupants() * TRAFFIC_PENALTY);
+                                        + (edge.getExpectedOccupants() * getTrafficPenalty())
+                                        + (destNode.getExpectedOccupants() * getTrafficPenalty());
 
                                 int destIndex = nodeIndice(graph, destNode, graphSize);
 
@@ -194,18 +169,6 @@ public class Dijkstra implements PathFinder {
          * System.out.println();
          */
     }
-
-    public Graph getGraph() { return graph; }
-    public void setGraph(Graph graph) { this.graph = graph; }
-
-    public Node getCurrentNode() { return currentNode; }
-    public void setCurrentNode(Node currentNode) { this.currentNode = currentNode; }
-
-    public Node getDestination() { return destination; }
-    public void setDestination(Node destination) { this.destination = destination; }
-
-    public List<Node> getPath() { return path; }
-    public void setPath(List<Node> path) { this.path = path; }
 
     public static double getTrafficPenalty() { return TRAFFIC_PENALTY; }
 
