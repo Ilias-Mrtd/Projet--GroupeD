@@ -40,7 +40,7 @@ public class EdgeRenderer implements EdgeRendering {
         gc.fillText("id: " + edge.getId(), (edge.getSource().getX() + edge.getTarget().getX()) / 2, (edge.getSource().getY() + edge.getTarget().getY()) / 2 + 20);
 
         // fleche directionelle
-        if (!edge.isDirection()) {
+        if (!edge.hasDirection()) {
             int mx = (int) ((edge.getSource().getX() + edge.getTarget().getX()) / 2);
             int my = (int) ((edge.getSource().getY() + edge.getTarget().getY()) / 2);
 

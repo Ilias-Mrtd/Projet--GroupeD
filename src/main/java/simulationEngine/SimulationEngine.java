@@ -25,30 +25,6 @@ public class SimulationEngine extends AnimationTimer {
         this.agents = agents;
     }
 
-    public void setTimeMultiplier(double multiplier) {
-        this.timeMultiplier = multiplier;
-    }
-
-    public void setOnTick(Runnable onTick) {
-        this.onTick = onTick;
-    }
-
-    public Graph getGraph() {
-        return graph;
-    }
-
-    public List<Agent> getAgents() {
-        return agents;
-    }
-
-    public long getLastUpdate() {
-        return lastUpdate;
-    }
-
-    public void setLastUpdate(long lastUpdate) {
-        this.lastUpdate = lastUpdate;
-    }
-
     public void addAgent(Agent agent) {
         agent.setGraph(getGraph());
         this.agents.add(agent);
@@ -157,4 +133,17 @@ public class SimulationEngine extends AnimationTimer {
 
         this.start();
     }
+
+    public double getTimeMultiplier() { return timeMultiplier; }
+    public void setTimeMultiplier(double multiplier) { this.timeMultiplier = multiplier; }
+
+    public Runnable getOnTick() { return onTick; }
+    public void setOnTick(Runnable onTick) { this.onTick = onTick; }
+
+    public Graph getGraph() { return graph; }
+
+    public List<Agent> getAgents() { return agents; }
+
+    public long getLastUpdate() { return lastUpdate; }
+    public void setLastUpdate(long lastUpdate) { this.lastUpdate = lastUpdate; }
 }

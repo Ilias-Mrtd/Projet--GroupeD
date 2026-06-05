@@ -35,45 +35,6 @@ public class GraphCanvas extends Canvas {
         setHeight(600);
     }
 
-    public void setAgents(List<Agent> agents) {
-        this.agents = agents;
-    }
-
-    /**
-     * Associe le SelectionSystem et branche les écouteurs souris.
-     * On écoute TOUS les clics (gauche + droit) sur un seul handler.
-     */
-    public void setSelectionSystem(SelectionSystem selectionSystem) {
-        this.selectionSystem = selectionSystem;
-
-        // Un seul listener : le SelectionSystem trie lui-même bouton gauche/droit
-        this.setOnMouseClicked(event -> {
-            if (getSelectionSystem() != null) {
-                getSelectionSystem().handleMouseClick(event);
-            }
-        });
-    }
-
-    public SelectionSystem getSelectionSystem() {
-        return this.selectionSystem;
-    }
-    
-    public Graph getGraph() {
-        return graph;
-    }
-
-    public void setGraph(Graph graph) {
-        this.graph = graph;
-    }
-
-    public List<Agent> getAgents() {
-        return agents;
-    }
-
-    public GraphRenderer getRenderer() {
-        return renderer;
-    }
-
     public void draw() {
         GraphicsContext gc = getGraphicsContext2D();
         gc.clearRect(0, 0, getWidth(), getHeight());
@@ -106,4 +67,24 @@ public class GraphCanvas extends Canvas {
                 12, h - bannerH + 23
         );
     }
+
+    public List<Agent> getAgents() { return agents; }
+    public void setAgents(List<Agent> agents) { this.agents = agents; }
+
+    public SelectionSystem getSelectionSystem() { return this.selectionSystem; }
+    public void setSelectionSystem(SelectionSystem selectionSystem) {
+        this.selectionSystem = selectionSystem;
+
+        this.setOnMouseClicked(event -> {
+            if (getSelectionSystem() != null) {
+                getSelectionSystem().handleMouseClick(event);
+            }
+        });
+    }
+
+    public Graph getGraph() { return graph; }
+    public void setGraph(Graph graph) { this.graph = graph; }
+
+    public GraphRenderer getRenderer() { return renderer; }
+    
 }

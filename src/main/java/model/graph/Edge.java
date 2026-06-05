@@ -31,14 +31,6 @@ public class Edge {
         this.capacity = capacity;
         this.direction = direction;
     }
-
-    public float getSpeedModifier() {
-        return speedModifier;
-    }
-
-    public void setSpeedModifier(float speedModifier) {
-        this.speedModifier = speedModifier;
-    }
     
     public enum edgeState {
         OUT,
@@ -92,97 +84,45 @@ public class Edge {
                 + "target:" + getTarget().getId() + "\r \n"
                 + "length:" + getLength() + "\r \n"
                 + "capacity:" + getCapacity() + "\r \n"
-                + "direction:" + isDirection() + "\r \n";
+                + "direction:" + hasDirection() + "\r \n";
 
         return s;
     }
 
-    public void setState(edgeState state) {
-        this.state = state;
-    }
-    
-    public int getId() {
-        return this.id;
-    }
+    public float getSpeedModifier() { return speedModifier; }
+    public void setSpeedModifier(float speedModifier) { this.speedModifier = speedModifier; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public edgeState getState() { return this.state; }
+    public void setState(edgeState state) { this.state = state; }
 
-    public Node getSource() {
-        return this.source;
-    }
+    public int getId() { return this.id; }
+    public void setId(int id) { this.id = id; }
 
-    public void setSource(Node source) {
-        this.source = source;
-    }
+    public Node getSource() { return this.source; }
+    public void setSource(Node source) { this.source = source; }
 
-    public Node getTarget() {
-        return this.target;
-    }
+    public Node getTarget() { return this.target; }
+    public void setTarget(Node target) { this.target = target; }
 
-    public void setTarget(Node target) {
-        this.target = target;
-    }
+    public boolean hasDirection() { return this.direction; }
+    public void setDirection(boolean direction) { this.direction = direction; }
 
-    public boolean isDirection() {
-        return this.direction;
-    }
+    public double getLength() { return this.length; }
+    public void setLength(double length) { this.length = length; }
 
-    public void setDirection(boolean direction) {
-        this.direction = direction;
-    }
+    public int getCapacity() { return this.capacity; }
+    public void setCapacity(int capacity) { this.capacity = capacity; }
 
-    public double getLength() {
-        return this.length;
-    }
+    public boolean isSelected() { return this.isSelected; }
+    public void setSelected(boolean isSelected) { this.isSelected = isSelected; }
 
-    public void setLength(double length) {
-        this.length = length;
-    }
+    public int getCurrentOccupants() { return this.currentOccupants; }
+    public void setCurrentOccupants(int currentOccupants) { this.currentOccupants = currentOccupants; }
 
-    public int getCapacity() {
-        return this.capacity;
-    }
+    public int getExpectedOccupants() { return this.expectedOccupants; }
+    public void setExpectedOccupants(int expectedOccupants) { this.expectedOccupants = expectedOccupants; }
 
-    public void setCapacity(int capacity) {
-        this.capacity = capacity;
-    }
-
-    public edgeState getState() {
-        return this.state;
-    }
-
-    public boolean isSelected() {
-        return this.isSelected;
-    }
-
-    public void setSelected(boolean isSelected) {
-        this.isSelected = isSelected;
-    }
-
-    public int getCurrentOccupants() {
-        return this.currentOccupants;
-    }
-
-    public void setCurrentOccupants(int currentOccupants) {
-        this.currentOccupants = currentOccupants;
-    }
-
-    public int getExpectedOccupants() {
-        return this.expectedOccupants;
-    }
-
-    public void setExpectedOccupants(int expectedOccupants) {
-        this.expectedOccupants = expectedOccupants;
-    }
-
-    public Queue<Agent> getWaitingQueue() {
-        return this.waitingQueue;
-    }
-
-    public void setWaitingQueue(Queue<Agent> waitingQueue) {
-        this.waitingQueue = waitingQueue;
-    }
+    public Queue<Agent> getWaitingQueue() { return this.waitingQueue; }
+    public void setWaitingQueue(Queue<Agent> waitingQueue) { this.waitingQueue = waitingQueue; }
 
 }

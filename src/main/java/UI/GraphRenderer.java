@@ -38,4 +38,8 @@ public class GraphRenderer {
             agentRenderer.drawAgent(gc, agent);
         }
     }
+
+    public NodeRendering getNodeRenderer() { return nodeRenderer; }
+    public EdgeRendering getEdgeRenderer() { return edgeRenderer; }
+    public AgentRendering getAgentRenderer() { return agentRenderer; }
 }

@@ -168,7 +168,7 @@ public class PropertiesPanel extends VBox {
         Button btnToggleDir = buildButton("⇄  Changer direction", "#607D8B");
         btnToggleDir.setOnAction(e -> {
             Edge sel = getSelectedEdge();
-            if (sel != null) { sel.setDirection(!sel.isDirection()); } else { edgeDirection = !edgeDirection; }
+            if (sel != null) { sel.setDirection(!sel.hasDirection()); } else { edgeDirection = !edgeDirection; }
             refresh(); redrawCanvas();
         });
 
@@ -283,7 +283,7 @@ public class PropertiesPanel extends VBox {
 
         } else if (selected instanceof Edge) {
             Edge ed = (Edge) selected;
-            String dir = ed.isDirection() ? " --> " : " <--> ";
+            String dir = ed.hasDirection() ? " --> " : " <--> ";
             infoLabel.setText(
                     "Type      : Arête\n"
                             + "ID        : " + ed.getId() + "\n"
@@ -312,7 +312,7 @@ public class PropertiesPanel extends VBox {
 
         if (edgeSelected) {
             lblEdgeCap.setText("Capacité : " + ((Edge) selected).getCapacity());
-            lblEdgeDir.setText("Direction : " + (((Edge) selected).isDirection() ? "Unidirect. →" : "Bidirect. ⇄"));
+            lblEdgeDir.setText("Direction : " + (((Edge) selected).hasDirection() ? "Unidirect. →" : "Bidirect. ⇄"));
             lblEdgeSpeed.setText(String.format("Vitesse : x%.1f", ((Edge) selected).getSpeedModifier()));
         } else {
             lblEdgeCap.setText("Capacité : " + edgeCapacity);

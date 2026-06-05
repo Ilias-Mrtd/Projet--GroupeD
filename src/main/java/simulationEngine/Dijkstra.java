@@ -79,7 +79,7 @@ public class Dijkstra implements PathFinder {
                     // 1er phase
                     for (int i = 0; i < graph.getEdges().get(indiceSource).size(); i++) {
                         Edge edge = graph.getEdges().get(indiceSource).get(i);
-                        if (edge.isDirection()) {
+                        if (edge.hasDirection()) {
                             Node destNode = destination(graph.getNodes().get(indiceSource), edge);
 
                             // NOUVEAU : On ignore totalement les noeuds en travaux !
@@ -195,40 +195,18 @@ public class Dijkstra implements PathFinder {
          */
     }
 
-    public Graph getGraph() {
-        return graph;
-    }
+    public Graph getGraph() { return graph; }
+    public void setGraph(Graph graph) { this.graph = graph; }
 
-    public void setGraph(Graph graph) {
-        this.graph = graph;
-    }
+    public Node getCurrentNode() { return currentNode; }
+    public void setCurrentNode(Node currentNode) { this.currentNode = currentNode; }
 
-    public Node getCurrentNode() {
-        return currentNode;
-    }
+    public Node getDestination() { return destination; }
+    public void setDestination(Node destination) { this.destination = destination; }
 
-    public void setCurrentNode(Node currentNode) {
-        this.currentNode = currentNode;
-    }
+    public List<Node> getPath() { return path; }
+    public void setPath(List<Node> path) { this.path = path; }
 
-    public Node getDestination() {
-        return this.destination;
-    }
-
-    public void setDestination(Node destination) {
-        this.destination = destination;
-    }
-
-    public List<Node> getPath() {
-        return path;
-    }
-
-    public void setPath(List<Node> path) {
-        this.path = path;
-    }
-
-    public static double getTrafficPenalty() {
-        return TRAFFIC_PENALTY;
-    }
+    public static double getTrafficPenalty() { return TRAFFIC_PENALTY; }
 
 }

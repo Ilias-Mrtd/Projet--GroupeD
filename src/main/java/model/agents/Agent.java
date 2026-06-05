@@ -506,168 +506,66 @@ public class Agent {
             }
         }
     }
+    
+    public void setId(int id) { this.id = id; }
+    public int getId() { return this.id; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public float getSpeed() { return this.speed; }
+    public void setSpeed(float speed) { this.speed = speed; }
 
-    public int getId() {
-        return this.id;
-    }
+    public agentState getState() { return this.state; }
+    public void setState(agentState state) { this.state = state; }
 
-    public float getSpeed() {
-        return this.speed;
-    }
+    public Graph getGraph() { return this.graph; }
+    public void setGraph(Graph graph) { this.graph = graph; }
 
-    public void setSpeed(float speed) {
-        this.speed = speed;
-    }
+    public Node getStartingNode() { return this.startingNode; }
 
-    public agentState getState() {
-        return this.state;
-    }
+    public Node getCurrentNode() { return this.currentNode; }
+    public void setCurrentNode(Node currentNode) { this.currentNode = currentNode; }
 
-    public void setState(agentState state) {
-        this.state = state;
-    }
+    public Edge getCurrentEdge() { return this.currentEdge; }
+    public void setCurrentEdge(Edge currentEdge) { this.currentEdge = currentEdge; }
 
-    public Graph getGraph() {
-        return this.graph;
-    }
+    public Node getDestination() { return this.destination; }
+    public void setDestination(Node destination) { this.destination = destination; }
 
-    public void setGraph(Graph graph) {
-        this.graph = graph;
-    }
+    public boolean isSelected() { return this.isSelected; }
+    public void setSelected(boolean isSelected) { this.isSelected = isSelected; }
 
-    public Node getStartingNode() {
-        return this.startingNode;
-    }
+    public float getDistanceTraveledOnEdge() { return this.distanceTraveledOnEdge; }
+    public void setDistanceTraveledOnEdge(float distanceTraveledOnEdge) { this.distanceTraveledOnEdge = distanceTraveledOnEdge; }
 
-    public Node getCurrentNode() {
-        return this.currentNode;
-    }
+    public List<Node> getObjectives() { return this.objectives; }
+    public void setObjectives(List<Node> objectives) { this.objectives = objectives; }
 
-    public void setCurrentNode(Node currentNode) {
-        this.currentNode = currentNode;
-    }
+    public List<Node> getPath() { return this.path; }
+    public void setPath(List<Node> path) { this.path = path; }
 
-    public Edge getCurrentEdge() {
-        return this.currentEdge;
-    }
+    public int getMaxPatience() { return this.maxPatience; }
+    public void setMaxPatience(int maxPatience) { this.maxPatience = maxPatience; }
 
-    public void setCurrentEdge(Edge currentEdge) {
-        this.currentEdge = currentEdge;
-    }
+    public int getCurrentPatience() { return this.currentPatience; }
+    public void setCurrentPatience(int currentPatience) { this.currentPatience = currentPatience; }
 
-    public Node getDestination() {
-        return this.destination;
-    }
+    public EndBehavior getEndBehavior() { return this.endBehavior; }
+    public void setEndBehavior(EndBehavior endBehavior) { this.endBehavior = endBehavior; }
 
-    public void setDestination(Node destination) {
-        this.destination = destination;
-    }
+    public List<Node> getReservedNodes() { return this.reservedNodes; }
+    public void setReservedNodes(List<Node> reservedNodes) { this.reservedNodes = reservedNodes; }
 
-    public boolean isSelected() {
-        return this.isSelected;
-    }
+    public List<Edge> getReservedEdges() { return this.reservedEdges; }
+    public void setReservedEdges(List<Edge> reservedEdges) { this.reservedEdges = reservedEdges; }
 
-    public void setSelected(boolean isSelected) {
-        this.isSelected = isSelected;
-    }
+    public boolean isRetreating() { return this.isRetreating; }
+    public void setRetreating(boolean isRetreating) { this.isRetreating = isRetreating; }
 
-    public float getDistanceTraveledOnEdge() {
-        return this.distanceTraveledOnEdge;
-    }
+    public Node getAuxNode() { return this.auxNode; }
+    public void setAuxNode(Node node) { this.auxNode = node; }
 
-    public void setDistanceTraveledOnEdge(float distanceTraveledOnEdge) {
-        this.distanceTraveledOnEdge = distanceTraveledOnEdge;
-    }
+    public int isBlockedSince() { return this.isBlockedSince; }
+    public void setBlockedSince(int n) { this.isBlockedSince = n; }
 
-    public List<Node> getObjectives() {
-        return this.objectives;
-    }
-
-    public void setObjectives(List<Node> objectives) {
-        this.objectives = objectives;
-    }
-
-    public List<Node> getPath() {
-        return this.path;
-    }
-
-    public void setPath(List<Node> path) {
-        this.path = path;
-    }
-
-    public int getMaxPatience() {
-        return this.maxPatience;
-    }
-
-    public void setMaxPatience(int maxPatience) {
-        this.maxPatience = maxPatience;
-    }
-
-    public int getCurrentPatience() {
-        return this.currentPatience;
-    }
-
-    public void setCurrentPatience(int currentPatience) {
-        this.currentPatience = currentPatience;
-    }
-
-    public EndBehavior getEndBehavior() {
-        return this.endBehavior;
-    }
-
-    public void setEndBehavior(EndBehavior endBehavior) {
-        this.endBehavior = endBehavior;
-    }
-
-    public List<Node> getReservedNodes() {
-        return this.reservedNodes;
-    }
-
-    public void setReservedNodes(List<Node> reservedNodes) {
-        this.reservedNodes = reservedNodes;
-    }
-
-    public List<Edge> getReservedEdges() {
-        return this.reservedEdges;
-    }
-
-    public void setReservedEdges(List<Edge> reservedEdges) {
-        this.reservedEdges = reservedEdges;
-    }
-
-    public boolean isRetreating() {
-        return this.isRetreating;
-    }
-
-    public void setRetreating(boolean isRetreating) {
-        this.isRetreating = isRetreating;
-    }
-
-    public Node getAuxNode() {
-        return this.auxNode;
-    }
-
-    public void setAuxNode(Node node) {
-        this.auxNode = node;
-    }
-
-    public int isBlockedSince() {
-        return this.isBlockedSince;
-    }
-
-    public void setBlockedSince(int n) {
-        this.isBlockedSince = n;
-    }
-
-    public void setPriority(int priority) {
-        this.currentPriority = priority;
-    }
-
-    public int getCurrentPriority() {
-        return this.currentPriority;
-    }
+    public void setPriority(int priority) { this.currentPriority = priority; }
+public int getCurrentPriority() { return this.currentPriority; }
 }

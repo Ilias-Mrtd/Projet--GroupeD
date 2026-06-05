@@ -121,19 +121,9 @@ public class Graph {
         return s;
     }
 
-    public List<Node> getNodes() {
-        return this.Nodes;
-    }
+    public List<Node> getNodes() { return this.Nodes; }
+    public void setNodes(List<Node> nodes) { Nodes = nodes; }
 
-    public void setNodes(List<Node> nodes) {
-        Nodes = nodes;
-    }
-
-    public List<List<Edge>> getEdges() {
-        return this.Edges;
-    }
-
-    public void setEdges(List<List<Edge>> edges) {
-        Edges = edges;
-    }
+    public List<List<Edge>> getEdges() { return this.Edges; }
+    public void setEdges(List<List<Edge>> edges) { Edges = edges; }
 }
