@@ -26,9 +26,9 @@ public class PropertiesPanel extends VBox {
 
     private final Label titleLabel;
     
-    // Les onglets pour l'inspecteur
     private final Label infoLabel;
     private final TextArea logArea;
+    private final TextArea globalStatsArea; 
 
     private final Button btnAddNode;
     private final Button btnRemoveNode;
@@ -73,18 +73,19 @@ public class PropertiesPanel extends VBox {
         TabPane inspectorTabs = new TabPane();
         inspectorTabs.setPrefHeight(300);
         
+        // Onglet 1 : Détails de la sélection
         Tab tabDetails = new Tab("Détails");
         tabDetails.setClosable(false);
         infoLabel = new Label("Cliquez sur un élément\npour voir ses détails.");
         infoLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #555; -fx-padding: 5px;");
         infoLabel.setWrapText(true);
-
         ScrollPane detailsScroll = new ScrollPane(infoLabel);
         detailsScroll.setFitToWidth(true);
         detailsScroll.setStyle("-fx-background-color: transparent; -fx-background: #FAFAFA;");
         tabDetails.setContent(detailsScroll);
 
-        Tab tabHistory = new Tab("Historique (Logs)");
+        // Onglet 2 : Historique de l'agent
+        Tab tabHistory = new Tab("Historique");
         tabHistory.setClosable(false);
         logArea = new TextArea();
         logArea.setEditable(false);
@@ -92,7 +93,16 @@ public class PropertiesPanel extends VBox {
         logArea.setWrapText(true);
         tabHistory.setContent(logArea);
 
-        inspectorTabs.getTabs().addAll(tabDetails, tabHistory);
+        // ONGLET 3 : Le Scoreboard de comparaison !
+        Tab tabGlobal = new Tab("Scoreboard");
+        tabGlobal.setClosable(false);
+        globalStatsArea = new TextArea();
+        globalStatsArea.setEditable(false);
+        globalStatsArea.setStyle("-fx-font-size: 12px; -fx-font-family: monospace; -fx-control-inner-background: #2b2b2b; -fx-text-fill: #a9b7c6;"); // Style "Console Sombre"
+        globalStatsArea.setWrapText(true);
+        tabGlobal.setContent(globalStatsArea);
+
+        inspectorTabs.getTabs().addAll(tabDetails, tabHistory, tabGlobal);
         // ------------------------------------------
 
         Separator sep1 = new Separator();
@@ -263,19 +273,22 @@ public class PropertiesPanel extends VBox {
     public void setOnSpawnAgents(Runnable r)   { this.onSpawnAgents = r; }
     public void setOnRemoveAgent(Runnable r)   { this.onRemoveAgent = r; }
 
+    // =======================================================
+    // LA MÉTHODE DE RAFRAÎCHISSEMENT AVEC LE SCOREBOARD GLOBAL
+    // =======================================================
     public void refresh() {
+        
+        // 1. MISE À JOUR DE LA SÉLECTION (Onglet Détails & Historique)
         Object selected = findSelectedItem();
 
         if (selected instanceof Agent) {
             Agent a = (Agent) selected;
             
-            // Calcul de la Vitesse Moyenne Globale
             double avgSpeed = 0.0;
             if (a.getTotalActiveTime() > 0) {
                 avgSpeed = (a.getTotalDistance() / a.getTotalActiveTime()) / 60.0; 
             }
             
-            // Calcul de l'efficacité (Temps roulé vs Temps d'attente)
             double efficiency = 100.0;
             if (a.getTotalActiveTime() > 0) {
                 efficiency = ((a.getTotalActiveTime() - a.getTotalWaitTime()) / a.getTotalActiveTime()) * 100.0;
@@ -305,11 +318,10 @@ public class PropertiesPanel extends VBox {
                 
             infoLabel.setText(sb.toString());
             
-            // Mise à jour de l'historique
             String logText = String.join("\n", a.getHistoryLog());
-            if (!logArea.getText().equals(logText)) { // Evite le clignotement
+            if (!logArea.getText().equals(logText)) { 
                 logArea.setText(logText);
-                logArea.setScrollTop(Double.MAX_VALUE); // Scroll tout en bas
+                logArea.setScrollTop(Double.MAX_VALUE); 
             }
 
         } else if (selected instanceof Node) {
@@ -355,11 +367,11 @@ public class PropertiesPanel extends VBox {
 
         if (edgeSelected) {
             lblEdgeCap.setText("Capacité : " + ((Edge) selected).getCapacity());
-            lblEdgeDir.setText("Direction : " + (((Edge) selected).hasDirection() ? "Unidirect. →" : "Bidirect. ⇄"));
+            lblEdgeDir.setText("Direction : " + (((Edge) selected).hasDirection() ? "Bidirect. ⇄" : "Unidirect. →"));
             lblEdgeSpeed.setText(String.format("Vitesse : x%.1f", ((Edge) selected).getSpeedModifier()));
         } else {
             lblEdgeCap.setText("Capacité : " + edgeCapacity);
-            lblEdgeDir.setText("Direction : " + (edgeDirection ? "Unidirect. →" : "Bidirect. ⇄"));
+            lblEdgeDir.setText("Direction : " + (edgeDirection ? "Bidirect. ⇄" : "Unidirect. →"));
             lblEdgeSpeed.setText("Vitesse : x1.0");
         }
 
@@ -374,6 +386,57 @@ public class PropertiesPanel extends VBox {
         } else {
             btnAddEdge.setText("🔗  Ajouter une arête");
             btnAddEdge.setStyle(buttonStyle("#9C27B0"));
+        }
+
+        // 2. MISE À JOUR DU SCOREBOARD GLOBAL (Onglet 3)
+        updateGlobalScoreboard();
+    }
+
+    private void updateGlobalScoreboard() {
+        int[] counts = new int[3]; // 0: Dijkstra, 1: A*, 2: Random
+        int[] objs = new int[3];
+        int[] abds = new int[3];
+        double[] act = new double[3];
+        double[] wait = new double[3];
+
+        for (Agent ag : agents) {
+            int idx = 2; 
+            if (ag.getAlgoType() == Agent.AlgoType.DIJKSTRA) idx = 0;
+            else if (ag.getAlgoType() == Agent.AlgoType.ASTAR) idx = 1;
+
+            counts[idx]++;
+            objs[idx] += ag.getObjectivesReached();
+            abds[idx] += ag.getAbandonedObjectives();
+            act[idx] += ag.getTotalActiveTime();
+            wait[idx] += ag.getTotalWaitTime();
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(" SCOREBOARD GLOBAL \n");
+        sb.append("========================\n\n");
+
+        String[] names = {" ÉQUIPE DIJKSTRA", " ÉQUIPE A-STAR", " ÉQUIPE ALÉATOIRE"};
+        for (int i = 0; i < 3; i++) {
+            if (counts[i] == 0) continue; // On n'affiche pas l'équipe si elle est vide
+            
+            double avgEff = 100.0;
+            if (act[i] > 0) avgEff = ((act[i] - wait[i]) / act[i]) * 100.0;
+            
+            sb.append(names[i]).append("\n")
+              .append("  Agents actifs : ").append(counts[i]).append("\n")
+              .append("  Obj. atteints : ").append(objs[i]).append("\n")
+              .append("  Obj. ratés    : ").append(abds[i]).append("\n")
+              .append("  Efficacité    : ").append(String.format("%.1f%%", avgEff)).append("\n")
+              .append("  Attente (total): ").append(String.format("%.1fs", wait[i])).append("\n\n");
+        }
+        
+        if (agents.isEmpty()) {
+            sb.append("Aucun agent sur la carte\npour le moment.");
+        }
+
+        String newText = sb.toString();
+        if (!globalStatsArea.getText().equals(newText)) {
+            globalStatsArea.setText(newText);
         }
     }
 
