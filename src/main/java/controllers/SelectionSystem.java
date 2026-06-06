@@ -24,6 +24,10 @@ public class SelectionSystem {
     private Edge  lastSelectedEdge  = null;
     private Agent lastSelectedAgent = null;
 
+    private boolean draggingNode = false;
+    private double dragOffsetX = 0;
+    private double dragOffsetY = 0;
+
     private double pendingNodeX = -1;
     private double pendingNodeY = -1;
     private boolean hasPendingPosition = false;
@@ -90,6 +94,45 @@ public class SelectionSystem {
         double y = event.getY();
         if (mode == Mode.LINKING_EDGE) handleLinkingClick(x, y);
         else                           handleNormalClick(x, y);
+    }
+
+    public void handleMousePressed(MouseEvent event) {
+        if (event.getButton() != MouseButton.PRIMARY || mode != Mode.NORMAL) return;
+        double x = event.getX();
+        double y = event.getY();
+
+        Node clickedNode = findNodeAt(x, y);
+        if (clickedNode == null) return;
+
+        if (clickedNode != lastSelectedNode) {
+            clearAllSelections();
+            lastSelectedNode = clickedNode;
+            clickedNode.setSelected(true);
+            canvas.draw();
+        }
+
+        draggingNode = true;
+        dragOffsetX = x - clickedNode.getX();
+        dragOffsetY = y - clickedNode.getY();
+    }
+
+    public void handleMouseDragged(MouseEvent event) {
+        if (!draggingNode || lastSelectedNode == null || mode != Mode.NORMAL) return;
+
+        double x = event.getX() - dragOffsetX;
+        double y = event.getY() - dragOffsetY;
+
+        lastSelectedNode.setX((float) x);
+        lastSelectedNode.setY((float) y);
+        graph.refreshEdgeLengths();
+        canvas.draw();
+    }
+
+    public void handleMouseReleased(MouseEvent event) {
+        if (!draggingNode) return;
+        draggingNode = false;
+        graph.refreshEdgeLengths();
+        canvas.draw();
     }
 
     private void handleLinkingClick(double x, double y) {
@@ -284,5 +327,4 @@ public class SelectionSystem {
     public void setEmptyClickCallback(EmptyClickCallback emptyClickCallback) {
         this.emptyClickCallback = emptyClickCallback;
     }
-    
 }

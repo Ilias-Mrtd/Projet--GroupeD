@@ -136,4 +136,13 @@ public class Graph {
     public void setEdges(List<List<Edge>> edges) {
         Edges = edges;
     }
+
+    public void refreshEdgeLengths() {
+        for (List<Edge> edgeList : getEdges()) {
+            for (Edge edge : edgeList) {
+                edge.setLength(Math.hypot(edge.getSource().getX() - edge.getTarget().getX(),
+                        edge.getSource().getY() - edge.getTarget().getY()));
+            }
+        }
+    }
 }

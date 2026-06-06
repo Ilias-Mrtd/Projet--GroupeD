@@ -2,6 +2,7 @@ package UI;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import model.graph.Graph;
@@ -22,6 +23,7 @@ public class GraphCanvas extends Canvas {
     private List<Agent> agents;
     private final GraphRenderer renderer;
     private SelectionSystem selectionSystem;
+    private Runnable onInteraction;
 
     public GraphCanvas(Graph graph, GraphRenderer renderer) {
         this.graph    = graph;
@@ -46,12 +48,43 @@ public class GraphCanvas extends Canvas {
     public void setSelectionSystem(SelectionSystem selectionSystem) {
         this.selectionSystem = selectionSystem;
 
-        // Un seul listener : le SelectionSystem trie lui-même bouton gauche/droit
         this.setOnMouseClicked(event -> {
             if (getSelectionSystem() != null) {
                 getSelectionSystem().handleMouseClick(event);
+                notifyInteraction();
             }
         });
+
+        this.setOnMousePressed(event -> {
+            if (getSelectionSystem() != null) {
+                getSelectionSystem().handleMousePressed(event);
+                notifyInteraction();
+            }
+        });
+
+        this.setOnMouseDragged(event -> {
+            if (getSelectionSystem() != null) {
+                getSelectionSystem().handleMouseDragged(event);
+                notifyInteraction();
+            }
+        });
+
+        this.setOnMouseReleased(event -> {
+            if (getSelectionSystem() != null) {
+                getSelectionSystem().handleMouseReleased(event);
+                notifyInteraction();
+            }
+        });
+    }
+
+    public void setOnInteraction(Runnable onInteraction) {
+        this.onInteraction = onInteraction;
+    }
+
+    private void notifyInteraction() {
+        if (onInteraction != null) {
+            onInteraction.run();
+        }
     }
 
     public SelectionSystem getSelectionSystem() {

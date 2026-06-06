@@ -77,6 +77,7 @@ public class Main extends Application {
         // 3. CONTRÔLEURS & MOTEUR
         SelectionSystem selectionSystem = new SelectionSystem(graph, agents, graphCanvas);
         graphCanvas.setSelectionSystem(selectionSystem);
+        graphCanvas.setOnInteraction(propertiesPanel::refresh);
 
         // Instanciation propre (sans GraphCanvas ni PropertiesPanel)
         SimulationEngine engine = new SimulationEngine(graph, agents);
