@@ -114,6 +114,7 @@ public class Main extends Application {
         // 4. CONTRÔLEURS
         SelectionSystem selectionSystem = new SelectionSystem(graph, agents, graphCanvas);
         graphCanvas.setSelectionSystem(selectionSystem);
+        graphCanvas.setOnInteraction(propertiesPanel::refresh);
 
         engine.setOnTick(() -> {
             graphCanvas.draw();

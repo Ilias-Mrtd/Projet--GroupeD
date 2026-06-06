@@ -14,7 +14,8 @@ import java.util.ArrayList;
  * GraphCanvas — zone de dessin principale.
  *
  * Délègue tout le rendu métier au GraphRenderer.
- * Affiche une bannière d'instruction quand SelectionSystem est en mode LINKING_EDGE.
+ * Affiche une bannière d'instruction quand SelectionSystem est en mode
+ * LINKING_EDGE.
  */
 public class GraphCanvas extends Canvas {
 
@@ -22,10 +23,11 @@ public class GraphCanvas extends Canvas {
     private List<Agent> agents;
     private final GraphRenderer renderer;
     private SelectionSystem selectionSystem;
+    private Runnable onInteraction;
 
     public GraphCanvas(Graph graph, GraphRenderer renderer) {
-        this.graph    = graph;
-        this.agents   = new ArrayList<>();
+        this.graph = graph;
+        this.agents = new ArrayList<>();
         this.renderer = renderer;
 
         widthProperty().addListener(evt -> draw());
@@ -33,6 +35,52 @@ public class GraphCanvas extends Canvas {
 
         setWidth(800);
         setHeight(600);
+    }
+
+    /**
+     * Associe le SelectionSystem et branche les écouteurs souris.
+     * On écoute TOUS les clics (gauche + droit) sur un seul handler.
+     */
+    public void setSelectionSystem(SelectionSystem selectionSystem) {
+        this.selectionSystem = selectionSystem;
+
+        this.setOnMouseClicked(event -> {
+            if (getSelectionSystem() != null) {
+                getSelectionSystem().handleMouseClick(event);
+                notifyInteraction();
+            }
+        });
+
+        this.setOnMousePressed(event -> {
+            if (getSelectionSystem() != null) {
+                getSelectionSystem().handleMousePressed(event);
+                notifyInteraction();
+            }
+        });
+
+        this.setOnMouseDragged(event -> {
+            if (getSelectionSystem() != null) {
+                getSelectionSystem().handleMouseDragged(event);
+                notifyInteraction();
+            }
+        });
+
+        this.setOnMouseReleased(event -> {
+            if (getSelectionSystem() != null) {
+                getSelectionSystem().handleMouseReleased(event);
+                notifyInteraction();
+            }
+        });
+    }
+
+    public void setOnInteraction(Runnable onInteraction) {
+        this.onInteraction = onInteraction;
+    }
+
+    private void notifyInteraction() {
+        if (onInteraction != null) {
+            onInteraction.run();
+        }
     }
 
     public void draw() {
@@ -64,27 +112,31 @@ public class GraphCanvas extends Canvas {
         gc.setFont(Font.font("System", 14));
         gc.fillText(
                 "Mode création d'arête — clic gauche : choisir SOURCE puis CIBLE   |   clic droit : annuler",
-                12, h - bannerH + 23
-        );
+                12, h - bannerH + 23);
     }
 
-    public List<Agent> getAgents() { return agents; }
-    public void setAgents(List<Agent> agents) { this.agents = agents; }
-
-    public SelectionSystem getSelectionSystem() { return this.selectionSystem; }
-    public void setSelectionSystem(SelectionSystem selectionSystem) {
-        this.selectionSystem = selectionSystem;
-
-        this.setOnMouseClicked(event -> {
-            if (getSelectionSystem() != null) {
-                getSelectionSystem().handleMouseClick(event);
-            }
-        });
+    public List<Agent> getAgents() {
+        return agents;
     }
 
-    public Graph getGraph() { return graph; }
-    public void setGraph(Graph graph) { this.graph = graph; }
+    public void setAgents(List<Agent> agents) {
+        this.agents = agents;
+    }
 
-    public GraphRenderer getRenderer() { return renderer; }
-    
+    public SelectionSystem getSelectionSystem() {
+        return this.selectionSystem;
+    }
+
+    public Graph getGraph() {
+        return graph;
+    }
+
+    public void setGraph(Graph graph) {
+        this.graph = graph;
+    }
+
+    public GraphRenderer getRenderer() {
+        return renderer;
+    }
+
 }

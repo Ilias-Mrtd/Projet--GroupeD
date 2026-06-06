@@ -414,6 +414,7 @@ public class PropertiesPanel extends VBox {
             infoLabel.setText(
                     "Type     : Nœud\n"
                             + "ID       : " + n.getId() + "\n"
+                            + "Coord.   : (" + (int) n.getX() + ", " + (int) n.getY() + ")\n"
                             + "Travaux  : " + (n.isUnderConstruction() ? "OUI (Fermé)" : "Non") + "\n"
                             + "Capacité : " + n.getCapacity() + "\n"
                             + "État     : " + n.getState() + "\n"
@@ -427,6 +428,7 @@ public class PropertiesPanel extends VBox {
                     "Type      : Arête\n"
                             + "ID        : " + ed.getId() + "\n"
                             + "Connexion : " + ed.getSource().getId() + dir + ed.getTarget().getId() + "\n"
+                            + "Longueur  : " + String.format("%.1f", ed.getLength()) + "\n"
                             + "Vitesse   : x" + String.format("%.1f", ed.getSpeedModifier()) + "\n"
                             + "Capacité  : " + ed.getCapacity() + "\n"
                             + "État      : " + ed.getState());

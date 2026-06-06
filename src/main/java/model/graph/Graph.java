@@ -160,4 +160,13 @@ public class Graph implements Serializable {
         Edges.clear();
         Nodes.clear();
     }
+
+    public void refreshEdgeLengths() {
+        for (List<Edge> edgeList : getEdges()) {
+            for (Edge edge : edgeList) {
+                edge.setLength(Math.hypot(edge.getSource().getX() - edge.getTarget().getX(),
+                        edge.getSource().getY() - edge.getTarget().getY()));
+            }
+        }
+    }
 }
