@@ -10,16 +10,6 @@ import controllers.SelectionSystem;
 
 import java.util.List;
 
-/**
- * PropertiesPanel — panneau latéral droit.
- *
- * Fusion :
- *  - Édition en direct de la capacité (nœud/arête) sur l'élément sélectionné
- *  - Nœud "en travaux" (fermé)
- *  - Modificateur de vitesse d'arête
- *  - Suppression d'agent en direct
- *  - Génération de masse (grille adaptative + agents)
- */
 public class PropertiesPanel extends VBox {
 
     private final Graph graph;
@@ -35,7 +25,10 @@ public class PropertiesPanel extends VBox {
     private Runnable onRemoveAgent;
 
     private final Label titleLabel;
+    
+    // NOUVEAU : Les onglets pour l'inspecteur
     private final Label infoLabel;
+    private final TextArea logArea;
 
     private final Button btnAddNode;
     private final Button btnRemoveNode;
@@ -57,7 +50,7 @@ public class PropertiesPanel extends VBox {
     private final CheckBox chkUnderConstruction;
 
     // ---- paramètres génération de masse ----
-    private int genGridSide   = 4;   // côté de la grille (4 => 4x4 = 16 nœuds)
+    private int genGridSide   = 4;   
     private int genAgentCount = 10;
     private final Label lblGenNodes;
     private final Label lblGenAgents;
@@ -76,9 +69,27 @@ public class PropertiesPanel extends VBox {
         titleLabel = new Label("Inspecteur");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #333;");
 
+        // --- TabPane pour l'inspecteur ---
+        TabPane inspectorTabs = new TabPane();
+        inspectorTabs.setPrefHeight(180);
+        
+        Tab tabDetails = new Tab("Détails");
+        tabDetails.setClosable(false);
         infoLabel = new Label("Cliquez sur un élément\npour voir ses détails.");
-        infoLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #555;");
+        infoLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #555; -fx-padding: 5px;");
         infoLabel.setWrapText(true);
+        tabDetails.setContent(infoLabel);
+
+        Tab tabHistory = new Tab("Historique (Logs)");
+        tabHistory.setClosable(false);
+        logArea = new TextArea();
+        logArea.setEditable(false);
+        logArea.setStyle("-fx-font-size: 11px; -fx-font-family: monospace;");
+        logArea.setWrapText(true);
+        tabHistory.setContent(logArea);
+
+        inspectorTabs.getTabs().addAll(tabDetails, tabHistory);
+        // ------------------------------------------
 
         Separator sep1 = new Separator();
 
@@ -90,7 +101,6 @@ public class PropertiesPanel extends VBox {
         lblNodeCap.setStyle("-fx-font-size: 12px;");
         Button btnNodeCapMinus = smallButton("−");
         Button btnNodeCapPlus = smallButton("+");
-        // Édition en direct si un nœud est sélectionné, sinon la valeur par défaut de création
         btnNodeCapMinus.setOnAction(e -> {
             Node sel = getSelectedNode();
             if (sel != null) { if (sel.getCapacity() > 1) sel.setCapacity(sel.getCapacity() - 1); }
@@ -105,7 +115,6 @@ public class PropertiesPanel extends VBox {
         HBox nodeCapBox = new HBox(6, btnNodeCapMinus, lblNodeCap, btnNodeCapPlus);
         nodeCapBox.setStyle("-fx-alignment: center-left;");
 
-        // Checkbox Travaux
         chkUnderConstruction = new CheckBox("En travaux (Fermé)");
         chkUnderConstruction.setDisable(true);
         chkUnderConstruction.setOnAction(e -> {
@@ -145,7 +154,6 @@ public class PropertiesPanel extends VBox {
         HBox edgeCapBox = new HBox(6, btnEdgeCapMinus, lblEdgeCap, btnEdgeCapPlus);
         edgeCapBox.setStyle("-fx-alignment: center-left;");
 
-        // Modificateur Vitesse Arête
         lblEdgeSpeed = new Label("Vitesse : x1.0");
         lblEdgeSpeed.setStyle("-fx-font-size: 12px;");
         Button btnEdgeSpeedMinus = smallButton("−");
@@ -222,9 +230,8 @@ public class PropertiesPanel extends VBox {
         Button btnSpawnAgents = buildButton("👥  Faire apparaître les agents", "#009688");
         btnSpawnAgents.setOnAction(e -> { if (onSpawnAgents != null) onSpawnAgents.run(); });
 
-        // ---- Assemblage ----
         getChildren().addAll(
-                titleLabel, infoLabel,
+                titleLabel, inspectorTabs, // NOUVEAU ICI
                 sep1,
                 lblNodeSection, nodeCapBox, chkUnderConstruction, btnAddNode, btnRemoveNode,
                 sep2,
@@ -252,24 +259,44 @@ public class PropertiesPanel extends VBox {
     public void setOnSpawnAgents(Runnable r)   { this.onSpawnAgents = r; }
     public void setOnRemoveAgent(Runnable r)   { this.onRemoveAgent = r; }
 
-    // ================================================================= refresh (60×/s)
-
     public void refresh() {
         Object selected = findSelectedItem();
 
         if (selected instanceof Agent) {
             Agent a = (Agent) selected;
+            
+            // Calcul de la Vitesse Moyenne Globale
+            double avgSpeed = 0.0;
+            if (a.getTotalActiveTime() > 0) {
+                // On divise par 60 pour retrouver l'échelle de la propriété "speed" (car on avançait de speed * 60 par seconde)
+                avgSpeed = (a.getTotalDistance() / a.getTotalActiveTime()) / 60.0; 
+            }
+
             StringBuilder sb = new StringBuilder();
-            sb.append("Type    : Agent\n")
-                    .append("ID      : ").append(a.getId()).append("\n")
-                    .append("État    : ").append(a.getState()).append("\n")
-                    .append("Vitesse : ").append(a.getSpeed()).append(" px/s\n");
+            sb.append("Type    : Agent [").append(a.getAgentBehavior()).append("]\n")
+              .append("ID      : ").append(a.getId()).append("\n")
+              .append("État    : ").append(a.getState()).append("\n\n");
+              
+            sb.append("-- STATISTIQUES --\n")
+              .append("Temps d'activité : ").append(String.format("%.1fs", a.getTotalActiveTime())).append("\n")
+              .append("Vitesse théorique: ").append(String.format("%.1f", a.getSpeed())).append(" px/s\n")
+              .append("Vitesse Réelle   : ").append(String.format("%.1f", avgSpeed)).append(" px/s\n")
+              .append("Obj. abandonnés  : ").append(a.getAbandonedObjectives()).append("\n\n");
+
             if (a.getCurrentEdge() != null && a.getDestination() != null)
-                sb.append("Trajet  : ").append(a.getCurrentNode().getId()).append(" ➔ ").append(a.getDestination().getId()).append("\n")
-                        .append("Sur arête : ").append(a.getCurrentEdge().getId());
+                sb.append("Sur arête : ").append(a.getCurrentEdge().getId()).append("\n")
+                  .append("Objectif  : ").append(a.getDestination().getId());
             else if (a.getCurrentNode() != null)
-                sb.append("Position : nœud ").append(a.getCurrentNode().getId() + "\nBehavior : " + a.getAgentBehavior());
+                sb.append("Position : nœud ").append(a.getCurrentNode().getId());
+                
             infoLabel.setText(sb.toString());
+            
+            // Mise à jour de l'historique
+            String logText = String.join("\n", a.getHistoryLog());
+            if (!logArea.getText().equals(logText)) { // Evite le clignotement
+                logArea.setText(logText);
+                logArea.setScrollTop(Double.MAX_VALUE); // Scroll tout en bas
+            }
 
         } else if (selected instanceof Node) {
             Node n = (Node) selected;
@@ -280,6 +307,7 @@ public class PropertiesPanel extends VBox {
                             + "Capacité : " + n.getCapacity() + "\n"
                             + "État     : " + n.getState() + "\n"
                             + "Occupants: " + n.getCurrentOccupants() + "/" + n.getCapacity());
+            logArea.setText("Historique non disponible pour les noeuds.");
 
         } else if (selected instanceof Edge) {
             Edge ed = (Edge) selected;
@@ -291,15 +319,16 @@ public class PropertiesPanel extends VBox {
                             + "Vitesse   : x" + String.format("%.1f", ed.getSpeedModifier()) + "\n"
                             + "Capacité  : " + ed.getCapacity() + "\n"
                             + "État      : " + ed.getState());
+            logArea.setText("Historique non disponible pour les arêtes.");
         } else {
             infoLabel.setText("Cliquez sur un élément\npour voir ses détails.\n \n \n \n ");
+            logArea.setText("");
         }
 
         boolean nodeSelected = (selected instanceof Node);
         boolean edgeSelected = (selected instanceof Edge);
         boolean agentSelected = (selected instanceof Agent);
 
-        // Mise à jour des labels selon sélection (édition en direct)
         if (nodeSelected) {
             lblNodeCap.setText("Capacité : " + ((Node) selected).getCapacity());
             chkUnderConstruction.setSelected(((Node) selected).isUnderConstruction());
