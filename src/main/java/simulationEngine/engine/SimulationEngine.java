@@ -94,6 +94,7 @@ public class SimulationEngine extends AnimationTimer {
             a.getObjectives().clear();
             a.getPath().clear();
             a.setRetreating(false);
+            a.resetStats();
 
             // Retour au nœud de départ
             a.setStartingNode(a.getStartingNode());

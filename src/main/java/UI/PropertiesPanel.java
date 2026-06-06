@@ -26,7 +26,7 @@ public class PropertiesPanel extends VBox {
 
     private final Label titleLabel;
     
-    // NOUVEAU : Les onglets pour l'inspecteur
+    //Les onglets pour l'inspecteur
     private final Label infoLabel;
     private final TextArea logArea;
 
@@ -231,7 +231,7 @@ public class PropertiesPanel extends VBox {
         btnSpawnAgents.setOnAction(e -> { if (onSpawnAgents != null) onSpawnAgents.run(); });
 
         getChildren().addAll(
-                titleLabel, inspectorTabs, // NOUVEAU ICI
+                titleLabel, inspectorTabs, 
                 sep1,
                 lblNodeSection, nodeCapBox, chkUnderConstruction, btnAddNode, btnRemoveNode,
                 sep2,
@@ -275,6 +275,7 @@ public class PropertiesPanel extends VBox {
             StringBuilder sb = new StringBuilder();
             sb.append("Type    : Agent [").append(a.getAgentBehavior()).append("]\n")
               .append("ID      : ").append(a.getId()).append("\n")
+              .append("Algo    : ").append(a.getAlgoType()).append("\n")
               .append("État    : ").append(a.getState()).append("\n\n");
               
             sb.append("-- STATISTIQUES --\n")
