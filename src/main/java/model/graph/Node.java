@@ -1,11 +1,12 @@
 package model.graph;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.Queue;
 
 import model.agents.Agent;
 
-public class Node {
+public class Node implements Serializable {
 
     private int id;
     private float x;
@@ -29,17 +30,19 @@ public class Node {
         this.capacity = capacity;
     }
 
-   public void setUnderConstruction(boolean underConstruction) {
+    private static final long serialVersionUID = 1L;
+
+    public void setUnderConstruction(boolean underConstruction) {
         this.isUnderConstruction = underConstruction;
         if (underConstruction) {
             this.savedCapacity = this.capacity;
             this.capacity = 0;
-          
+
             this.setState(nodeState.FULL);
         } else {
-            
+
             this.capacity = this.savedCapacity;
-            
+
             if (this.currentOccupants < this.capacity) {
                 this.setState(nodeState.AVAILABLE);
             }
@@ -57,7 +60,7 @@ public class Node {
     public boolean tryEnter(Agent a) {
         if (canEnter(a)) {
             getWaitingQueue().remove(a);
-            setCurrentOccupants(getCurrentOccupants()+1);
+            setCurrentOccupants(getCurrentOccupants() + 1);
             if (isFull()) {
                 setState(nodeState.FULL);
             }
@@ -67,7 +70,7 @@ public class Node {
     }
 
     public void forceEnter() {
-        setCurrentOccupants(getCurrentOccupants()+1);
+        setCurrentOccupants(getCurrentOccupants() + 1);
         if (isFull()) {
             setState(nodeState.FULL);
         }
@@ -75,7 +78,7 @@ public class Node {
 
     public void leave() {
         if (getCurrentOccupants() > 0) {
-            setCurrentOccupants(getCurrentOccupants()-1);
+            setCurrentOccupants(getCurrentOccupants() - 1);
         }
         if (!isFull()) {
             setState(nodeState.AVAILABLE);
@@ -109,35 +112,87 @@ public class Node {
         return s;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() {
+        return id;
+    }
 
-    public float getX() { return x; }
-    public void setX(float x) { this.x = x; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public float getY() { return y; }
-    public void setY(float y) { this.y = y; }
+    public float getX() {
+        return x;
+    }
 
-    public int getCapacity() { return capacity; }
-    public void setCapacity(int capacity) { this.capacity = capacity; }
+    public void setX(float x) {
+        this.x = x;
+    }
 
-    public nodeState getState() { return state; }
-    public void setState(nodeState state) { this.state = state; }
+    public float getY() {
+        return y;
+    }
 
-    public boolean isSelected() { return isSelected; }
-    public void setSelected(boolean isSelected) { this.isSelected = isSelected; }
+    public void setY(float y) {
+        this.y = y;
+    }
 
-    public int getCurrentOccupants() { return currentOccupants; }
-    public void setCurrentOccupants(int currentOccupants) { this.currentOccupants = currentOccupants; }
+    public int getCapacity() {
+        return capacity;
+    }
 
-    public int getExpectedOccupants() { return expectedOccupants; }
-    public void setExpectedOccupants(int expectedOccupants) { this.expectedOccupants = expectedOccupants; }
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
+    }
 
-    public int getIncomingOccupants() { return incomingOccupants; }
-    public void setIncomingOccupants(int incomingOccupants) { this.incomingOccupants = incomingOccupants; }
+    public nodeState getState() {
+        return state;
+    }
 
-    public Queue<Agent> getWaitingQueue() { return waitingQueue; }
-    public void setWaitingQueue(Queue<Agent> waitingQueue) { this.waitingQueue = waitingQueue; }
+    public void setState(nodeState state) {
+        this.state = state;
+    }
 
-    public boolean isUnderConstruction() { return isUnderConstruction; }
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean isSelected) {
+        this.isSelected = isSelected;
+    }
+
+    public int getCurrentOccupants() {
+        return currentOccupants;
+    }
+
+    public void setCurrentOccupants(int currentOccupants) {
+        this.currentOccupants = currentOccupants;
+    }
+
+    public int getExpectedOccupants() {
+        return expectedOccupants;
+    }
+
+    public void setExpectedOccupants(int expectedOccupants) {
+        this.expectedOccupants = expectedOccupants;
+    }
+
+    public int getIncomingOccupants() {
+        return incomingOccupants;
+    }
+
+    public void setIncomingOccupants(int incomingOccupants) {
+        this.incomingOccupants = incomingOccupants;
+    }
+
+    public Queue<Agent> getWaitingQueue() {
+        return waitingQueue;
+    }
+
+    public void setWaitingQueue(Queue<Agent> waitingQueue) {
+        this.waitingQueue = waitingQueue;
+    }
+
+    public boolean isUnderConstruction() {
+        return isUnderConstruction;
+    }
 }

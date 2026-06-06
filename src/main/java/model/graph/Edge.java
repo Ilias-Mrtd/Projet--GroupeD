@@ -1,11 +1,12 @@
 package model.graph;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.Queue;
 
 import model.agents.Agent;
 
-public class Edge {
+public class Edge implements Serializable {
 
     private int id;
     private Node source;
@@ -27,11 +28,14 @@ public class Edge {
         this.id = id;
         this.source = source;
         this.target = target;
-        this.length = Math.sqrt(Math.pow((source.getX() - target.getX()), 2) + Math.pow((source.getY() - target.getY()), 2));
+        this.length = Math
+                .sqrt(Math.pow((source.getX() - target.getX()), 2) + Math.pow((source.getY() - target.getY()), 2));
         this.capacity = capacity;
         this.direction = direction;
     }
-    
+
+    private static final long serialVersionUID = 1L;
+
     public enum edgeState {
         OUT,
         AVAILABLE,
@@ -49,7 +53,7 @@ public class Edge {
     public boolean tryEnter(Agent a) {
         if (canEnter(a)) {
             getWaitingQueue().remove(a);
-            setCurrentOccupants(getCurrentOccupants()+1);
+            setCurrentOccupants(getCurrentOccupants() + 1);
             if (isFull()) {
                 setState(edgeState.FULL);
             }
@@ -60,7 +64,7 @@ public class Edge {
 
     public void leave() {
         if (getCurrentOccupants() > 0) {
-            setCurrentOccupants(getCurrentOccupants()-1);
+            setCurrentOccupants(getCurrentOccupants() - 1);
         }
         if (!isFull()) {
             setState(edgeState.AVAILABLE);
@@ -89,40 +93,100 @@ public class Edge {
         return s;
     }
 
-    public float getSpeedModifier() { return speedModifier; }
-    public void setSpeedModifier(float speedModifier) { this.speedModifier = speedModifier; }
+    public float getSpeedModifier() {
+        return speedModifier;
+    }
 
-    public edgeState getState() { return this.state; }
-    public void setState(edgeState state) { this.state = state; }
+    public void setSpeedModifier(float speedModifier) {
+        this.speedModifier = speedModifier;
+    }
 
-    public int getId() { return this.id; }
-    public void setId(int id) { this.id = id; }
+    public edgeState getState() {
+        return this.state;
+    }
 
-    public Node getSource() { return this.source; }
-    public void setSource(Node source) { this.source = source; }
+    public void setState(edgeState state) {
+        this.state = state;
+    }
 
-    public Node getTarget() { return this.target; }
-    public void setTarget(Node target) { this.target = target; }
+    public int getId() {
+        return this.id;
+    }
 
-    public boolean hasDirection() { return this.direction; }
-    public void setDirection(boolean direction) { this.direction = direction; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public double getLength() { return this.length; }
-    public void setLength(double length) { this.length = length; }
+    public Node getSource() {
+        return this.source;
+    }
 
-    public int getCapacity() { return this.capacity; }
-    public void setCapacity(int capacity) { this.capacity = capacity; }
+    public void setSource(Node source) {
+        this.source = source;
+    }
 
-    public boolean isSelected() { return this.isSelected; }
-    public void setSelected(boolean isSelected) { this.isSelected = isSelected; }
+    public Node getTarget() {
+        return this.target;
+    }
 
-    public int getCurrentOccupants() { return this.currentOccupants; }
-    public void setCurrentOccupants(int currentOccupants) { this.currentOccupants = currentOccupants; }
+    public void setTarget(Node target) {
+        this.target = target;
+    }
 
-    public int getExpectedOccupants() { return this.expectedOccupants; }
-    public void setExpectedOccupants(int expectedOccupants) { this.expectedOccupants = expectedOccupants; }
+    public boolean hasDirection() {
+        return this.direction;
+    }
 
-    public Queue<Agent> getWaitingQueue() { return this.waitingQueue; }
-    public void setWaitingQueue(Queue<Agent> waitingQueue) { this.waitingQueue = waitingQueue; }
+    public void setDirection(boolean direction) {
+        this.direction = direction;
+    }
+
+    public double getLength() {
+        return this.length;
+    }
+
+    public void setLength(double length) {
+        this.length = length;
+    }
+
+    public int getCapacity() {
+        return this.capacity;
+    }
+
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
+    }
+
+    public boolean isSelected() {
+        return this.isSelected;
+    }
+
+    public void setSelected(boolean isSelected) {
+        this.isSelected = isSelected;
+    }
+
+    public int getCurrentOccupants() {
+        return this.currentOccupants;
+    }
+
+    public void setCurrentOccupants(int currentOccupants) {
+        this.currentOccupants = currentOccupants;
+    }
+
+    public int getExpectedOccupants() {
+        return this.expectedOccupants;
+    }
+
+    public void setExpectedOccupants(int expectedOccupants) {
+        this.expectedOccupants = expectedOccupants;
+    }
+
+    public Queue<Agent> getWaitingQueue() {
+        return this.waitingQueue;
+    }
+
+    public void setWaitingQueue(Queue<Agent> waitingQueue) {
+        this.waitingQueue = waitingQueue;
+    }
 
 }

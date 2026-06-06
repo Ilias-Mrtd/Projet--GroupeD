@@ -4,19 +4,26 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.ScrollPane;
 import javafx.geometry.Insets;
 import javafx.stage.Stage;
+import javafx.stage.FileChooser;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.io.File;
 
 import model.graph.*;
+import services.FileService;
 import simulationEngine.engine.SimulationEngine;
 import model.agents.Agent;
 import model.agents.Agent.agentBehavior;
@@ -51,10 +58,13 @@ public class Main extends Application {
         toolbar.setPadding(new Insets(10));
         toolbar.setStyle("-fx-background-color: #E0E0E0; -fx-alignment: center-left;");
 
-        Button btnRestart = new Button("🔄 Relancer");
+        Button btnRestart = new Button("🔄 Relaunch");
         Button btnPlay = new Button("▶️ Play");
         Button btnPause = new Button("⏸️ Pause");
         Button btnStep = new Button("⏭️ Step");
+        Button btnClear = new Button("🗑️Clear");
+        Button btnSave = new Button("⤵️ Save");
+        MenuButton menuLoad = new MenuButton("📂 Load");
 
         Label lblSpeed = new Label("Vitesse : 1.0x");
         Slider speedSlider = new Slider(0.1, 5.0, 1.0);
@@ -63,13 +73,14 @@ public class Main extends Application {
         speedSlider.setMajorTickUnit(1.0);
         speedSlider.setBlockIncrement(0.1);
 
-        toolbar.getChildren().addAll(btnRestart, btnPlay, btnPause, btnStep, lblSpeed, speedSlider);
+        toolbar.getChildren().addAll(btnRestart, btnPlay, btnPause, btnStep, lblSpeed, speedSlider, btnClear, btnSave,
+                menuLoad);
 
         BorderPane root = new BorderPane();
         root.setTop(toolbar);
         root.setCenter(graphCanvas);
         ScrollPane panelScroll = new ScrollPane(propertiesPanel);
-        panelScroll.setFitToWidth(true);                              // le panneau prend toute la largeur dispo
+        panelScroll.setFitToWidth(true); // le panneau prend toute la largeur dispo
         panelScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); // pas de scroll horizontal
         panelScroll.setStyle("-fx-background: #FAFAFA; -fx-background-color: #FAFAFA;");
         root.setRight(panelScroll);
@@ -85,6 +96,52 @@ public class Main extends Application {
         engine.setOnTick(() -> {
             graphCanvas.draw();
             propertiesPanel.refresh();
+        });
+
+        // Saving button
+        btnSave.setOnAction(e -> {
+            FileService.ensureSaveDirectoryExists();
+
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setInitialDirectory(new File(FileService.SAVE_DIR));
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Simulation Files", "*.sim"));
+
+            File file = fileChooser.showSaveDialog(primaryStage);
+
+            if (file != null) {
+                try {
+                    FileService.saveSimulation(file.getAbsolutePath(), graph, agents);
+                    showAlert(AlertType.INFORMATION, "Succès", "Simulation enregistrée avec succès !");
+                    System.out.println("Succès : Sauvegarde réussie !");
+                } catch (Exception ex) {
+                    showAlert(AlertType.ERROR, "Erreur", "Impossible de sauvegarder : " + ex.getMessage());
+                    System.out.println("Erreur : Impossible de sauvegarder .");
+                }
+            }
+        });
+
+        // Loading menu
+        menuLoad.setOnShowing(e -> {
+            menuLoad.getItems().clear(); // On vide les anciens items
+
+            List<String> files = FileService.getSavedFiles();
+
+            if (files.isEmpty()) {
+                MenuItem emptyItem = new MenuItem("Aucune sauvegarde");
+                emptyItem.setDisable(true);
+                menuLoad.getItems().add(emptyItem);
+            } else {
+                for (String fileName : files) {
+                    MenuItem item = new MenuItem(fileName);
+                    item.setOnAction(event -> loadSimulationFile(fileName, graph, agents, graphCanvas));
+                    menuLoad.getItems().add(item);
+                }
+            }
+        });
+
+        btnClear.setOnAction(e -> {
+            agents.clear();
+            graph.clear();
         });
 
         // 4. CALLBACKS D'ÉDITION
@@ -104,7 +161,8 @@ public class Main extends Application {
 
         propertiesPanel.setOnRemoveNode(() -> {
             Node sel = propertiesPanel.getSelectedNode();
-            if (sel == null) return;
+            if (sel == null)
+                return;
             boolean occupied = agents.stream().anyMatch(a -> a.getCurrentNode() == sel);
             if (occupied) {
                 System.out.println("[Main] Nœud " + sel.getId() + " occupé, suppression impossible.");
@@ -116,7 +174,8 @@ public class Main extends Application {
 
         propertiesPanel.setOnRemoveEdge(() -> {
             Edge sel = propertiesPanel.getSelectedEdge();
-            if (sel == null) return;
+            if (sel == null)
+                return;
             boolean occupied = agents.stream().anyMatch(a -> a.getCurrentEdge() == sel);
             if (occupied) {
                 System.out.println("[Main] Arête " + sel.getId() + " occupée, suppression impossible.");
@@ -130,7 +189,8 @@ public class Main extends Application {
 
         propertiesPanel.setOnAddAgent(() -> {
             Node sel = propertiesPanel.getSelectedNode();
-            if (sel == null) return;
+            if (sel == null)
+                return;
             int newId = nextAgentId.getAndIncrement();
             Agent newAgent = new Agent(newId, 2.5f, agentState.AVAILABLE);
             newAgent.setStartingNode(sel);
@@ -142,9 +202,10 @@ public class Main extends Application {
         // Supprimer l'agent sélectionné (libère toutes ses ressources)
         propertiesPanel.setOnRemoveAgent(() -> {
             Agent sel = propertiesPanel.getSelectedAgent();
-            if (sel == null) return;
-            sel.releaseAll();          // libère réservations + occupants + files
-            agents.remove(sel);        // retire de la liste du moteur
+            if (sel == null)
+                return;
+            sel.releaseAll(); // libère réservations + occupants + files
+            agents.remove(sel); // retire de la liste du moteur
             System.out.println("[Main] Agent " + sel.getId() + " supprimé de la simulation.");
             graphCanvas.draw();
         });
@@ -188,26 +249,61 @@ public class Main extends Application {
         engine.start();
     }
 
-    // ============================================================== GRAPHE EN GRILLE
+    private void showAlert(AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void loadSimulationFile(String fileName, Graph graph, List<Agent> agents, GraphCanvas graphCanvas) {
+        try { // On essaie de charger le fichier selectionner
+            String path = FileService.SAVE_DIR + fileName;
+            FileService.SimulationData data = FileService.loadSimulation(path);
+
+            // Nettoyage et chargement
+            graph.resetNodes();
+            graph.resetEdges();
+            agents.clear();
+
+            graph.addAllNodes(data.graph().getNodes());
+            graph.addAllEdges(data.graph().getEdges());
+            agents.addAll(data.agents());
+
+            graphCanvas.draw();
+            System.out.println("Simulation chargée : " + fileName);
+        } catch (Exception ex) {
+            System.out.println("Erreur: Impossible de charger le fichier.");
+            showAlert(AlertType.ERROR, "Erreur", "Impossible de charger le fichier : " + ex.getMessage());
+        }
+    }
+
+    // ============================================================== GRAPHE EN
+    // GRILLE
 
     /**
      * Génère un graphe en GRILLE CARRÉE de côté "side" (side x side nœuds).
      *
      * Principe simple (facile à présenter) :
-     *  - "side" vient directement du panneau (+/-), donc chaque clic change la grille.
-     *  - L'espacement entre nœuds s'adapte à la taille du canvas → la grille rentre toujours.
-     *  - Chaque nœud est relié à son voisin de DROITE et du BAS (grille classique, connexe).
-     *  - Capacités des nœuds et des arêtes aléatoires entre 1 et 5.
+     * - "side" vient directement du panneau (+/-), donc chaque clic change la
+     * grille.
+     * - L'espacement entre nœuds s'adapte à la taille du canvas → la grille rentre
+     * toujours.
+     * - Chaque nœud est relié à son voisin de DROITE et du BAS (grille classique,
+     * connexe).
+     * - Capacités des nœuds et des arêtes aléatoires entre 1 et 5.
      */
     private void generateRandomGraph(Graph graph, List<Agent> agents,
-                                     SimulationEngine engine, GraphCanvas canvas, int side) {
+            SimulationEngine engine, GraphCanvas canvas, int side) {
 
         // 1. On vide le graphe et les agents existants
         agents.clear();
         graph.setNodes(new ArrayList<>());
         graph.setEdges(new ArrayList<>());
 
-        if (side < 2) side = 2;
+        if (side < 2)
+            side = 2;
 
         // 2. Espacement adaptatif : on répartit la grille dans le canvas avec une marge
         int margin = 80;
@@ -216,7 +312,7 @@ public class Main extends Application {
 
         double spacingX = (w - 2 * margin) / Math.max(1, side - 1);
         double spacingY = (h - 2 * margin) / Math.max(1, side - 1);
-        double spacing  = Math.min(spacingX, spacingY); // carrés réguliers
+        double spacing = Math.min(spacingX, spacingY); // carrés réguliers
 
         Node[][] grid = new Node[side][side];
 
@@ -246,14 +342,15 @@ public class Main extends Application {
         canvas.draw();
     }
 
-    // ============================================================== AGENTS EN MASSE
+    // ============================================================== AGENTS EN
+    // MASSE
 
     /**
      * Fait apparaître n agents sur des nœuds choisis au hasard,
      * avec un objectif aléatoire chacun.
      */
     private void spawnRandomAgents(Graph graph, SimulationEngine engine,
-                                   GraphCanvas canvas, int n) {
+            GraphCanvas canvas, int n) {
         List<Node> nodes = graph.getNodes();
         if (nodes.isEmpty()) {
             System.out.println("[Main] Aucun nœud : générez d'abord un graphe.");

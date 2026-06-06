@@ -1,10 +1,11 @@
 package model.graph;
 
 import java.util.List;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Graph {
+public class Graph implements Serializable {
     // Le graph ex:
     // Liste de Noeuds:Liste d'aretes
     // 3: [2,4,5]
@@ -15,6 +16,8 @@ public class Graph {
     // 2: [1,2,3]
     private List<Node> Nodes = new ArrayList<>(); // Les noeuds dans un ordre quelconque
     private List<List<Edge>> Edges = new ArrayList<>(); // Les listes d'aretes dans le meme ordre
+
+    private static final long serialVersionUID = 1L;
 
     private int newNodeId() {
         Random random = new Random();
@@ -121,9 +124,40 @@ public class Graph {
         return s;
     }
 
-    public List<Node> getNodes() { return this.Nodes; }
-    public void setNodes(List<Node> nodes) { Nodes = nodes; }
+    public List<Node> getNodes() {
+        return this.Nodes;
+    }
 
-    public List<List<Edge>> getEdges() { return this.Edges; }
-    public void setEdges(List<List<Edge>> edges) { Edges = edges; }
+    public void setNodes(List<Node> nodes) {
+        Nodes = nodes;
+    }
+
+    public void resetNodes() {
+        Nodes.clear();
+    }
+
+    public void addAllNodes(List<Node> nodes) {
+        Nodes.addAll(nodes);
+    }
+
+    public List<List<Edge>> getEdges() {
+        return this.Edges;
+    }
+
+    public void setEdges(List<List<Edge>> edges) {
+        Edges = edges;
+    }
+
+    public void resetEdges() {
+        Edges.clear();
+    }
+
+    public void addAllEdges(List<List<Edge>> edges) {
+        Edges.addAll(edges);
+    }
+
+    public void clear() {
+        Edges.clear();
+        Nodes.clear();
+    }
 }
