@@ -14,6 +14,10 @@ public class Agent {
     private Graph graph;
     private Node startingNode;
     private Node currentNode;
+    
+
+    private Node previousNode; 
+    
     private Edge currentEdge;
     private Node destination;
     private boolean isSelected = false;
@@ -36,27 +40,23 @@ public class Agent {
 
     private boolean isRetreating = false;
 
-    
     private int abandonedObjectives = 0;
     private double totalActiveTime = 0.0;
     private double totalDistance = 0.0;
     private List<String> historyLog = new ArrayList<>();
 
     private void logMsg(String msg) {
-        // Enregistre le log avec le temps actuel
         String entry = String.format("[%.1fs] %s", totalActiveTime, msg);
         historyLog.add(entry);
-        System.out.println("Agent " + id + " : " + msg); // Garde la trace dans la console
+        System.out.println("Agent " + id + " : " + msg); 
     }
 
     public int getAbandonedObjectives() { return abandonedObjectives; }
     public double getTotalActiveTime() { return totalActiveTime; }
     public double getTotalDistance() { return totalDistance; }
     public List<String> getHistoryLog() { return historyLog; }
-    // =========================================
 
     public enum EndBehavior { STOP, REMOVE, RANDOM_WANDER }
-
     public enum agentState { AVAILABLE, CALCULATING, RUNNING, WAITING, OUT }
 
     public enum agentBehavior {
@@ -70,6 +70,7 @@ public class Agent {
     public void setStartingNode(Node node) {
         this.startingNode = node;
         this.currentNode = node;
+        this.previousNode = node; // Initialisation de la mémoire
         logMsg("Apparition sur le noeud " + node.getId());
     }
 
@@ -179,7 +180,7 @@ public class Agent {
 
                 if (calculator.getPath().isEmpty() && getCurrentNode().getId() != getDestination().getId()) {
                     logMsg("❌ AUCUN CHEMIN vers " + getDestination().getId() + " ! Objectif abandonné.");
-                    abandonedObjectives++; // Stats !
+                    abandonedObjectives++; 
                     startNextObjective();
                     return;
                 }
@@ -197,24 +198,54 @@ public class Agent {
         }
     }
 
+    // ==============================================================
+    //  FONCTION DE DÉTOUR 
+    // ==============================================================
     private void applyDetour() {
         logMsg("!!! Cherche à s'écarter pour débloquer la situation !!!");
-        Node detour = null;
+        List<Node> validDetours = new ArrayList<>();
+        List<Node> fallbackDetours = new ArrayList<>(); // Au cas où on est dans un cul-de-sac
+
         int index = getGraph().getNodes().indexOf(getCurrentNode());
 
         if (index != -1) {
             for (Edge e : getGraph().getEdges().get(index)) {
-                Node neighbor = (e.getSource() == getCurrentNode()) ? e.getTarget() : e.getSource();
+                Node neighbor = null;
+
+                // 1. On respecte les sens uniques !
+                if (e.hasDirection()) {
+                    if (e.getSource() == getCurrentNode()) neighbor = e.getTarget();
+                } else {
+                    neighbor = (e.getSource() == getCurrentNode()) ? e.getTarget() : e.getSource();
+                }
+
+                if (neighbor == null) continue;
+
+                // 2. On évite de retourner dans le bouchon qu'on fuit
                 if (!getPath().isEmpty() && neighbor.getId() == getPath().get(0).getId()) continue;
-                if (neighbor.getState() != Node.nodeState.FULL) {
-                    detour = neighbor;
-                    break;
+
+                // 3. Trier les options valides
+                if (neighbor.getState() != Node.nodeState.FULL && !neighbor.isUnderConstruction()) {
+                    // Si c'est le noeud d'où on vient, on le garde juste en dernier recours
+                    if (previousNode != null && neighbor.getId() == previousNode.getId()) {
+                        fallbackDetours.add(neighbor);
+                    } else {
+                        validDetours.add(neighbor);
+                    }
                 }
             }
         }
 
+        Node detour = null;
+        // 4. Choix aléatoire (casse le ping-pong de masse)
+        if (!validDetours.isEmpty()) {
+            detour = validDetours.get((int) (Math.random() * validDetours.size()));
+        } else if (!fallbackDetours.isEmpty()) {
+            detour = fallbackDetours.get((int) (Math.random() * fallbackDetours.size()));
+        }
+
         if (detour != null) {
-            logMsg("↪️ Fait un détour temporaire vers le Noeud " + detour.getId());
+            logMsg("↪️ Fait un détour aléatoire vers le Noeud " + detour.getId());
             getPath().clear();
             getPath().add(detour);
             makeReservations();
@@ -224,7 +255,7 @@ public class Agent {
 
             if (calculator.getPath().isEmpty() && getCurrentNode().getId() != getDestination().getId()) {
                 logMsg("❌ Complètement bloqué vers " + getDestination().getId() + ". Objectif abandonné !");
-                abandonedObjectives++; // Stats !
+                abandonedObjectives++;
                 startNextObjective();
                 return;
             }
@@ -238,8 +269,11 @@ public class Agent {
     }
 
     private boolean isPathClearAhead(int depth) {
-        if (behavior == agentBehavior.HURRIED) return true;
-        if (getPath().size() < 2) return true;
+        if (behavior == agentBehavior.HURRIED) {
+            return true;
+        }
+        if (getPath().size() < 2)
+            return true;
 
         Node prev = getPath().get(0);
         int limit = Math.min(depth, getPath().size());
@@ -248,8 +282,13 @@ public class Agent {
             Node nextNode = getPath().get(i);
             Edge nextEdge = findEdgeBetween(prev, nextNode);
 
-            if (nextEdge != null && nextEdge.getCurrentOccupants() >= nextEdge.getCapacity()) return false;
-            if (nextNode.getCurrentOccupants() + nextNode.getIncomingOccupants() >= nextNode.getCapacity()) return false;
+            if (nextEdge != null && nextEdge.getCurrentOccupants() >= nextEdge.getCapacity()) {
+                return false;
+            }
+            // On vérifie le noeud cible (Occupants actuels + ceux qui arrivent)
+            if (nextNode.getCurrentOccupants() + nextNode.getIncomingOccupants() >= nextNode.getCapacity()) { 
+                return false;
+            }
             prev = nextNode;
         }
         return true;
@@ -378,7 +417,9 @@ public class Agent {
 
                         if (getCurrentNode().tryEnter(this)) {
                             Node targetNode = (getCurrentEdge().getSource() == getCurrentNode()) ? getCurrentEdge().getTarget() : getCurrentEdge().getSource();
-                            if (targetNode.getCurrentOccupants() > 0) targetNode.setIncomingOccupants(targetNode.getIncomingOccupants() - 1);
+                            
+                            
+                            if (targetNode.getIncomingOccupants() > 0) targetNode.setIncomingOccupants(targetNode.getIncomingOccupants() - 1);
 
                             getCurrentEdge().leave();
                             setCurrentEdge(null);
@@ -409,13 +450,16 @@ public class Agent {
                         Node targetNode = (getCurrentEdge().getSource() == getCurrentNode()) ? getCurrentEdge().getTarget() : getCurrentEdge().getSource();
 
                         if (targetNode.tryEnter(this)) {
-
-                            if (targetNode.getCurrentOccupants() > 0) targetNode.setIncomingOccupants(targetNode.getIncomingOccupants() - 1);
+                            
+                            
+                            if (targetNode.getIncomingOccupants() > 0) targetNode.setIncomingOccupants(targetNode.getIncomingOccupants() - 1);
+                            
                             if (getReservedNodes().contains(targetNode)) {
                                 if (targetNode.getExpectedOccupants() > 0) targetNode.setExpectedOccupants(targetNode.getExpectedOccupants() - 1);
                                 getReservedNodes().remove(targetNode);
                             }
 
+                            previousNode = getCurrentNode(); 
                             setCurrentNode(targetNode);
                             getCurrentEdge().leave();
                             setCurrentEdge(null);
@@ -438,7 +482,7 @@ public class Agent {
                                     
                                     if (calculator.getPath().isEmpty()) {
                                         logMsg("❌ Route détruite vers " + getDestination().getId() + ". Objectif abandonné !");
-                                        abandonedObjectives++; // Stats !
+                                        abandonedObjectives++; 
                                         startNextObjective();
                                     } else {
                                         setPath(calculator.getPath());
