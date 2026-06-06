@@ -35,7 +35,6 @@ public class Agent {
     private EndBehavior endBehavior = EndBehavior.REMOVE;
     private agentBehavior behavior = agentBehavior.PATIENT;
     
-    // Préférence d'algorithme
     public enum AlgoType { DIJKSTRA, ASTAR, RANDOM }
     private AlgoType algoType = AlgoType.RANDOM;
 
@@ -44,8 +43,14 @@ public class Agent {
 
     private boolean isRetreating = false;
 
+    // =========================================
+    // KPIs & STATS
+    // =========================================
     private int abandonedObjectives = 0;
+    private int objectivesReached = 0;
+    private int detoursTaken = 0;
     private double totalActiveTime = 0.0;
+    private double totalWaitTime = 0.0;
     private double totalDistance = 0.0;
     private List<String> historyLog = new ArrayList<>();
 
@@ -56,9 +61,26 @@ public class Agent {
     }
 
     public int getAbandonedObjectives() { return abandonedObjectives; }
+    public int getObjectivesReached() { return objectivesReached; }
+    public int getDetoursTaken() { return detoursTaken; }
     public double getTotalActiveTime() { return totalActiveTime; }
+    public double getTotalWaitTime() { return totalWaitTime; }
     public double getTotalDistance() { return totalDistance; }
     public List<String> getHistoryLog() { return historyLog; }
+
+    public void resetStats() {
+        this.abandonedObjectives = 0;
+        this.objectivesReached = 0;
+        this.detoursTaken = 0;
+        this.totalActiveTime = 0.0;
+        this.totalWaitTime = 0.0;
+        this.totalDistance = 0.0;
+        this.historyLog.clear();
+        if (this.startingNode != null) {
+            logMsg("Réapparition sur le noeud " + this.startingNode.getId() + " (Redémarrage)");
+        }
+    }
+    // =========================================
 
     public enum EndBehavior { STOP, REMOVE, RANDOM_WANDER }
     public enum agentState { AVAILABLE, CALCULATING, RUNNING, WAITING, OUT }
@@ -176,18 +198,7 @@ public class Agent {
             startNextObjective();
         }
     }
-    
-    public void resetStats() {
-        this.abandonedObjectives = 0;
-        this.totalActiveTime = 0.0;
-        this.totalDistance = 0.0;
-        this.historyLog.clear();
-        if (this.startingNode != null) {
-            logMsg("Réapparition sur le noeud " + this.startingNode.getId() + " (Redémarrage)");
-        }
-    }
 
-    //Méthode centralisée pour générer le bon algorithme
     private Algo getCalculator() {
         if (this.algoType == AlgoType.DIJKSTRA) {
             logMsg("Calcul (Algorithme forcé : Dijkstra)");
@@ -212,7 +223,7 @@ public class Agent {
             setState(agentState.CALCULATING);
 
             if (getGraph() != null && getCurrentNode() != null) {
-                Algo calculator = getCalculator(); // Utilise la nouvelle méthode !
+                Algo calculator = getCalculator(); 
 
                 if (calculator.getPath().isEmpty() && getCurrentNode().getId() != getDestination().getId()) {
                     logMsg("❌ AUCUN CHEMIN vers " + getDestination().getId() + " ! Objectif abandonné.");
@@ -235,6 +246,7 @@ public class Agent {
     }
 
     private void applyDetour() {
+        detoursTaken++; 
         logMsg("!!! Cherche à s'écarter pour débloquer la situation !!!");
         List<Node> validDetours = new ArrayList<>();
         List<Node> fallbackDetours = new ArrayList<>(); 
@@ -282,7 +294,7 @@ public class Agent {
             makeReservations();
         } else {
             logMsg("Aucune rue pour s'écarter, recalcule la route...");
-            Algo calculator = getCalculator(); // Utilise la nouvelle méthode !
+            Algo calculator = getCalculator(); 
 
             if (calculator.getPath().isEmpty() && getCurrentNode().getId() != getDestination().getId()) {
                 logMsg("❌ Complètement bloqué vers " + getDestination().getId() + ". Objectif abandonné !");
@@ -331,6 +343,8 @@ public class Agent {
         }
 
         if (getState() == agentState.WAITING) {
+            totalWaitTime += deltaTime; 
+
             int decrease = 1;
             switch (getAgentBehavior()) {
                 case HURRIED: decrease = 3; break;
@@ -424,6 +438,7 @@ public class Agent {
                 } else {
                     if (getCurrentNode() != null && getDestination() != null && getCurrentNode().getId() == getDestination().getId()) {
                         logMsg("✅ Objectif Noeud " + getDestination().getId() + " ATTEINT !");
+                        objectivesReached++; 
                     }
                     if (getObjectives().isEmpty()) {
                         handleEndBehavior();
@@ -497,6 +512,7 @@ public class Agent {
                             if (getPath().isEmpty()) {
                                 if (getCurrentNode().getId() == getDestination().getId()) {
                                     logMsg("✅ Objectif final Noeud " + getDestination().getId() + " ATTEINT !");
+                                    objectivesReached++; 
                                     if (!getObjectives().isEmpty()) {
                                         startNextObjective();
                                     } else {
@@ -504,7 +520,7 @@ public class Agent {
                                     }
                                 } else {
                                     logMsg("🔄 A terminé son évitement. Recalcul vers l'objectif " + getDestination().getId());
-                                    Algo calculator = getCalculator(); // Utilise la nouvelle méthode !
+                                    Algo calculator = getCalculator(); 
                                     
                                     if (calculator.getPath().isEmpty()) {
                                         logMsg("❌ Route détruite vers " + getDestination().getId() + ". Objectif abandonné !");

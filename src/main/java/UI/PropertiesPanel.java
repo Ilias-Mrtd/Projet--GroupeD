@@ -26,7 +26,7 @@ public class PropertiesPanel extends VBox {
 
     private final Label titleLabel;
     
-    //Les onglets pour l'inspecteur
+    // Les onglets pour l'inspecteur
     private final Label infoLabel;
     private final TextArea logArea;
 
@@ -71,14 +71,18 @@ public class PropertiesPanel extends VBox {
 
         // --- TabPane pour l'inspecteur ---
         TabPane inspectorTabs = new TabPane();
-        inspectorTabs.setPrefHeight(180);
+        inspectorTabs.setPrefHeight(300);
         
         Tab tabDetails = new Tab("Détails");
         tabDetails.setClosable(false);
         infoLabel = new Label("Cliquez sur un élément\npour voir ses détails.");
         infoLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #555; -fx-padding: 5px;");
         infoLabel.setWrapText(true);
-        tabDetails.setContent(infoLabel);
+
+        ScrollPane detailsScroll = new ScrollPane(infoLabel);
+        detailsScroll.setFitToWidth(true);
+        detailsScroll.setStyle("-fx-background-color: transparent; -fx-background: #FAFAFA;");
+        tabDetails.setContent(detailsScroll);
 
         Tab tabHistory = new Tab("Historique (Logs)");
         tabHistory.setClosable(false);
@@ -268,8 +272,13 @@ public class PropertiesPanel extends VBox {
             // Calcul de la Vitesse Moyenne Globale
             double avgSpeed = 0.0;
             if (a.getTotalActiveTime() > 0) {
-                // On divise par 60 pour retrouver l'échelle de la propriété "speed" (car on avançait de speed * 60 par seconde)
                 avgSpeed = (a.getTotalDistance() / a.getTotalActiveTime()) / 60.0; 
+            }
+            
+            // Calcul de l'efficacité (Temps roulé vs Temps d'attente)
+            double efficiency = 100.0;
+            if (a.getTotalActiveTime() > 0) {
+                efficiency = ((a.getTotalActiveTime() - a.getTotalWaitTime()) / a.getTotalActiveTime()) * 100.0;
             }
 
             StringBuilder sb = new StringBuilder();
@@ -278,11 +287,15 @@ public class PropertiesPanel extends VBox {
               .append("Algo    : ").append(a.getAlgoType()).append("\n")
               .append("État    : ").append(a.getState()).append("\n\n");
               
-            sb.append("-- STATISTIQUES --\n")
+            sb.append("-- KPI & STATISTIQUES --\n")
+              .append("Obj. atteints    : ").append(a.getObjectivesReached()).append("\n")
+              .append("Obj. abandonnés  : ").append(a.getAbandonedObjectives()).append("\n")
+              .append("Détours forcés   : ").append(a.getDetoursTaken()).append("\n")
               .append("Temps d'activité : ").append(String.format("%.1fs", a.getTotalActiveTime())).append("\n")
+              .append("Temps d'attente  : ").append(String.format("%.1fs", a.getTotalWaitTime())).append("\n")
+              .append("Efficacité trafic: ").append(String.format("%.1f%%", efficiency)).append("\n")
               .append("Vitesse théorique: ").append(String.format("%.1f", a.getSpeed())).append(" px/s\n")
-              .append("Vitesse Réelle   : ").append(String.format("%.1f", avgSpeed)).append(" px/s\n")
-              .append("Obj. abandonnés  : ").append(a.getAbandonedObjectives()).append("\n\n");
+              .append("Vitesse Réelle   : ").append(String.format("%.1f", avgSpeed)).append(" px/s\n\n");
 
             if (a.getCurrentEdge() != null && a.getDestination() != null)
                 sb.append("Sur arête : ").append(a.getCurrentEdge().getId()).append("\n")
