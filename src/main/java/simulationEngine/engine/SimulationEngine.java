@@ -1,4 +1,4 @@
-package simulationEngine;
+package simulationEngine.engine;
 
 import javafx.animation.AnimationTimer;
 import java.util.Random;

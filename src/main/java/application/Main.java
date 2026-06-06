@@ -17,13 +17,13 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import model.graph.*;
+import simulationEngine.engine.SimulationEngine;
 import model.agents.Agent;
 import model.agents.Agent.agentBehavior;
 import model.agents.Agent.agentState;
 import UI.*;
 import UI.renderers.*;
 import controllers.SelectionSystem;
-import simulationEngine.SimulationEngine;
 
 public class Main extends Application {
 

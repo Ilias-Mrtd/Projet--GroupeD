@@ -1,11 +1,11 @@
-package simulationEngine;
+package simulationEngine.algorithm;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import model.graph.*;
 
-public class Dijkstra implements PathFinder {
+public class Dijkstra implements IPathFinder {
 
     private Graph graph;
     private Node currentNode;

@@ -1,7 +1,7 @@
-package simulationEngine;
+package simulationEngine.algorithm;
 
 import model.graph.*;
 
-public interface PathFinder {
+public interface IPathFinder {
     public void findPath(Graph graph, Node source, Node target);
 }
