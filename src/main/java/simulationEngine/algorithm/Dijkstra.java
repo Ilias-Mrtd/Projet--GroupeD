@@ -5,16 +5,7 @@ import java.util.List;
 
 import model.graph.*;
 
-<<<<<<< HEAD:src/main/java/simulationEngine/algorithm/Dijkstra.java
-public class Dijkstra implements IPathFinder {
-
-    private Graph graph;
-    private Node currentNode;
-    private Node destination;
-    private List<Node> path = new ArrayList<>();
-=======
 public class Dijkstra extends Algo {
->>>>>>> 4cf1105ddfd0ac2fa3d74f8549a07212f4ca518f:src/main/java/simulationEngine/Dijkstra.java
 
     private static final double TRAFFIC_PENALTY = 5000.0;
 
@@ -67,7 +58,8 @@ public class Dijkstra extends Algo {
                             Node destNode = destination(graph.getNodes().get(indiceSource), edge);
 
                             // NOUVEAU : On ignore totalement les noeuds en travaux !
-                            if (destNode.isUnderConstruction()) continue;
+                            if (destNode.isUnderConstruction())
+                                continue;
 
                             // NOUVEAU : On divise la longueur par le multiplicateur de vitesse
                             double dynamicCost = (edge.getLength() / edge.getSpeedModifier())
@@ -85,7 +77,8 @@ public class Dijkstra extends Algo {
                                 Node destNode = edge.getTarget();
 
                                 // NOUVEAU : Pareil pour le sens inverse
-                                if (destNode.isUnderConstruction()) continue;
+                                if (destNode.isUnderConstruction())
+                                    continue;
 
                                 // NOUVEAU : Division par la vitesse
                                 double dynamicCost = (edge.getLength() / edge.getSpeedModifier())
@@ -114,7 +107,8 @@ public class Dijkstra extends Algo {
                     // phase de validation
                     for (int i = 0; i < graphSize; i++) {
                         if (pathLength.get(i) <= minimumLength && foundVertice.get(i) == false) {
-                            if (graph.getEdges().size() > indiceSource && graph.getEdges().get(indiceMinimum).size() > i) {
+                            if (graph.getEdges().size() > indiceSource
+                                    && graph.getEdges().get(indiceMinimum).size() > i) {
                                 minimumLength = graph.getEdges().get(indiceSource).get(i).getLength();
                                 indiceMinimum = i;
                             } else {
@@ -179,6 +173,8 @@ public class Dijkstra extends Algo {
          */
     }
 
-    public static double getTrafficPenalty() { return TRAFFIC_PENALTY; }
+    public static double getTrafficPenalty() {
+        return TRAFFIC_PENALTY;
+    }
 
 }

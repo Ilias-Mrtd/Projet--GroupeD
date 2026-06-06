@@ -13,7 +13,8 @@ module ProjetGroupeD {
     exports application;
     exports UI;
     exports UI.renderers;
-    exports simulationEngine;
+    exports simulationEngine.algorithm;
+    exports simulationEngine.engine;
     exports model.graph;
     exports model.agents;
     exports controllers;

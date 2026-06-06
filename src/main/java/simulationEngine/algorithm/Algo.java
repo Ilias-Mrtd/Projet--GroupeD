@@ -1,11 +1,11 @@
-package simulationEngine;
+package simulationEngine.algorithm;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import model.graph.*;
 
-public abstract class Algo  implements PathFinder {
+public abstract class Algo implements IPathFinder {
 
     private Graph graph;
     private Node currentNode;
@@ -36,15 +36,35 @@ public abstract class Algo  implements PathFinder {
         }
     }
 
-    public Graph getGraph() { return graph; }
-    public void setGraph(Graph graph) { this.graph = graph; }
+    public Graph getGraph() {
+        return graph;
+    }
 
-    public Node getCurrentNode() { return currentNode; }
-    public void setCurrentNode(Node currentNode) { this.currentNode = currentNode; }
+    public void setGraph(Graph graph) {
+        this.graph = graph;
+    }
 
-    public Node getDestination() { return destination; }
-    public void setDestination(Node destination) { this.destination = destination; }
+    public Node getCurrentNode() {
+        return currentNode;
+    }
 
-    public List<Node> getPath() { return path; }
-    public void setPath(List<Node> path) { this.path = path; }
+    public void setCurrentNode(Node currentNode) {
+        this.currentNode = currentNode;
+    }
+
+    public Node getDestination() {
+        return destination;
+    }
+
+    public void setDestination(Node destination) {
+        this.destination = destination;
+    }
+
+    public List<Node> getPath() {
+        return path;
+    }
+
+    public void setPath(List<Node> path) {
+        this.path = path;
+    }
 }
