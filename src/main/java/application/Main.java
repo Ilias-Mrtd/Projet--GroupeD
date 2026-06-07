@@ -65,8 +65,9 @@ public class Main extends Application {
         graphCanvas.setAgents(agents);
         PropertiesPanel propertiesPanel = new PropertiesPanel(graph, agents);
 
-        // DOUBLE BARRE D'OUTILS (Mode Sombre)
-
+        // ==========================================
+        // DOUBLE BARRE D'OUTILS
+        // ==========================================
         VBox topContainer = new VBox(5);
         topContainer.setStyle("-fx-background-color: #2D2D30; -fx-border-color: #3E3E42; -fx-border-width: 0 0 1 0;");
         topContainer.setPadding(new Insets(10));
@@ -112,12 +113,20 @@ public class Main extends Application {
             graphCanvas.setZoomLevel(newVal.doubleValue());
         });
 
-        ToggleButton btnToggleRoster = new ToggleButton("👁️ Afficher Liste");
+        //  BOUTON CAMERA DE SUIVI
+        ToggleButton btnFollowCamera = new ToggleButton("Caméra Suivi");
+        btnFollowCamera.setStyle("-fx-font-weight: bold; -fx-text-fill: #00E5FF;");
+        btnFollowCamera.setOnAction(e -> {
+            graphCanvas.setFollowAgentMode(btnFollowCamera.isSelected());
+            graphCanvas.draw();
+        });
+
+        ToggleButton btnToggleRoster = new ToggleButton("Afficher Liste");
         btnToggleRoster.setSelected(true);
-        ToggleButton btnToggleInspector = new ToggleButton("👁️ Afficher Inspecteur");
+        ToggleButton btnToggleInspector = new ToggleButton("Afficher Inspecteur");
         btnToggleInspector.setSelected(true);
 
-        toolbar2.getChildren().addAll(lblSpeed, speedSlider, new Separator(Orientation.VERTICAL), lblZoom, zoomSlider, new Separator(Orientation.VERTICAL), btnToggleRoster, btnToggleInspector);
+        toolbar2.getChildren().addAll(lblSpeed, speedSlider, new Separator(Orientation.VERTICAL), lblZoom, zoomSlider, new Separator(Orientation.VERTICAL), btnFollowCamera, btnToggleRoster, btnToggleInspector);
         topContainer.getChildren().addAll(toolbar1, toolbar2);
 
 
@@ -210,8 +219,6 @@ public class Main extends Application {
         btnToggleInspector.setOnAction(e -> updateLayout.run());
 
         BorderPane root = new BorderPane();
-        
-        // LA MAGIE DU THÈME SOMBRE JAVA FX EST ICI :
         root.setStyle("-fx-base: #1E1E1E; -fx-control-inner-background: #252526; -fx-background: #1E1E1E; -fx-text-base-color: #E0E0E0; -fx-accent: #00E5FF; -fx-font-family: 'Segoe UI', sans-serif;");
         
         root.setTop(topContainer);

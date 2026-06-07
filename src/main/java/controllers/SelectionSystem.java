@@ -82,17 +82,20 @@ public class SelectionSystem {
             if (mode == Mode.LINKING_EDGE) cancelEdgeLinking();
             return;
         }
-        // On ajuste les clics en fonction du Zoom de la carte !
-        double x = event.getX() / canvas.getZoomLevel();
-        double y = event.getY() / canvas.getZoomLevel();
+        // NOUVEAU : Conversion des coordonnées Souris -> Carte
+        Point2D worldPos = canvas.screenToWorld(event.getX(), event.getY());
+        double x = worldPos.getX();
+        double y = worldPos.getY();
+        
         if (mode == Mode.LINKING_EDGE) handleLinkingClick(x, y);
         else                           handleNormalClick(x, y);
     }
 
     public void handleMousePressed(MouseEvent event) {
         if (event.getButton() != MouseButton.PRIMARY || mode != Mode.NORMAL) return;
-        double x = event.getX() / canvas.getZoomLevel();
-        double y = event.getY() / canvas.getZoomLevel();
+        Point2D worldPos = canvas.screenToWorld(event.getX(), event.getY());
+        double x = worldPos.getX();
+        double y = worldPos.getY();
 
         Node clickedNode = findNodeAt(x, y);
         if (clickedNode == null) return;
@@ -112,8 +115,9 @@ public class SelectionSystem {
     public void handleMouseDragged(MouseEvent event) {
         if (!draggingNode || lastSelectedNode == null || mode != Mode.NORMAL) return;
 
-        double x = (event.getX() / canvas.getZoomLevel()) - dragOffsetX;
-        double y = (event.getY() / canvas.getZoomLevel()) - dragOffsetY;
+        Point2D worldPos = canvas.screenToWorld(event.getX(), event.getY());
+        double x = worldPos.getX() - dragOffsetX;
+        double y = worldPos.getY() - dragOffsetY;
 
         lastSelectedNode.setX((float) x);
         lastSelectedNode.setY((float) y);
@@ -184,7 +188,7 @@ public class SelectionSystem {
         canvas.draw();
     }
 
-   private void clearAllSelections() {
+    private void clearAllSelections() {
         if (lastSelectedNode  != null) { lastSelectedNode.setSelected(false); lastSelectedNode = null; }
         if (lastSelectedEdge  != null) { lastSelectedEdge.setSelected(false); lastSelectedEdge = null; }
         if (lastSelectedAgent != null) { lastSelectedAgent.setSelected(false); lastSelectedAgent = null; }
@@ -232,7 +236,8 @@ public class SelectionSystem {
         return null;
     }
 
-    private Point2D computeAgentPosition(Agent agent) {
+    // Doit être PUBLIC pour que le Canvas puisse calculer la position de la caméra !
+    public Point2D computeAgentPosition(Agent agent) {
         if (agent.getCurrentNode() == null) return null;
         if (agent.getCurrentEdge() == null) return new Point2D(agent.getCurrentNode().getX(), agent.getCurrentNode().getY());
 
