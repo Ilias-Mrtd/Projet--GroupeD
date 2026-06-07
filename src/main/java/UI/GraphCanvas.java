@@ -23,8 +23,6 @@ public class GraphCanvas extends Canvas {
     private Runnable onInteraction;
     
     private boolean heatmapMode = false;
-    
-    //  Niveau de zoom de la carte
     private double zoomLevel = 1.0;
 
     public GraphCanvas(Graph graph, GraphRenderer renderer) {
@@ -52,19 +50,26 @@ public class GraphCanvas extends Canvas {
 
     public void draw() {
         GraphicsContext gc = getGraphicsContext2D();
-        gc.save(); // Sauvegarde l'état par défaut (sans zoom)
+        gc.save(); 
         
-        // On nettoie tout l'écran
-        gc.clearRect(0, 0, getWidth(), getHeight());
+        // FOND SOMBRE
+        gc.setFill(Color.web("#1E1E1E"));
+        gc.fillRect(0, 0, getWidth(), getHeight());
 
-        // APPLIQUE LE ZOOM UNIQUEMENT SUR LA CARTE
+        // APPLIQUE LE ZOOM
         gc.scale(zoomLevel, zoomLevel);
+
+        // GRILLE "BLUEPRINT" SOUS LA CARTE
+        gc.setStroke(Color.web("#2A2A2D"));
+        gc.setLineWidth(1.0);
+        for (double i = 0; i < getWidth() / zoomLevel; i += 40) { gc.strokeLine(i, 0, i, getHeight() / zoomLevel); }
+        for (double i = 0; i < getHeight() / zoomLevel; i += 40) { gc.strokeLine(0, i, getWidth() / zoomLevel, i); }
 
         if (heatmapMode && graph != null) { drawHeatmap(gc); }
 
         renderer.draw(gc, getGraph(), getAgents());
 
-        gc.restore(); // Retire le zoom pour les textes de l'interface (HUD)
+        gc.restore(); 
 
         if (getSelectionSystem() != null && getSelectionSystem().getMode() == SelectionSystem.Mode.LINKING_EDGE) {
             drawLinkingHint(gc);
@@ -78,8 +83,9 @@ public class GraphCanvas extends Canvas {
             for (Edge edge : edges) {
                 double ratio = (double) edge.getCurrentOccupants() / Math.max(1, edge.getCapacity());
                 if (ratio > 0.0) {
-                    Color heatColor = Color.YELLOW.interpolate(Color.RED, Math.min(1.0, ratio));
-                    gc.setStroke(heatColor.deriveColor(0, 1, 1, Math.min(0.6, ratio * 0.7)));
+                    // Nouvelles couleurs fluo pour la Heatmap
+                    Color heatColor = Color.web("#29B6F6").interpolate(Color.web("#FF1744"), Math.min(1.0, ratio));
+                    gc.setStroke(heatColor.deriveColor(0, 1, 1, Math.min(0.7, ratio * 0.8)));
                     gc.setLineWidth(45); 
                     gc.strokeLine(edge.getSource().getX(), edge.getSource().getY(), edge.getTarget().getX(), edge.getTarget().getY());
                 }
@@ -88,8 +94,8 @@ public class GraphCanvas extends Canvas {
         for (Node node : graph.getNodes()) {
             double ratio = (double) node.getCurrentOccupants() / Math.max(1, node.getCapacity());
             if (ratio > 0.0) {
-                Color heatColor = Color.YELLOW.interpolate(Color.RED, Math.min(1.0, ratio));
-                gc.setFill(heatColor.deriveColor(0, 1, 1, Math.min(0.8, ratio)));
+                Color heatColor = Color.web("#29B6F6").interpolate(Color.web("#FF1744"), Math.min(1.0, ratio));
+                gc.setFill(heatColor.deriveColor(0, 1, 1, Math.min(0.9, ratio)));
                 gc.fillOval(node.getX() - 50, node.getY() - 50, 100, 100);
             }
         }
@@ -98,8 +104,8 @@ public class GraphCanvas extends Canvas {
 
     private void drawLinkingHint(GraphicsContext gc) {
         double w = getWidth(); double h = getHeight(); double bannerH = 36;
-        gc.setFill(Color.color(0.1, 0.1, 0.8, 0.75)); gc.fillRect(0, h - bannerH, w, bannerH);
-        gc.setFill(Color.WHITE); gc.setFont(Font.font("System", 14));
+        gc.setFill(Color.color(0.1, 0.1, 0.2, 0.9)); gc.fillRect(0, h - bannerH, w, bannerH);
+        gc.setFill(Color.web("#00E5FF")); gc.setFont(Font.font("Segoe UI", 14));
         gc.fillText("Mode création d'arête — clic gauche : choisir SOURCE puis CIBLE   |   clic droit : annuler", 12, h - bannerH + 23);
     }
 
@@ -111,8 +117,6 @@ public class GraphCanvas extends Canvas {
     public GraphRenderer getRenderer() { return renderer; }
     public boolean isHeatmapMode() { return heatmapMode; }
     public void setHeatmapMode(boolean heatmapMode) { this.heatmapMode = heatmapMode; }
-    
-    // Getters et Setters du Zoom
     public double getZoomLevel() { return zoomLevel; }
     public void setZoomLevel(double zoomLevel) { this.zoomLevel = zoomLevel; draw(); }
 }

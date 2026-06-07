@@ -65,11 +65,10 @@ public class Main extends Application {
         graphCanvas.setAgents(agents);
         PropertiesPanel propertiesPanel = new PropertiesPanel(graph, agents);
 
-        // ==========================================
-        // DOUBLE BARRE D'OUTILS (Évite le débordement)
-        // ==========================================
+        // DOUBLE BARRE D'OUTILS (Mode Sombre)
+
         VBox topContainer = new VBox(5);
-        topContainer.setStyle("-fx-background-color: #E0E0E0;");
+        topContainer.setStyle("-fx-background-color: #2D2D30; -fx-border-color: #3E3E42; -fx-border-width: 0 0 1 0;");
         topContainer.setPadding(new Insets(10));
 
         HBox toolbar1 = new HBox(15);
@@ -93,7 +92,7 @@ public class Main extends Application {
         });
 
         ToggleButton btnHeatmap = new ToggleButton("🔥 Heatmap");
-        btnHeatmap.setStyle("-fx-font-weight: bold; -fx-text-fill: #D84315;");
+        btnHeatmap.setStyle("-fx-font-weight: bold; -fx-text-fill: #FF5722;");
         btnHeatmap.setOnAction(e -> { graphCanvas.setHeatmapMode(btnHeatmap.isSelected()); graphCanvas.draw(); });
 
         toolbar1.getChildren().addAll(btnRestart, btnPlay, btnPause, btnStep, btnClear, btnSave, menuLoad, new Separator(Orientation.VERTICAL), btnHeatmap, algoSelector);
@@ -105,19 +104,17 @@ public class Main extends Application {
         Slider speedSlider = new Slider(0.1, 5.0, 1.0);
         speedSlider.setShowTickMarks(true); speedSlider.setShowTickLabels(true); speedSlider.setMajorTickUnit(1.0); speedSlider.setBlockIncrement(0.1);
 
-        //Slider de Zoom
         Label lblZoom = new Label("Zoom : 100%");
-        Slider zoomSlider = new Slider(0.2, 2.0, 1.0); // De 20% à 200%
+        Slider zoomSlider = new Slider(0.2, 2.0, 1.0); 
         zoomSlider.setShowTickMarks(true); zoomSlider.setShowTickLabels(true); zoomSlider.setMajorTickUnit(0.5);
         zoomSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
             lblZoom.setText("Zoom : " + Math.round(newVal.doubleValue() * 100) + "%");
             graphCanvas.setZoomLevel(newVal.doubleValue());
         });
 
-        //  Boutons pour afficher/masquer les panneaux
-        ToggleButton btnToggleRoster = new ToggleButton("Afficher Liste");
+        ToggleButton btnToggleRoster = new ToggleButton("👁️ Afficher Liste");
         btnToggleRoster.setSelected(true);
-        ToggleButton btnToggleInspector = new ToggleButton("Afficher Inspecteur");
+        ToggleButton btnToggleInspector = new ToggleButton("👁️ Afficher Inspecteur");
         btnToggleInspector.setSelected(true);
 
         toolbar2.getChildren().addAll(lblSpeed, speedSlider, new Separator(Orientation.VERTICAL), lblZoom, zoomSlider, new Separator(Orientation.VERTICAL), btnToggleRoster, btnToggleInspector);
@@ -125,14 +122,14 @@ public class Main extends Application {
 
 
         // ==========================================
-        // PANNEAU GAUCHE : ROSTER DES AGENTS (TABLEAU)
+        // PANNEAU GAUCHE : ROSTER DES AGENTS
         // ==========================================
         VBox leftPanel = new VBox(10);
         leftPanel.setPadding(new Insets(10));
-        leftPanel.setStyle("-fx-background-color: #FAFAFA;");
+        leftPanel.setStyle("-fx-background-color: #252526;");
         
         Label leftTitle = new Label("📋 Liste des Agents");
-        leftTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #333;");
+        leftTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #00E5FF;");
 
         TableView<Agent> agentTable = new TableView<>();
         agentTable.setEditable(true); 
@@ -182,7 +179,7 @@ public class Main extends Application {
 
 
         // ==========================================
-        // LAYOUT PRINCIPAL RESPONSIVE (SPLITPANE)
+        // LAYOUT PRINCIPAL RESPONSIVE
         // ==========================================
         Pane canvasContainer = new Pane(graphCanvas);
         graphCanvas.widthProperty().bind(canvasContainer.widthProperty());
@@ -191,21 +188,18 @@ public class Main extends Application {
         ScrollPane panelScroll = new ScrollPane(propertiesPanel);
         panelScroll.setFitToWidth(true);
         panelScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        panelScroll.setStyle("-fx-background: #FAFAFA; -fx-background-color: #FAFAFA;");
+        panelScroll.setStyle("-fx-background: #252526; -fx-background-color: #252526;");
 
-        // Le SplitPane permet de glisser les bordures et redimensionner la carte !
         SplitPane splitPane = new SplitPane();
         splitPane.getItems().addAll(leftPanel, canvasContainer, panelScroll);
-        splitPane.setDividerPositions(0.30, 0.75); // 30% tableau, 45% carte, 25% inspecteur
+        splitPane.setDividerPositions(0.30, 0.75); 
 
-        // Logique pour masquer / afficher les panneaux
         Runnable updateLayout = () -> {
             splitPane.getItems().clear();
             if (btnToggleRoster.isSelected()) splitPane.getItems().add(leftPanel);
             splitPane.getItems().add(canvasContainer);
             if (btnToggleInspector.isSelected()) splitPane.getItems().add(panelScroll);
             
-            // Repositionne joliment les barres
             if (btnToggleRoster.isSelected() && btnToggleInspector.isSelected()) {
                 splitPane.setDividerPositions(0.30, 0.75);
             } else if (btnToggleRoster.isSelected() || btnToggleInspector.isSelected()) {
@@ -216,6 +210,10 @@ public class Main extends Application {
         btnToggleInspector.setOnAction(e -> updateLayout.run());
 
         BorderPane root = new BorderPane();
+        
+        // LA MAGIE DU THÈME SOMBRE JAVA FX EST ICI :
+        root.setStyle("-fx-base: #1E1E1E; -fx-control-inner-background: #252526; -fx-background: #1E1E1E; -fx-text-base-color: #E0E0E0; -fx-accent: #00E5FF; -fx-font-family: 'Segoe UI', sans-serif;");
+        
         root.setTop(topContainer);
         root.setCenter(splitPane);
 
@@ -234,16 +232,12 @@ public class Main extends Application {
             
             tickCount[0]++;
             if (tickCount[0] % 15 == 0) {
-                // NE RAFRAÎCHIT PLUS SI TU ES EN TRAIN D'ÉDITER UNE CELLULE !
                 if (agentTable.getEditingCell() == null) {
                     agentTable.refresh();
                 }
             }
         });
 
-        // ========================================================
-        // CALLBACKS ET LOGIQUE DES BOUTONS (Inchangé)
-        // ========================================================
         btnSave.setOnAction(e -> {
             FileService.ensureSaveDirectoryExists();
             FileChooser fileChooser = new FileChooser();

@@ -10,24 +10,30 @@ public class EdgeRenderer implements EdgeRendering {
     @Override
     public void drawEdge(GraphicsContext gc, Edge edge) {
 
-        // Halo autour de l'arete
+        // Halo de sélection CYAN
         if (edge.isSelected()) {
-            gc.setStroke(Color.YELLOWGREEN);
-            gc.setLineWidth(EDGE_WIDTH + 6.0f);
+            gc.setStroke(Color.web("#00E5FF"));
+            gc.setLineWidth(EDGE_WIDTH + 10.0f);
             gc.strokeLine(edge.getSource().getX(), edge.getSource().getY(), edge.getTarget().getX(), edge.getTarget().getY());
         }
 
+        // Effet "Asphalte" (Route de fond)
+        gc.setStroke(Color.web("#263238"));
+        gc.setLineWidth(EDGE_WIDTH + 6.0f);
+        gc.strokeLine(edge.getSource().getX(), edge.getSource().getY(), edge.getTarget().getX(), edge.getTarget().getY());
+
         switch (edge.getState()) {
             case OUT:
-                gc.setStroke(Color.BLACK);
+                gc.setStroke(Color.web("#37474F"));
                 break;
             case AVAILABLE:
-                Color edgeStress = Color.GREY.interpolate(Color.RED,
+                // Bleu ciel vers Rouge
+                Color edgeStress = Color.web("#4FC3F7").interpolate(Color.web("#F44336"),
                         ((double) edge.getCurrentOccupants() / (double) edge.getCapacity()));
                 gc.setStroke(edgeStress);
                 break;
             case FULL:
-                gc.setStroke(Color.RED);
+                gc.setStroke(Color.web("#D32F2F"));
                 break;
         }
 
@@ -35,11 +41,11 @@ public class EdgeRenderer implements EdgeRendering {
         gc.strokeLine(edge.getSource().getX(), edge.getSource().getY(), edge.getTarget().getX(), edge.getTarget().getY());
         gc.setLineWidth(1.0f);
 
-        // etickette
-        gc.setFill(Color.WHITE); // setFill et non setStroke pour le fillText !
-        gc.fillText("id: " + edge.getId(), (edge.getSource().getX() + edge.getTarget().getX()) / 2, (edge.getSource().getY() + edge.getTarget().getY()) / 2 + 20);
+        // Etiquette
+        gc.setFill(Color.web("#FFFFFF")); 
+        gc.fillText("id: " + edge.getId(), (edge.getSource().getX() + edge.getTarget().getX()) / 2 + 10, (edge.getSource().getY() + edge.getTarget().getY()) / 2 + 20);
 
-        // fleche directionelle
+        // Flèche directionnelle
         if (!edge.hasDirection()) {
             int mx = (int) ((edge.getSource().getX() + edge.getTarget().getX()) / 2);
             int my = (int) ((edge.getSource().getY() + edge.getTarget().getY()) / 2);
@@ -56,7 +62,7 @@ public class EdgeRenderer implements EdgeRendering {
             int y1 = my - (int) (len * Math.sin(angle));
 
             gc.setStroke(Color.WHITE);
-            gc.setLineWidth(1.2f);
+            gc.setLineWidth(1.5f);
             gc.strokeLine(x1, y1, x2, y2);
             gc.strokeLine(x2, y2,
                     x2 - (int) (head * Math.cos(angle - headAng)),

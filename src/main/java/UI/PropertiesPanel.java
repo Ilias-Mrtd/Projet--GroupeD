@@ -39,18 +39,15 @@ public class PropertiesPanel extends VBox {
 
     private final ComboBox<Agent.agentBehavior> cbAgentBehavior;
 
-    // ---- paramètres arête ----
     private int edgeCapacity = 1;
     private boolean edgeDirection = true;
     private final Label lblEdgeCap;
     private final Label lblEdgeSpeed;
 
-    // ---- paramètres nœud ----
     private int nodeCapacity = 1;
     private final Label lblNodeCap;
     private final CheckBox chkUnderConstruction;
 
-    // ---- paramètres génération de masse ----
     private int genGridSide = 4;
     private int genAgentCount = 10;
     private final Label lblGenNodes;
@@ -64,11 +61,11 @@ public class PropertiesPanel extends VBox {
 
         setPadding(new Insets(15));
         setSpacing(10);
-        setPrefWidth(260);
-        setStyle("-fx-background-color: #FAFAFA; -fx-border-color: #E0E0E0; -fx-border-width: 0 0 0 1;");
+        setPrefWidth(280);
+        setStyle("-fx-background-color: #252526; -fx-border-color: #3E3E42; -fx-border-width: 0 0 0 1;");
 
-        titleLabel = new Label("Inspecteur");
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #333;");
+        titleLabel = new Label("🔍 Inspecteur");
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #00E5FF;");
 
         TabPane inspectorTabs = new TabPane();
         inspectorTabs.setPrefHeight(300);
@@ -76,11 +73,11 @@ public class PropertiesPanel extends VBox {
         Tab tabDetails = new Tab("Détails");
         tabDetails.setClosable(false);
         infoLabel = new Label("Cliquez sur un élément\npour voir ses détails.");
-        infoLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #555; -fx-padding: 5px;");
+        infoLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #CCCCCC; -fx-padding: 5px;");
         infoLabel.setWrapText(true);
         ScrollPane detailsScroll = new ScrollPane(infoLabel);
         detailsScroll.setFitToWidth(true);
-        detailsScroll.setStyle("-fx-background-color: transparent; -fx-background: #FAFAFA;");
+        detailsScroll.setStyle("-fx-background: #1E1E1E;");
         tabDetails.setContent(detailsScroll);
 
         Tab tabHistory = new Tab("Historique");
@@ -95,7 +92,7 @@ public class PropertiesPanel extends VBox {
         tabGlobal.setClosable(false);
         globalStatsArea = new TextArea();
         globalStatsArea.setEditable(false);
-        globalStatsArea.setStyle("-fx-font-size: 12px; -fx-font-family: monospace; -fx-control-inner-background: #2b2b2b; -fx-text-fill: #a9b7c6;");
+        globalStatsArea.setStyle("-fx-font-size: 12px; -fx-font-family: monospace; -fx-text-fill: #00E5FF;");
         globalStatsArea.setWrapText(true);
         tabGlobal.setContent(globalStatsArea);
 
@@ -105,10 +102,10 @@ public class PropertiesPanel extends VBox {
 
         // ---- Section nœud ----
         Label lblNodeSection = new Label("Nœud");
-        lblNodeSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #333;");
+        lblNodeSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #E0E0E0;");
 
         lblNodeCap = new Label("Capacité : 1");
-        lblNodeCap.setStyle("-fx-font-size: 12px;");
+        lblNodeCap.setStyle("-fx-font-size: 12px; -fx-text-fill: #CCCCCC;");
         Button btnNodeCapMinus = smallButton("−");
         Button btnNodeCapPlus = smallButton("+");
         btnNodeCapMinus.setOnAction(e -> {
@@ -125,6 +122,7 @@ public class PropertiesPanel extends VBox {
         nodeCapBox.setStyle("-fx-alignment: center-left;");
 
         chkUnderConstruction = new CheckBox("En travaux (Fermé)");
+        chkUnderConstruction.setStyle("-fx-text-fill: #CCCCCC;");
         chkUnderConstruction.setDisable(true);
         chkUnderConstruction.setOnAction(e -> {
             Node sel = getSelectedNode();
@@ -132,9 +130,9 @@ public class PropertiesPanel extends VBox {
             refresh(); redrawCanvas();
         });
 
-        btnAddNode = buildButton("➕  Ajouter un nœud ici", "#2196F3");
+        btnAddNode = buildButton("➕ Ajouter un nœud ici", "#0288D1");
         btnAddNode.setDisable(true);
-        btnRemoveNode = buildButton("🗑  Supprimer le nœud", "#F44336");
+        btnRemoveNode = buildButton("🗑 Supprimer le nœud", "#D32F2F");
         btnRemoveNode.setDisable(true);
         btnAddNode.setOnAction(e -> handleAddNode());
         btnRemoveNode.setOnAction(e -> handleRemoveNode());
@@ -143,10 +141,10 @@ public class PropertiesPanel extends VBox {
 
         // ---- Section arête ----
         Label lblEdgeSection = new Label("Arête");
-        lblEdgeSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #333;");
+        lblEdgeSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #E0E0E0;");
 
         lblEdgeCap = new Label("Capacité : 1");
-        lblEdgeCap.setStyle("-fx-font-size: 12px;");
+        lblEdgeCap.setStyle("-fx-font-size: 12px; -fx-text-fill: #CCCCCC;");
         Button btnEdgeCapMinus = smallButton("−");
         Button btnEdgeCapPlus = smallButton("+");
         btnEdgeCapMinus.setOnAction(e -> {
@@ -163,7 +161,7 @@ public class PropertiesPanel extends VBox {
         edgeCapBox.setStyle("-fx-alignment: center-left;");
 
         lblEdgeSpeed = new Label("Vitesse : x1.0");
-        lblEdgeSpeed.setStyle("-fx-font-size: 12px;");
+        lblEdgeSpeed.setStyle("-fx-font-size: 12px; -fx-text-fill: #CCCCCC;");
         Button btnEdgeSpeedMinus = smallButton("−");
         Button btnEdgeSpeedPlus = smallButton("+");
         btnEdgeSpeedMinus.setOnAction(e -> {
@@ -179,7 +177,7 @@ public class PropertiesPanel extends VBox {
         HBox edgeSpeedBox = new HBox(6, btnEdgeSpeedMinus, lblEdgeSpeed, btnEdgeSpeedPlus);
         edgeSpeedBox.setStyle("-fx-alignment: center-left;");
 
-        Button btnToggleDir = buildButton("Bidirected ⇄", "#607D8B");
+        Button btnToggleDir = buildButton("Bidirected ⇄", "#455A64");
         btnToggleDir.setOnAction(e -> {
             Edge sel = getSelectedEdge();
             if (sel != null) { sel.setDirection(!sel.hasDirection()); } else { edgeDirection = !edgeDirection; }
@@ -187,8 +185,8 @@ public class PropertiesPanel extends VBox {
             if (edgeDirection) { btnToggleDir.setText("Bidirected ⇄"); } else { btnToggleDir.setText("Directed →"); }
         });
 
-        btnAddEdge = buildButton("🔗  Ajouter une arête", "#9C27B0");
-        btnRemoveEdge = buildButton("🗑  Supprimer l'arête", "#E91E63");
+        btnAddEdge = buildButton("🔗 Ajouter une arête", "#7B1FA2");
+        btnRemoveEdge = buildButton("🗑 Supprimer l'arête", "#C2185B");
         btnRemoveEdge.setDisable(true);
         btnAddEdge.setOnAction(e -> handleAddEdge());
         btnRemoveEdge.setOnAction(e -> handleRemoveEdge());
@@ -197,20 +195,19 @@ public class PropertiesPanel extends VBox {
 
         // ---- Section agent ----
         Label lblAgentSection = new Label("Agent");
-        lblAgentSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #333;");
+        lblAgentSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #E0E0E0;");
 
-        // LISTE DÉROULANTE VIP / PATIENT / HURRIED
         cbAgentBehavior = new ComboBox<>();
         cbAgentBehavior.getItems().addAll(Agent.agentBehavior.PATIENT, Agent.agentBehavior.HURRIED, Agent.agentBehavior.VIP);
         cbAgentBehavior.setValue(Agent.agentBehavior.PATIENT);
         cbAgentBehavior.setStyle("-fx-font-size: 12px;");
         cbAgentBehavior.setMaxWidth(Double.MAX_VALUE);
 
-        btnAddAgent = buildButton("🤖  Ajouter un agent", "#4CAF50");
+        btnAddAgent = buildButton("🤖 Ajouter un agent", "#388E3C");
         btnAddAgent.setDisable(true);
         btnAddAgent.setOnAction(e -> handleAddAgent());
 
-        btnRemoveAgent = buildButton("🗑  Supprimer l'agent", "#FF5722");
+        btnRemoveAgent = buildButton("🗑 Supprimer l'agent", "#E64A19");
         btnRemoveAgent.setDisable(true);
         btnRemoveAgent.setOnAction(e -> handleRemoveAgent());
 
@@ -218,10 +215,10 @@ public class PropertiesPanel extends VBox {
 
         // ---- Section génération de masse ----
         Label lblGenSection = new Label("Génération de masse");
-        lblGenSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #333;");
+        lblGenSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #E0E0E0;");
 
         lblGenNodes = new Label("Grille : " + genGridSide + "x" + genGridSide + " (" + (genGridSide * genGridSide) + " nœuds)");
-        lblGenNodes.setStyle("-fx-font-size: 12px;");
+        lblGenNodes.setStyle("-fx-font-size: 12px; -fx-text-fill: #CCCCCC;");
         Button btnGenNodesMinus = smallButton("−");
         Button btnGenNodesPlus = smallButton("+");
         btnGenNodesMinus.setOnAction(e -> { if (genGridSide > 2) { genGridSide--; lblGenNodes.setText("Grille : " + genGridSide + "x" + genGridSide + " (" + (genGridSide * genGridSide) + " nœuds)"); } });
@@ -229,11 +226,11 @@ public class PropertiesPanel extends VBox {
         HBox genNodesBox = new HBox(6, btnGenNodesMinus, lblGenNodes, btnGenNodesPlus);
         genNodesBox.setStyle("-fx-alignment: center-left;");
 
-        Button btnGenerateGraph = buildButton("🏙  Générer un graphe", "#3F51B5");
+        Button btnGenerateGraph = buildButton("🏙 Générer un graphe", "#303F9F");
         btnGenerateGraph.setOnAction(e -> { if (onGenerateGraph != null) onGenerateGraph.run(); });
 
         lblGenAgents = new Label("Agents : " + genAgentCount);
-        lblGenAgents.setStyle("-fx-font-size: 12px;");
+        lblGenAgents.setStyle("-fx-font-size: 12px; -fx-text-fill: #CCCCCC;");
         Button btnGenAgentsMinus = smallButton("−");
         Button btnGenAgentsPlus = smallButton("+");
         btnGenAgentsMinus.setOnAction(e -> { if (genAgentCount > 1) { genAgentCount--; lblGenAgents.setText("Agents : " + genAgentCount); } });
@@ -241,14 +238,14 @@ public class PropertiesPanel extends VBox {
         HBox genAgentsBox = new HBox(6, btnGenAgentsMinus, lblGenAgents, btnGenAgentsPlus);
         genAgentsBox.setStyle("-fx-alignment: center-left;");
 
-        Button btnSpawnAgents = buildButton("👥  Faire apparaître les agents", "#009688");
+        Button btnSpawnAgents = buildButton("👥 Apparaître agents", "#00796B");
         btnSpawnAgents.setOnAction(e -> { if (onSpawnAgents != null) onSpawnAgents.run(); });
 
         getChildren().addAll(
                 titleLabel, inspectorTabs,
                 sep1, lblNodeSection, nodeCapBox, chkUnderConstruction, btnAddNode, btnRemoveNode,
                 sep2, lblEdgeSection, edgeCapBox, edgeSpeedBox, btnToggleDir, btnAddEdge, btnRemoveEdge,
-                sep3, lblAgentSection, cbAgentBehavior, btnAddAgent, btnRemoveAgent, // AJOUTÉ ICI
+                sep3, lblAgentSection, cbAgentBehavior, btnAddAgent, btnRemoveAgent, 
                 sep4, lblGenSection, genNodesBox, btnGenerateGraph, genAgentsBox, btnSpawnAgents);
     }
 
@@ -256,7 +253,7 @@ public class PropertiesPanel extends VBox {
         this.selectionSystem = ss;
         ss.setOnEmptyClick((x, y) -> {
             btnAddNode.setDisable(false);
-            btnAddNode.setText("➕  Placer ici (" + (int) x + "," + (int) y + ")");
+            btnAddNode.setText("➕ Placer ici (" + (int) x + "," + (int) y + ")");
         });
         btnAddAgent.setDisable(true);
     }
@@ -269,7 +266,6 @@ public class PropertiesPanel extends VBox {
     public void setOnSpawnAgents(Runnable r) { this.onSpawnAgents = r; }
     public void setOnRemoveAgent(Runnable r) { this.onRemoveAgent = r; }
     
-
     public Agent.agentBehavior getSelectedAgentBehavior() {
         return cbAgentBehavior.getValue();
     }
@@ -354,11 +350,11 @@ public class PropertiesPanel extends VBox {
         btnRemoveAgent.setDisable(!agentSelected);
 
         if (linkingActive) {
-            btnAddEdge.setText("↩  Annuler liaison");
-            btnAddEdge.setStyle(buttonStyle("#FF9800"));
+            btnAddEdge.setText("↩ Annuler liaison");
+            btnAddEdge.setStyle(buttonStyle("#F57C00"));
         } else {
-            btnAddEdge.setText("🔗  Ajouter une arête");
-            btnAddEdge.setStyle(buttonStyle("#9C27B0"));
+            btnAddEdge.setText("🔗 Ajouter une arête");
+            btnAddEdge.setStyle(buttonStyle("#7B1FA2"));
         }
 
         updateGlobalScoreboard();
@@ -478,18 +474,16 @@ public class PropertiesPanel extends VBox {
         Button btn = new Button(text);
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setStyle(buttonStyle(hexColor));
-        btn.setOnMouseEntered(e -> btn.setOpacity(0.85));
-        btn.setOnMouseExited(e -> btn.setOpacity(1.0));
         return btn;
     }
 
     private Button smallButton(String text) {
         Button btn = new Button(text);
-        btn.setStyle("-fx-font-size: 13px; -fx-padding: 2 8 2 8; -fx-background-radius: 4; -fx-cursor: hand;");
+        btn.setStyle("-fx-font-size: 13px; -fx-padding: 2 8 2 8; -fx-background-color: #3E3E42; -fx-text-fill: #E0E0E0; -fx-background-radius: 4; -fx-cursor: hand;");
         return btn;
     }
 
     private String buttonStyle(String hexColor) {
-        return "-fx-background-color: " + hexColor + "; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 7 10 7 10; -fx-background-radius: 6; -fx-cursor: hand;";
+        return "-fx-background-color: " + hexColor + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px; -fx-padding: 7 10 7 10; -fx-background-radius: 4; -fx-cursor: hand;";
     }
 }
