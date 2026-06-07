@@ -9,11 +9,6 @@ import simulationEngine.algorithm.Dijkstra;
 import simulationEngine.algorithm.AStar;
 import simulationEngine.algorithm.Algo;
 
-/**
- * Represents an autonomous agent that navigates through the simulation graph.
- * The agent can compute paths, handle traffic jams, and adapt to dynamic changes
- * like edge/node destruction or heavy congestion.
- */
 public class Agent implements Serializable {
 
     private int id;
@@ -47,10 +42,10 @@ public class Agent implements Serializable {
     private List<Node> reservedNodes = new ArrayList<>();
     private List<Edge> reservedEdges = new ArrayList<>();
     private boolean isRetreating = false;
+    
+    //Statut de "Garé sur le bas-côté"
+    private boolean yieldingToVIP = false;
 
-    // =========================================
-    // KPIs, STATS & CONGESTION
-    // =========================================
     private int abandonedObjectives = 0;
     private int objectivesReached = 0;
     private int detoursTaken = 0;
@@ -60,13 +55,8 @@ public class Agent implements Serializable {
     private List<String> historyLog = new ArrayList<>();
     private static final long serialVersionUID = 1L;
     
-    // Timer for the heavy congestion penalty (2 seconds)
     private double congestionTimer = 0.0; 
 
-    /**
-     * Logs a message in the agent's history and prints it to the console.
-     * @param msg The message to log.
-     */
     public void logMsg(String msg) {
         String entry = String.format("[%.1fs] %s", totalActiveTime, msg);
         historyLog.add(entry);
@@ -81,36 +71,25 @@ public class Agent implements Serializable {
     public double getTotalDistance() { return totalDistance; }
     public List<String> getHistoryLog() { return historyLog; }
 
-    /**
-     * Resets all KPIs and statistics to their default values (used when restarting the simulation).
-     */
     public void resetStats() {
-        this.abandonedObjectives = 0;
-        this.objectivesReached = 0;
-        this.detoursTaken = 0;
-        this.totalActiveTime = 0.0;
-        this.totalWaitTime = 0.0;
-        this.totalDistance = 0.0;
-        this.congestionTimer = 0.0;
+        this.abandonedObjectives = 0; this.objectivesReached = 0; this.detoursTaken = 0;
+        this.totalActiveTime = 0.0; this.totalWaitTime = 0.0; this.totalDistance = 0.0; this.congestionTimer = 0.0;
         this.historyLog.clear();
-        if (this.startingNode != null) {
-            logMsg("Respawned on node " + this.startingNode.getId() + " (Restart)");
-        }
+        if (this.startingNode != null) { logMsg("Respawned on node " + this.startingNode.getId() + " (Restart)"); }
     }
 
     public enum EndBehavior { STOP, REMOVE, RANDOM_WANDER }
     public enum agentState { AVAILABLE, CALCULATING, RUNNING, WAITING, OUT }
+    
     public enum agentBehavior {
-        HURRIED(2), PATIENT(1), BROKEN(0);
+        VIP(10), HURRIED(2), PATIENT(1), BROKEN(0); 
         private final int priority;
         agentBehavior(int priority) { this.priority = priority; }
         public int getPriority() { return priority; }
     }
 
     public void setStartingNode(Node node) {
-        this.startingNode = node;
-        this.currentNode = node;
-        this.previousNode = node;
+        this.startingNode = node; this.currentNode = node; this.previousNode = node;
         logMsg("Spawned on node " + node.getId());
     }
 
@@ -119,25 +98,13 @@ public class Agent implements Serializable {
     public void setAlgoType(AlgoType type) { this.algoType = type; }
     public AlgoType getAlgoType() { return this.algoType; }
 
-    /**
-     * Executes the final behavior once the agent has completed all its objectives.
-     */
     private void handleEndBehavior() {
         logMsg("Completed all objectives. Final behavior: " + getEndBehavior());
         clearReservations();
         switch (getEndBehavior()) {
-            case STOP:
-                setState(agentState.AVAILABLE);
-                break;
-            case REMOVE:
-                setState(agentState.OUT);
-                if (getCurrentNode() != null) getCurrentNode().leave();
-                logMsg("Left the simulation.");
-                break;
-            case RANDOM_WANDER:
-                setState(agentState.AVAILABLE);
-                if (this.currentNode != null) this.currentNode.leave();
-                break;
+            case STOP: setState(agentState.AVAILABLE); break;
+            case REMOVE: setState(agentState.OUT); if (getCurrentNode() != null) getCurrentNode().leave(); logMsg("Left the simulation."); break;
+            case RANDOM_WANDER: setState(agentState.AVAILABLE); if (this.currentNode != null) this.currentNode.leave(); break;
         }
     }
 
@@ -149,53 +116,31 @@ public class Agent implements Serializable {
             n.setExpectedOccupants(n.getExpectedOccupants() + 1);
             getReservedNodes().add(n);
             Edge e = findEdgeBetween(prev, n);
-            if (e != null) {
-                e.setExpectedOccupants(e.getExpectedOccupants() + 1);
-                getReservedEdges().add(e);
-            }
+            if (e != null) { e.setExpectedOccupants(e.getExpectedOccupants() + 1); getReservedEdges().add(e); }
             prev = n;
         }
     }
 
     private void clearReservations() {
-        for (Node n : getReservedNodes()) {
-            if (n.getExpectedOccupants() > 0) n.setExpectedOccupants(n.getExpectedOccupants() - 1);
-        }
+        for (Node n : getReservedNodes()) { if (n.getExpectedOccupants() > 0) n.setExpectedOccupants(n.getExpectedOccupants() - 1); }
         getReservedNodes().clear();
-        for (Edge e : getReservedEdges()) {
-            if (e.getExpectedOccupants() > 0) e.setExpectedOccupants(e.getExpectedOccupants() - 1);
-        }
+        for (Edge e : getReservedEdges()) { if (e.getExpectedOccupants() > 0) e.setExpectedOccupants(e.getExpectedOccupants() - 1); }
         getReservedEdges().clear();
     }
 
-    /**
-     * Safely removes the agent from the graph by freeing all reservations, queues, and occupants.
-     */
     public void releaseAll() {
         clearReservations();
         if (getCurrentEdge() != null) {
             Node targetNode = (getCurrentEdge().getSource() == getCurrentNode()) ? getCurrentEdge().getTarget() : getCurrentEdge().getSource();
-            if (targetNode != null && targetNode.getIncomingOccupants() > 0) {
-                targetNode.setIncomingOccupants(targetNode.getIncomingOccupants() - 1);
-            }
-            getCurrentEdge().leave();
-            getCurrentEdge().removeQueue(this);
-            setCurrentEdge(null);
+            if (targetNode != null && targetNode.getIncomingOccupants() > 0) { targetNode.setIncomingOccupants(targetNode.getIncomingOccupants() - 1); }
+            getCurrentEdge().leave(); getCurrentEdge().removeQueue(this); setCurrentEdge(null);
         }
-        if (getCurrentNode() != null) {
-            getCurrentNode().leave();
-            getCurrentNode().removeQueue(this);
-        }
-        getPath().clear();
-        getObjectives().clear();
-        setState(agentState.OUT);
+        if (getCurrentNode() != null) { getCurrentNode().leave(); getCurrentNode().removeQueue(this); }
+        getPath().clear(); getObjectives().clear(); setState(agentState.OUT);
     }
 
     public Agent(int id, float speed, agentState state) {
-        setId(id);
-        setSpeed(speed);
-        setState(state);
-        setCurrentPatience(getMaxPatience());
+        setId(id); setSpeed(speed); setState(state); setCurrentPatience(getMaxPatience());
     }
 
     private Edge findEdgeBetween(Node s, Node t) {
@@ -211,15 +156,9 @@ public class Agent implements Serializable {
     public void addObjective(Node dest) {
         getObjectives().add(dest);
         logMsg("New objective received: Node " + dest.getId());
-        if (getState() == agentState.AVAILABLE) {
-            startNextObjective();
-        }
+        if (getState() == agentState.AVAILABLE) { startNextObjective(); }
     }
 
-    /**
-     * Determines which pathfinding algorithm to use based on the agent's preferences.
-     * @return The instantiated pathfinding algorithm.
-     */
     private Algo getCalculator() {
         if (this.algoType == AlgoType.DIJKSTRA) {
             logMsg("Calculating path (Forced: Dijkstra)");
@@ -238,9 +177,6 @@ public class Agent implements Serializable {
         }
     }
 
-    /**
-     * Fetches the next objective from the queue and computes the path to reach it.
-     */
     private void startNextObjective() {
         if (!getObjectives().isEmpty()) {
             setDestination(getObjectives().remove(0));
@@ -249,25 +185,17 @@ public class Agent implements Serializable {
                 Algo calculator = getCalculator();
                 if (calculator.getPath().isEmpty() && getCurrentNode().getId() != getDestination().getId()) {
                     logMsg("❌ NO PATH to node " + getDestination().getId() + "! Objective abandoned.");
-                    abandonedObjectives++;
-                    startNextObjective();
-                    return;
+                    abandonedObjectives++; startNextObjective(); return;
                 }
-                setPath(calculator.getPath());
-                makeReservations();
+                setPath(calculator.getPath()); makeReservations();
             }
-            setState(agentState.RUNNING);
-            setCurrentPatience(getMaxPatience());
+            setState(agentState.RUNNING); setCurrentPatience(getMaxPatience());
             logMsg(">>> En route to objective: Node " + getDestination().getId());
         } else {
             handleEndBehavior();
         }
     }
 
-    /**
-     * Triggers a detour logic when the agent is stuck in traffic and loses patience.
-     * The agent will pick an available neighboring node to unblock the situation.
-     */
     private void applyDetour() {
         detoursTaken++;
         logMsg("!!! Looking for a detour to unblock the situation !!!");
@@ -278,59 +206,40 @@ public class Agent implements Serializable {
         if (index != -1) {
             for (Edge e : getGraph().getEdges().get(index)) {
                 Node neighbor = null;
-                if (!e.hasDirection()) {
-                    if (e.getSource() == getCurrentNode()) {
-                        neighbor = e.getTarget();
-                    } else continue;
-                } else {
-                    neighbor = (e.getSource() == getCurrentNode()) ? e.getTarget() : e.getSource();
-                }
+                if (!e.hasDirection()) { if (e.getSource() == getCurrentNode()) { neighbor = e.getTarget(); } else continue; } 
+                else { neighbor = (e.getSource() == getCurrentNode()) ? e.getTarget() : e.getSource(); }
 
                 if (neighbor == null) continue;
                 if (!getPath().isEmpty() && neighbor.getId() == getPath().get(0).getId()) continue;
 
                 if (neighbor.getState() != Node.nodeState.FULL && !neighbor.isUnderConstruction()) {
-                    if (previousNode != null && neighbor.getId() == previousNode.getId()) {
-                        fallbackDetours.add(neighbor);
-                    } else {
-                        validDetours.add(neighbor);
-                    }
+                    if (previousNode != null && neighbor.getId() == previousNode.getId()) { fallbackDetours.add(neighbor); } 
+                    else { validDetours.add(neighbor); }
                 }
             }
         }
 
         Node detour = null;
-        if (!validDetours.isEmpty()) {
-            detour = validDetours.get((int) (Math.random() * validDetours.size()));
-        } else if (!fallbackDetours.isEmpty()) {
-            detour = fallbackDetours.get((int) (Math.random() * fallbackDetours.size()));
-        }
+        if (!validDetours.isEmpty()) { detour = validDetours.get((int) (Math.random() * validDetours.size())); } 
+        else if (!fallbackDetours.isEmpty()) { detour = fallbackDetours.get((int) (Math.random() * fallbackDetours.size())); }
 
         if (detour != null) {
             logMsg("↪️ Taking a random detour to Node " + detour.getId());
-            getPath().clear();
-            getPath().add(detour);
-            makeReservations();
+            getPath().clear(); getPath().add(detour); makeReservations();
         } else {
             logMsg("No street to detour, recalculating route...");
             Algo calculator = getCalculator();
-
             if (calculator.getPath().isEmpty() && getCurrentNode().getId() != getDestination().getId()) {
                 logMsg("❌ Completely blocked towards node " + getDestination().getId() + ". Objective abandoned!");
-                abandonedObjectives++;
-                startNextObjective();
-                return;
+                abandonedObjectives++; startNextObjective(); return;
             }
-
-            setPath(calculator.getPath());
-            makeReservations();
+            setPath(calculator.getPath()); makeReservations();
         }
-        setState(agentState.RUNNING);
-        setCurrentPatience(getMaxPatience());
+        setState(agentState.RUNNING); setCurrentPatience(getMaxPatience());
     }
 
     private boolean isPathClearAhead(int depth) {
-        if (behavior == agentBehavior.HURRIED) return true;
+        if (behavior == agentBehavior.HURRIED || behavior == agentBehavior.VIP) return true;
         if (getPath().size() < 2) return true;
 
         Node prev = getPath().get(0);
@@ -346,12 +255,19 @@ public class Agent implements Serializable {
         return true;
     }
 
-    /**
-     * Core update loop for the agent's logic. Called at every frame by the SimulationEngine.
-     * Manages movements, queue waiting, patience depletion, and congestion penalties.
-     * @param deltaTime The time elapsed since the last frame.
-     */
     public void update(double deltaTime) {
+        
+        // =======================================================
+        // LOGIQUE D'ARRET D'URGENCE POUR LES VIP
+        // =======================================================
+        if (yieldingToVIP) {
+            if (getState() != agentState.WAITING) {
+                setState(agentState.WAITING);
+                logMsg("🚓 Sirens heard! Pulling over for VIP...");
+            }
+            totalWaitTime += deltaTime;
+            return; // ON QUITTE L'UPDATE : L'agent fige sur place !
+        }
 
         if (getState() == agentState.RUNNING || getState() == agentState.WAITING || getState() == agentState.CALCULATING) {
             totalActiveTime += deltaTime;
@@ -361,6 +277,7 @@ public class Agent implements Serializable {
             totalWaitTime += deltaTime;
             int decrease = 1;
             switch (getAgentBehavior()) {
+                case VIP: decrease = 5; break; // Le VIP perd patience hyper vite
                 case HURRIED: decrease = 3; break;
                 case PATIENT: decrease = 1; break;
                 case BROKEN: decrease = 1; break;
@@ -384,8 +301,7 @@ public class Agent implements Serializable {
 
                 if (getCurrentEdge() != null) {
                     logMsg("!!! Lost patience, REVERSING on the edge !!!");
-                    setRetreating(true);
-                    setState(agentState.RUNNING);
+                    setRetreating(true); setState(agentState.RUNNING);
                 } else {
                     applyDetour();
                 }
@@ -400,9 +316,7 @@ public class Agent implements Serializable {
                     if (isBlockedSince() > 3) {
                         setBlockedSince(0);
                         logMsg("Step 3: Routine recalculation.");
-                        getPath().clear();
-                        getObjectives().add(0, destination);
-                        startNextObjective();
+                        getPath().clear(); getObjectives().add(0, destination); startNextObjective();
                     }
                 } else {
                     setAuxNode(getCurrentNode());
@@ -411,20 +325,19 @@ public class Agent implements Serializable {
 
             if (getCurrentEdge() == null) {
                 
-                // ===============================================
-                // HEAVY CONGESTION MANAGEMENT!
-                // ===============================================
                 if (getCurrentNode() != null && getCurrentNode().getCurrentOccupants() > getCurrentNode().getCapacity()) {
-                    if (congestionTimer < 2.0) { // 2 seconds penalty!
-                        congestionTimer += deltaTime;
-                        if (getState() != agentState.WAITING) {
-                            setState(agentState.WAITING);
-                            logMsg("⚠️ Heavy Node Congestion! 2s penalty applied...");
+                    if (behavior != agentBehavior.VIP) { // <-- LE VIP IGNORE LA PENALITE
+                        if (congestionTimer < 2.0) { 
+                            congestionTimer += deltaTime;
+                            if (getState() != agentState.WAITING) {
+                                setState(agentState.WAITING);
+                                logMsg("⚠️ Heavy Node Congestion! 2s penalty applied...");
+                            }
+                            return; 
                         }
-                        return; // Agent stays blocked!
                     }
                 }
-                congestionTimer = 0.0; // Reset when the penalty is served
+                congestionTimer = 0.0; 
 
                 if (!getPath().isEmpty()) {
                     if (!isPathClearAhead(2)) {
@@ -445,11 +358,8 @@ public class Agent implements Serializable {
                                 getReservedEdges().remove(nextEdge);
                             }
                             if (getCurrentNode() != null) getCurrentNode().leave();
-                            setCurrentEdge(nextEdge);
-                            getPath().remove(0);
-                            setDistanceTraveledOnEdge(0.0f);
-                            setState(agentState.RUNNING);
-                            setCurrentPatience(getMaxPatience());
+                            setCurrentEdge(nextEdge); getPath().remove(0); setDistanceTraveledOnEdge(0.0f);
+                            setState(agentState.RUNNING); setCurrentPatience(getMaxPatience());
 
                             nextNode.setIncomingOccupants(nextNode.getIncomingOccupants() + 1);
                             logMsg("🟢 ENTERING towards node " + nextNode.getId());
@@ -465,11 +375,7 @@ public class Agent implements Serializable {
                         logMsg("✅ Objective Node " + getDestination().getId() + " REACHED!");
                         objectivesReached++;
                     }
-                    if (getObjectives().isEmpty()) {
-                        handleEndBehavior();
-                    } else {
-                        startNextObjective();
-                    }
+                    if (getObjectives().isEmpty()) { handleEndBehavior(); } else { startNextObjective(); }
                 }
             }
 
@@ -485,22 +391,16 @@ public class Agent implements Serializable {
                         if (getCurrentNode().tryEnter(this)) {
                             Node targetNode = (getCurrentEdge().getSource() == getCurrentNode()) ? getCurrentEdge().getTarget() : getCurrentEdge().getSource();
                             if (targetNode.getIncomingOccupants() > 0) targetNode.setIncomingOccupants(targetNode.getIncomingOccupants() - 1);
-                            getCurrentEdge().leave();
-                            setCurrentEdge(null);
-                            setRetreating(false);
-                            logMsg("Returned to node and freed the edge.");
-                            applyDetour();
+                            getCurrentEdge().leave(); setCurrentEdge(null); setRetreating(false);
+                            logMsg("Returned to node and freed the edge."); applyDetour();
                         } else {
                             getCurrentNode().enqueue(this);
                             if (getState() != agentState.WAITING) setState(agentState.WAITING);
                         }
                     }
                 } else {
-                    if (getDistanceTraveledOnEdge() + distMoved <= getCurrentEdge().getLength()) {
-                        totalDistance += distMoved;
-                    } else {
-                        totalDistance += (getCurrentEdge().getLength() - getDistanceTraveledOnEdge());
-                    }
+                    if (getDistanceTraveledOnEdge() + distMoved <= getCurrentEdge().getLength()) { totalDistance += distMoved; } 
+                    else { totalDistance += (getCurrentEdge().getLength() - getDistanceTraveledOnEdge()); }
 
                     if (getDistanceTraveledOnEdge() < getCurrentEdge().getLength()) {
                         setDistanceTraveledOnEdge(getDistanceTraveledOnEdge() + distMoved);
@@ -516,33 +416,23 @@ public class Agent implements Serializable {
                                 if (targetNode.getExpectedOccupants() > 0) targetNode.setExpectedOccupants(targetNode.getExpectedOccupants() - 1);
                                 getReservedNodes().remove(targetNode);
                             }
-                            previousNode = getCurrentNode();
-                            setCurrentNode(targetNode);
-                            getCurrentEdge().leave();
-                            setCurrentEdge(null);
-                            setState(agentState.RUNNING);
-                            setCurrentPatience(getMaxPatience());
+                            previousNode = getCurrentNode(); setCurrentNode(targetNode); getCurrentEdge().leave();
+                            setCurrentEdge(null); setState(agentState.RUNNING); setCurrentPatience(getMaxPatience());
                             logMsg("📍 ARRIVED at node " + getCurrentNode().getId());
 
                             if (getPath().isEmpty()) {
                                 if (getCurrentNode().getId() == getDestination().getId()) {
                                     logMsg("✅ Final Objective Node " + getDestination().getId() + " REACHED!");
                                     objectivesReached++;
-                                    if (!getObjectives().isEmpty()) {
-                                        startNextObjective();
-                                    } else {
-                                        handleEndBehavior();
-                                    }
+                                    if (!getObjectives().isEmpty()) { startNextObjective(); } else { handleEndBehavior(); }
                                 } else {
                                     logMsg("🔄 Finished detouring. Recalculating path to objective " + getDestination().getId());
                                     Algo calculator = getCalculator();
                                     if (calculator.getPath().isEmpty()) {
                                         logMsg("❌ Route destroyed to node " + getDestination().getId() + ". Objective abandoned!");
-                                        abandonedObjectives++;
-                                        startNextObjective();
+                                        abandonedObjectives++; startNextObjective();
                                     } else {
-                                        setPath(calculator.getPath());
-                                        makeReservations();
+                                        setPath(calculator.getPath()); makeReservations();
                                     }
                                 }
                             }
@@ -556,9 +446,6 @@ public class Agent implements Serializable {
         }
     }
 
-    // =========================================
-    // Standard GETTERS & SETTERS
-    // =========================================
     public void setId(int id) { this.id = id; }
     public int getId() { return this.id; }
     public float getSpeed() { return this.speed; }
@@ -600,4 +487,8 @@ public class Agent implements Serializable {
     public void setBlockedSince(int n) { this.isBlockedSince = n; }
     public void setPriority(int priority) { this.currentPriority = priority; }
     public int getCurrentPriority() { return this.currentPriority; }
+    
+    // Getters et Setters pour la Sirène
+    public void setYieldingToVIP(boolean yielding) { this.yieldingToVIP = yielding; }
+    public boolean isYieldingToVIP() { return yieldingToVIP; }
 }

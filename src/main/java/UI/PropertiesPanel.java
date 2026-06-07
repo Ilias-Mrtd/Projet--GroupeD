@@ -37,6 +37,8 @@ public class PropertiesPanel extends VBox {
     private final Button btnAddAgent;
     private final Button btnRemoveAgent;
 
+    private final ComboBox<Agent.agentBehavior> cbAgentBehavior;
+
     // ---- paramètres arête ----
     private int edgeCapacity = 1;
     private boolean edgeDirection = true;
@@ -68,11 +70,9 @@ public class PropertiesPanel extends VBox {
         titleLabel = new Label("Inspecteur");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #333;");
 
-        // --- TabPane pour l'inspecteur ---
         TabPane inspectorTabs = new TabPane();
         inspectorTabs.setPrefHeight(300);
 
-        // Onglet 1 : Détails de la sélection
         Tab tabDetails = new Tab("Détails");
         tabDetails.setClosable(false);
         infoLabel = new Label("Cliquez sur un élément\npour voir ses détails.");
@@ -83,7 +83,6 @@ public class PropertiesPanel extends VBox {
         detailsScroll.setStyle("-fx-background-color: transparent; -fx-background: #FAFAFA;");
         tabDetails.setContent(detailsScroll);
 
-        // Onglet 2 : Historique de l'agent
         Tab tabHistory = new Tab("Historique");
         tabHistory.setClosable(false);
         logArea = new TextArea();
@@ -92,20 +91,15 @@ public class PropertiesPanel extends VBox {
         logArea.setWrapText(true);
         tabHistory.setContent(logArea);
 
-        // ONGLET 3 : Le Scoreboard de comparaison !
         Tab tabGlobal = new Tab("Scoreboard");
         tabGlobal.setClosable(false);
         globalStatsArea = new TextArea();
         globalStatsArea.setEditable(false);
-        globalStatsArea.setStyle(
-                "-fx-font-size: 12px; -fx-font-family: monospace; -fx-control-inner-background: #2b2b2b; -fx-text-fill: #a9b7c6;"); // Style
-                                                                                                                                    // "Console
-                                                                                                                                    // Sombre"
+        globalStatsArea.setStyle("-fx-font-size: 12px; -fx-font-family: monospace; -fx-control-inner-background: #2b2b2b; -fx-text-fill: #a9b7c6;");
         globalStatsArea.setWrapText(true);
         tabGlobal.setContent(globalStatsArea);
 
         inspectorTabs.getTabs().addAll(tabDetails, tabHistory, tabGlobal);
-        // ------------------------------------------
 
         Separator sep1 = new Separator();
 
@@ -119,24 +113,13 @@ public class PropertiesPanel extends VBox {
         Button btnNodeCapPlus = smallButton("+");
         btnNodeCapMinus.setOnAction(e -> {
             Node sel = getSelectedNode();
-            if (sel != null) {
-                if (sel.getCapacity() > 1)
-                    sel.setCapacity(sel.getCapacity() - 1);
-            } else if (nodeCapacity > 1) {
-                nodeCapacity--;
-            }
-            refresh();
-            redrawCanvas();
+            if (sel != null) { if (sel.getCapacity() > 1) sel.setCapacity(sel.getCapacity() - 1); } else if (nodeCapacity > 1) { nodeCapacity--; }
+            refresh(); redrawCanvas();
         });
         btnNodeCapPlus.setOnAction(e -> {
             Node sel = getSelectedNode();
-            if (sel != null) {
-                sel.setCapacity(sel.getCapacity() + 1);
-            } else {
-                nodeCapacity++;
-            }
-            refresh();
-            redrawCanvas();
+            if (sel != null) { sel.setCapacity(sel.getCapacity() + 1); } else { nodeCapacity++; }
+            refresh(); redrawCanvas();
         });
         HBox nodeCapBox = new HBox(6, btnNodeCapMinus, lblNodeCap, btnNodeCapPlus);
         nodeCapBox.setStyle("-fx-alignment: center-left;");
@@ -145,10 +128,8 @@ public class PropertiesPanel extends VBox {
         chkUnderConstruction.setDisable(true);
         chkUnderConstruction.setOnAction(e -> {
             Node sel = getSelectedNode();
-            if (sel != null)
-                sel.setUnderConstruction(chkUnderConstruction.isSelected());
-            refresh();
-            redrawCanvas();
+            if (sel != null) sel.setUnderConstruction(chkUnderConstruction.isSelected());
+            refresh(); redrawCanvas();
         });
 
         btnAddNode = buildButton("➕  Ajouter un nœud ici", "#2196F3");
@@ -170,24 +151,13 @@ public class PropertiesPanel extends VBox {
         Button btnEdgeCapPlus = smallButton("+");
         btnEdgeCapMinus.setOnAction(e -> {
             Edge sel = getSelectedEdge();
-            if (sel != null) {
-                if (sel.getCapacity() > 1)
-                    sel.setCapacity(sel.getCapacity() - 1);
-            } else if (edgeCapacity > 1) {
-                edgeCapacity--;
-            }
-            refresh();
-            redrawCanvas();
+            if (sel != null) { if (sel.getCapacity() > 1) sel.setCapacity(sel.getCapacity() - 1); } else if (edgeCapacity > 1) { edgeCapacity--; }
+            refresh(); redrawCanvas();
         });
         btnEdgeCapPlus.setOnAction(e -> {
             Edge sel = getSelectedEdge();
-            if (sel != null) {
-                sel.setCapacity(sel.getCapacity() + 1);
-            } else {
-                edgeCapacity++;
-            }
-            refresh();
-            redrawCanvas();
+            if (sel != null) { sel.setCapacity(sel.getCapacity() + 1); } else { edgeCapacity++; }
+            refresh(); redrawCanvas();
         });
         HBox edgeCapBox = new HBox(6, btnEdgeCapMinus, lblEdgeCap, btnEdgeCapPlus);
         edgeCapBox.setStyle("-fx-alignment: center-left;");
@@ -198,17 +168,13 @@ public class PropertiesPanel extends VBox {
         Button btnEdgeSpeedPlus = smallButton("+");
         btnEdgeSpeedMinus.setOnAction(e -> {
             Edge sel = getSelectedEdge();
-            if (sel != null && sel.getSpeedModifier() > 0.2f)
-                sel.setSpeedModifier(sel.getSpeedModifier() - 0.2f);
-            refresh();
-            redrawCanvas();
+            if (sel != null && sel.getSpeedModifier() > 0.2f) sel.setSpeedModifier(sel.getSpeedModifier() - 0.2f);
+            refresh(); redrawCanvas();
         });
         btnEdgeSpeedPlus.setOnAction(e -> {
             Edge sel = getSelectedEdge();
-            if (sel != null && sel.getSpeedModifier() < 5.0f)
-                sel.setSpeedModifier(sel.getSpeedModifier() + 0.2f);
-            refresh();
-            redrawCanvas();
+            if (sel != null && sel.getSpeedModifier() < 5.0f) sel.setSpeedModifier(sel.getSpeedModifier() + 0.2f);
+            refresh(); redrawCanvas();
         });
         HBox edgeSpeedBox = new HBox(6, btnEdgeSpeedMinus, lblEdgeSpeed, btnEdgeSpeedPlus);
         edgeSpeedBox.setStyle("-fx-alignment: center-left;");
@@ -216,18 +182,9 @@ public class PropertiesPanel extends VBox {
         Button btnToggleDir = buildButton("Bidirected ⇄", "#607D8B");
         btnToggleDir.setOnAction(e -> {
             Edge sel = getSelectedEdge();
-            if (sel != null) {
-                sel.setDirection(!sel.hasDirection());
-            } else {
-                edgeDirection = !edgeDirection;
-            }
-            refresh();
-            redrawCanvas();
-            if (edgeDirection) {
-                btnToggleDir.setText("Bidirected ⇄");
-            } else {
-                btnToggleDir.setText("Directed →");
-            }
+            if (sel != null) { sel.setDirection(!sel.hasDirection()); } else { edgeDirection = !edgeDirection; }
+            refresh(); redrawCanvas();
+            if (edgeDirection) { btnToggleDir.setText("Bidirected ⇄"); } else { btnToggleDir.setText("Directed →"); }
         });
 
         btnAddEdge = buildButton("🔗  Ajouter une arête", "#9C27B0");
@@ -241,6 +198,13 @@ public class PropertiesPanel extends VBox {
         // ---- Section agent ----
         Label lblAgentSection = new Label("Agent");
         lblAgentSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #333;");
+
+        // LISTE DÉROULANTE VIP / PATIENT / HURRIED
+        cbAgentBehavior = new ComboBox<>();
+        cbAgentBehavior.getItems().addAll(Agent.agentBehavior.PATIENT, Agent.agentBehavior.HURRIED, Agent.agentBehavior.VIP);
+        cbAgentBehavior.setValue(Agent.agentBehavior.PATIENT);
+        cbAgentBehavior.setStyle("-fx-font-size: 12px;");
+        cbAgentBehavior.setMaxWidth(Double.MAX_VALUE);
 
         btnAddAgent = buildButton("🤖  Ajouter un agent", "#4CAF50");
         btnAddAgent.setDisable(true);
@@ -256,69 +220,36 @@ public class PropertiesPanel extends VBox {
         Label lblGenSection = new Label("Génération de masse");
         lblGenSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #333;");
 
-        lblGenNodes = new Label(
-                "Grille : " + genGridSide + "x" + genGridSide + " (" + (genGridSide * genGridSide) + " nœuds)");
+        lblGenNodes = new Label("Grille : " + genGridSide + "x" + genGridSide + " (" + (genGridSide * genGridSide) + " nœuds)");
         lblGenNodes.setStyle("-fx-font-size: 12px;");
         Button btnGenNodesMinus = smallButton("−");
         Button btnGenNodesPlus = smallButton("+");
-        btnGenNodesMinus.setOnAction(e -> {
-            if (genGridSide > 2) {
-                genGridSide--;
-                lblGenNodes.setText(
-                        "Grille : " + genGridSide + "x" + genGridSide + " (" + (genGridSide * genGridSide) + " nœuds)");
-            }
-        });
-        btnGenNodesPlus.setOnAction(e -> {
-            if (genGridSide < 12) {
-                genGridSide++;
-                lblGenNodes.setText(
-                        "Grille : " + genGridSide + "x" + genGridSide + " (" + (genGridSide * genGridSide) + " nœuds)");
-            }
-        });
+        btnGenNodesMinus.setOnAction(e -> { if (genGridSide > 2) { genGridSide--; lblGenNodes.setText("Grille : " + genGridSide + "x" + genGridSide + " (" + (genGridSide * genGridSide) + " nœuds)"); } });
+        btnGenNodesPlus.setOnAction(e -> { if (genGridSide < 12) { genGridSide++; lblGenNodes.setText("Grille : " + genGridSide + "x" + genGridSide + " (" + (genGridSide * genGridSide) + " nœuds)"); } });
         HBox genNodesBox = new HBox(6, btnGenNodesMinus, lblGenNodes, btnGenNodesPlus);
         genNodesBox.setStyle("-fx-alignment: center-left;");
 
         Button btnGenerateGraph = buildButton("🏙  Générer un graphe", "#3F51B5");
-        btnGenerateGraph.setOnAction(e -> {
-            if (onGenerateGraph != null)
-                onGenerateGraph.run();
-        });
+        btnGenerateGraph.setOnAction(e -> { if (onGenerateGraph != null) onGenerateGraph.run(); });
 
         lblGenAgents = new Label("Agents : " + genAgentCount);
         lblGenAgents.setStyle("-fx-font-size: 12px;");
         Button btnGenAgentsMinus = smallButton("−");
         Button btnGenAgentsPlus = smallButton("+");
-        btnGenAgentsMinus.setOnAction(e -> {
-            if (genAgentCount > 1) {
-                genAgentCount--;
-                lblGenAgents.setText("Agents : " + genAgentCount);
-            }
-        });
-        btnGenAgentsPlus.setOnAction(e -> {
-            if (genAgentCount < 100) {
-                genAgentCount++;
-                lblGenAgents.setText("Agents : " + genAgentCount);
-            }
-        });
+        btnGenAgentsMinus.setOnAction(e -> { if (genAgentCount > 1) { genAgentCount--; lblGenAgents.setText("Agents : " + genAgentCount); } });
+        btnGenAgentsPlus.setOnAction(e -> { if (genAgentCount < 100) { genAgentCount++; lblGenAgents.setText("Agents : " + genAgentCount); } });
         HBox genAgentsBox = new HBox(6, btnGenAgentsMinus, lblGenAgents, btnGenAgentsPlus);
         genAgentsBox.setStyle("-fx-alignment: center-left;");
 
         Button btnSpawnAgents = buildButton("👥  Faire apparaître les agents", "#009688");
-        btnSpawnAgents.setOnAction(e -> {
-            if (onSpawnAgents != null)
-                onSpawnAgents.run();
-        });
+        btnSpawnAgents.setOnAction(e -> { if (onSpawnAgents != null) onSpawnAgents.run(); });
 
         getChildren().addAll(
                 titleLabel, inspectorTabs,
-                sep1,
-                lblNodeSection, nodeCapBox, chkUnderConstruction, btnAddNode, btnRemoveNode,
-                sep2,
-                lblEdgeSection, edgeCapBox, edgeSpeedBox, btnToggleDir, btnAddEdge, btnRemoveEdge,
-                sep3,
-                lblAgentSection, btnAddAgent, btnRemoveAgent,
-                sep4,
-                lblGenSection, genNodesBox, btnGenerateGraph, genAgentsBox, btnSpawnAgents);
+                sep1, lblNodeSection, nodeCapBox, chkUnderConstruction, btnAddNode, btnRemoveNode,
+                sep2, lblEdgeSection, edgeCapBox, edgeSpeedBox, btnToggleDir, btnAddEdge, btnRemoveEdge,
+                sep3, lblAgentSection, cbAgentBehavior, btnAddAgent, btnRemoveAgent, // AJOUTÉ ICI
+                sep4, lblGenSection, genNodesBox, btnGenerateGraph, genAgentsBox, btnSpawnAgents);
     }
 
     public void setSelectionSystem(SelectionSystem ss) {
@@ -330,62 +261,35 @@ public class PropertiesPanel extends VBox {
         btnAddAgent.setDisable(true);
     }
 
-    public void setOnAddNode(Runnable r) {
-        this.onAddNode = r;
+    public void setOnAddNode(Runnable r) { this.onAddNode = r; }
+    public void setOnRemoveNode(Runnable r) { this.onRemoveNode = r; }
+    public void setOnRemoveEdge(Runnable r) { this.onRemoveEdge = r; }
+    public void setOnAddAgent(Runnable r) { this.onAddAgent = r; }
+    public void setOnGenerateGraph(Runnable r) { this.onGenerateGraph = r; }
+    public void setOnSpawnAgents(Runnable r) { this.onSpawnAgents = r; }
+    public void setOnRemoveAgent(Runnable r) { this.onRemoveAgent = r; }
+    
+
+    public Agent.agentBehavior getSelectedAgentBehavior() {
+        return cbAgentBehavior.getValue();
     }
 
-    public void setOnRemoveNode(Runnable r) {
-        this.onRemoveNode = r;
-    }
-
-    public void setOnRemoveEdge(Runnable r) {
-        this.onRemoveEdge = r;
-    }
-
-    public void setOnAddAgent(Runnable r) {
-        this.onAddAgent = r;
-    }
-
-    public void setOnGenerateGraph(Runnable r) {
-        this.onGenerateGraph = r;
-    }
-
-    public void setOnSpawnAgents(Runnable r) {
-        this.onSpawnAgents = r;
-    }
-
-    public void setOnRemoveAgent(Runnable r) {
-        this.onRemoveAgent = r;
-    }
-
-    // =======================================================
-    // LA MÉTHODE DE RAFRAÎCHISSEMENT AVEC LE SCOREBOARD GLOBAL
-    // =======================================================
     public void refresh() {
-
-        // 1. MISE À JOUR DE LA SÉLECTION (Onglet Détails & Historique)
         Object selected = findSelectedItem();
 
         if (selected instanceof Agent) {
             Agent a = (Agent) selected;
-
             double avgSpeed = 0.0;
-            if (a.getTotalActiveTime() > 0) {
-                avgSpeed = (a.getTotalDistance() / a.getTotalActiveTime()) / 60.0;
-            }
-
+            if (a.getTotalActiveTime() > 0) { avgSpeed = (a.getTotalDistance() / a.getTotalActiveTime()) / 60.0; }
             double efficiency = 100.0;
-            if (a.getTotalActiveTime() > 0) {
-                efficiency = ((a.getTotalActiveTime() - a.getTotalWaitTime()) / a.getTotalActiveTime()) * 100.0;
-            }
+            if (a.getTotalActiveTime() > 0) { efficiency = ((a.getTotalActiveTime() - a.getTotalWaitTime()) / a.getTotalActiveTime()) * 100.0; }
 
             StringBuilder sb = new StringBuilder();
             sb.append("Type    : Agent [").append(a.getAgentBehavior()).append("]\n")
                     .append("ID      : ").append(a.getId()).append("\n")
                     .append("Algo    : ").append(a.getAlgoType()).append("\n")
-                    .append("État    : ").append(a.getState()).append("\n\n");
-
-            sb.append("-- KPI & STATISTIQUES --\n")
+                    .append("État    : ").append(a.getState()).append("\n\n")
+                    .append("-- KPI & STATISTIQUES --\n")
                     .append("Obj. atteints    : ").append(a.getObjectivesReached()).append("\n")
                     .append("Obj. abandonnés  : ").append(a.getAbandonedObjectives()).append("\n")
                     .append("Détours forcés   : ").append(a.getDetoursTaken()).append("\n")
@@ -396,8 +300,7 @@ public class PropertiesPanel extends VBox {
                     .append("Vitesse Réelle   : ").append(String.format("%.1f", avgSpeed)).append(" px/s\n\n");
 
             if (a.getCurrentEdge() != null && a.getDestination() != null)
-                sb.append("Sur arête : ").append(a.getCurrentEdge().getId()).append("\n")
-                        .append("Objectif  : ").append(a.getDestination().getId());
+                sb.append("Sur arête : ").append(a.getCurrentEdge().getId()).append("\n").append("Objectif  : ").append(a.getDestination().getId());
             else if (a.getCurrentNode() != null)
                 sb.append("Position : nœud ").append(a.getCurrentNode().getId());
 
@@ -411,27 +314,12 @@ public class PropertiesPanel extends VBox {
 
         } else if (selected instanceof Node) {
             Node n = (Node) selected;
-            infoLabel.setText(
-                    "Type     : Nœud\n"
-                            + "ID       : " + n.getId() + "\n"
-                            + "Coord.   : (" + (int) n.getX() + ", " + (int) n.getY() + ")\n"
-                            + "Travaux  : " + (n.isUnderConstruction() ? "OUI (Fermé)" : "Non") + "\n"
-                            + "Capacité : " + n.getCapacity() + "\n"
-                            + "État     : " + n.getState() + "\n"
-                            + "Occupants: " + n.getCurrentOccupants() + "/" + n.getCapacity());
+            infoLabel.setText("Type     : Nœud\nID       : " + n.getId() + "\nCoord.   : (" + (int) n.getX() + ", " + (int) n.getY() + ")\nTravaux  : " + (n.isUnderConstruction() ? "OUI (Fermé)" : "Non") + "\nCapacité : " + n.getCapacity() + "\nÉtat     : " + n.getState() + "\nOccupants: " + n.getCurrentOccupants() + "/" + n.getCapacity());
             logArea.setText("Historique non disponible pour les noeuds.");
-
         } else if (selected instanceof Edge) {
             Edge ed = (Edge) selected;
             String dir = ed.hasDirection() ? " --> " : " <--> ";
-            infoLabel.setText(
-                    "Type      : Arête\n"
-                            + "ID        : " + ed.getId() + "\n"
-                            + "Connexion : " + ed.getSource().getId() + dir + ed.getTarget().getId() + "\n"
-                            + "Longueur  : " + String.format("%.1f", ed.getLength()) + "\n"
-                            + "Vitesse   : x" + String.format("%.1f", ed.getSpeedModifier()) + "\n"
-                            + "Capacité  : " + ed.getCapacity() + "\n"
-                            + "État      : " + ed.getState());
+            infoLabel.setText("Type      : Arête\nID        : " + ed.getId() + "\nConnexion : " + ed.getSource().getId() + dir + ed.getTarget().getId() + "\nLongueur  : " + String.format("%.1f", ed.getLength()) + "\nVitesse   : x" + String.format("%.1f", ed.getSpeedModifier()) + "\nCapacité  : " + ed.getCapacity() + "\nÉtat      : " + ed.getState());
             logArea.setText("Historique non disponible pour les arêtes.");
         } else {
             infoLabel.setText("Cliquez sur un élément\npour voir ses détails.\n \n \n \n ");
@@ -473,12 +361,11 @@ public class PropertiesPanel extends VBox {
             btnAddEdge.setStyle(buttonStyle("#9C27B0"));
         }
 
-        // 2. MISE À JOUR DU SCOREBOARD GLOBAL (Onglet 3)
         updateGlobalScoreboard();
     }
 
     private void updateGlobalScoreboard() {
-        int[] counts = new int[3]; // 0: Dijkstra, 1: A*, 2: Random
+        int[] counts = new int[3]; 
         int[] objs = new int[3];
         int[] abds = new int[3];
         double[] act = new double[3];
@@ -486,10 +373,8 @@ public class PropertiesPanel extends VBox {
 
         for (Agent ag : agents) {
             int idx = 2;
-            if (ag.getAlgoType() == Agent.AlgoType.DIJKSTRA)
-                idx = 0;
-            else if (ag.getAlgoType() == Agent.AlgoType.ASTAR)
-                idx = 1;
+            if (ag.getAlgoType() == Agent.AlgoType.DIJKSTRA) idx = 0;
+            else if (ag.getAlgoType() == Agent.AlgoType.ASTAR) idx = 1;
 
             counts[idx]++;
             objs[idx] += ag.getObjectivesReached();
@@ -499,72 +384,45 @@ public class PropertiesPanel extends VBox {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append(" SCOREBOARD GLOBAL \n");
-        sb.append("========================\n\n");
+        sb.append(" SCOREBOARD GLOBAL \n========================\n\n");
 
         String[] names = { " ÉQUIPE DIJKSTRA", " ÉQUIPE A-STAR", " ÉQUIPE ALÉATOIRE" };
         for (int i = 0; i < 3; i++) {
-            if (counts[i] == 0)
-                continue; // On n'affiche pas l'équipe si elle est vide
-
+            if (counts[i] == 0) continue; 
             double avgEff = 100.0;
-            if (act[i] > 0)
-                avgEff = ((act[i] - wait[i]) / act[i]) * 100.0;
-
-            sb.append(names[i]).append("\n")
-                    .append("  Agents actifs : ").append(counts[i]).append("\n")
-                    .append("  Obj. atteints : ").append(objs[i]).append("\n")
-                    .append("  Obj. ratés    : ").append(abds[i]).append("\n")
-                    .append("  Efficacité    : ").append(String.format("%.1f%%", avgEff)).append("\n")
-                    .append("  Attente (total): ").append(String.format("%.1fs", wait[i])).append("\n\n");
+            if (act[i] > 0) avgEff = ((act[i] - wait[i]) / act[i]) * 100.0;
+            sb.append(names[i]).append("\n  Agents actifs : ").append(counts[i]).append("\n  Obj. atteints : ").append(objs[i]).append("\n  Obj. ratés    : ").append(abds[i]).append("\n  Efficacité    : ").append(String.format("%.1f%%", avgEff)).append("\n  Attente (total): ").append(String.format("%.1fs", wait[i])).append("\n\n");
         }
-
-        if (agents.isEmpty()) {
-            sb.append("Aucun agent sur la carte\npour le moment.");
-        }
-
+        if (agents.isEmpty()) { sb.append("Aucun agent sur la carte\npour le moment."); }
         String newText = sb.toString();
-        if (!globalStatsArea.getText().equals(newText)) {
-            globalStatsArea.setText(newText);
-        }
+        if (!globalStatsArea.getText().equals(newText)) { globalStatsArea.setText(newText); }
     }
 
     private void redrawCanvas() {
-        if (selectionSystem != null && selectionSystem.getCanvas() != null) {
-            selectionSystem.getCanvas().draw();
-        }
+        if (selectionSystem != null && selectionSystem.getCanvas() != null) { selectionSystem.getCanvas().draw(); }
     }
 
     private void handleAddNode() {
-        if (onAddNode != null)
-            onAddNode.run();
+        if (onAddNode != null) onAddNode.run();
         else {
             if (selectionSystem != null && selectionSystem.hasPendingPosition()) {
-                graph.addNode((int) selectionSystem.getPendingNodeX(),
-                        (int) selectionSystem.getPendingNodeY(), nodeCapacity);
-            } else {
-                graph.addNode(400, 300, nodeCapacity);
-            }
+                graph.addNode((int) selectionSystem.getPendingNodeX(), (int) selectionSystem.getPendingNodeY(), nodeCapacity);
+            } else { graph.addNode(400, 300, nodeCapacity); }
         }
         btnAddNode.setText("➕ Ajouter un nœud ici");
         btnAddNode.setDisable(true);
-        if (selectionSystem != null)
-            selectionSystem.clearPendingPosition();
+        if (selectionSystem != null) selectionSystem.clearPendingPosition();
     }
 
     private void handleRemoveNode() {
         Node sel = selectionSystem != null ? selectionSystem.getLastSelectedNode() : null;
-        if (sel == null)
-            return;
-        if (onRemoveNode != null)
-            onRemoveNode.run();
-        else
-            graph.removeNode(sel);
+        if (sel == null) return;
+        if (onRemoveNode != null) onRemoveNode.run();
+        else graph.removeNode(sel);
     }
 
     private void handleAddEdge() {
-        if (selectionSystem == null)
-            return;
+        if (selectionSystem == null) return;
         if (linkingActive) {
             selectionSystem.cancelEdgeLinking();
             linkingActive = false;
@@ -581,82 +439,40 @@ public class PropertiesPanel extends VBox {
 
     private void handleRemoveEdge() {
         Edge sel = selectionSystem != null ? selectionSystem.getLastSelectedEdge() : null;
-        if (sel == null)
-            return;
-        if (onRemoveEdge != null)
-            onRemoveEdge.run();
-        else
-            removeEdgeFromGraph(sel);
+        if (sel == null) return;
+        if (onRemoveEdge != null) onRemoveEdge.run();
+        else removeEdgeFromGraph(sel);
     }
 
     private void removeEdgeFromGraph(Edge edge) {
-        for (List<Edge> list : graph.getEdges())
-            list.removeIf(e -> e.getId() == edge.getId());
+        for (List<Edge> list : graph.getEdges()) list.removeIf(e -> e.getId() == edge.getId());
     }
 
     private void handleAddAgent() {
         Node sel = selectionSystem != null ? selectionSystem.getLastSelectedNode() : null;
-        if (sel == null)
-            return;
-        if (onAddAgent != null)
-            onAddAgent.run();
+        if (sel == null) return;
+        if (onAddAgent != null) onAddAgent.run();
     }
 
     private void handleRemoveAgent() {
         Agent sel = selectionSystem != null ? selectionSystem.getLastSelectedAgent() : null;
-        if (sel == null)
-            return;
-        if (onRemoveAgent != null)
-            onRemoveAgent.run();
+        if (sel == null) return;
+        if (onRemoveAgent != null) onRemoveAgent.run();
     }
 
     private Object findSelectedItem() {
-        for (Agent a : agents)
-            if (a.isSelected())
-                return a;
-        for (Node n : graph.getNodes())
-            if (n.isSelected())
-                return n;
-        for (List<Edge> edges : graph.getEdges())
-            for (Edge e : edges)
-                if (e.isSelected())
-                    return e;
+        for (Agent a : agents) if (a.isSelected()) return a;
+        for (Node n : graph.getNodes()) if (n.isSelected()) return n;
+        for (List<Edge> edges : graph.getEdges()) for (Edge e : edges) if (e.isSelected()) return e;
         return null;
     }
 
-    public Node getSelectedNode() {
-        for (Node n : graph.getNodes())
-            if (n.isSelected())
-                return n;
-        return null;
-    }
-
-    public Agent getSelectedAgent() {
-        for (Agent a : agents)
-            if (a.isSelected())
-                return a;
-        return null;
-    }
-
-    public Edge getSelectedEdge() {
-        for (List<Edge> edges : graph.getEdges())
-            for (Edge e : edges)
-                if (e.isSelected())
-                    return e;
-        return null;
-    }
-
-    public int getNodeCapacity() {
-        return nodeCapacity;
-    }
-
-    public int getGenGridSide() {
-        return genGridSide;
-    }
-
-    public int getGenAgentCount() {
-        return genAgentCount;
-    }
+    public Node getSelectedNode() { for (Node n : graph.getNodes()) if (n.isSelected()) return n; return null; }
+    public Agent getSelectedAgent() { for (Agent a : agents) if (a.isSelected()) return a; return null; }
+    public Edge getSelectedEdge() { for (List<Edge> edges : graph.getEdges()) for (Edge e : edges) if (e.isSelected()) return e; return null; }
+    public int getNodeCapacity() { return nodeCapacity; }
+    public int getGenGridSide() { return genGridSide; }
+    public int getGenAgentCount() { return genAgentCount; }
 
     private Button buildButton(String text, String hexColor) {
         Button btn = new Button(text);
@@ -674,11 +490,6 @@ public class PropertiesPanel extends VBox {
     }
 
     private String buttonStyle(String hexColor) {
-        return "-fx-background-color: " + hexColor + ";"
-                + "-fx-text-fill: white;"
-                + "-fx-font-size: 12px;"
-                + "-fx-padding: 7 10 7 10;"
-                + "-fx-background-radius: 6;"
-                + "-fx-cursor: hand;";
+        return "-fx-background-color: " + hexColor + "; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 7 10 7 10; -fx-background-radius: 6; -fx-cursor: hand;";
     }
 }

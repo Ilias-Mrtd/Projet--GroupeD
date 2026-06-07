@@ -38,30 +38,20 @@ public class Main extends Application {
 
     private final AtomicInteger nextAgentId = new AtomicInteger(1000);
     private final Random random = new Random();
-
-    // Préférence globale d'algorithme
     private Agent.AlgoType globalAlgo = Agent.AlgoType.RANDOM;
 
     @Override
     public void start(Stage primaryStage) {
 
-        // 1. MODÈLE
         Graph graph = new Graph();
         List<Agent> agents = new ArrayList<>();
-
-        // 2. MOTEUR
         SimulationEngine engine = new SimulationEngine(graph, agents);
 
-        // 3. VUE
-        GraphRenderer renderer = new GraphRenderer(
-                new NodeRenderer(), new EdgeRenderer(), new AgentRenderer());
-
+        GraphRenderer renderer = new GraphRenderer(new NodeRenderer(), new EdgeRenderer(), new AgentRenderer());
         GraphCanvas graphCanvas = new GraphCanvas(graph, renderer);
         graphCanvas.setAgents(agents);
-
         PropertiesPanel propertiesPanel = new PropertiesPanel(graph, agents);
 
-        // --- TOOLBAR DE CONTRÔLE ---
         HBox toolbar = new HBox(15);
         toolbar.setPadding(new Insets(10));
         toolbar.setStyle("-fx-background-color: #E0E0E0; -fx-alignment: center-left;");
@@ -81,37 +71,24 @@ public class Main extends Application {
         speedSlider.setMajorTickUnit(1.0);
         speedSlider.setBlockIncrement(0.1);
         
-
-        // BOUTON HEATMAP
-
-        ToggleButton btnHeatmap = new ToggleButton("Heatmap");
+        ToggleButton btnHeatmap = new ToggleButton("🔥 Heatmap");
         btnHeatmap.setStyle("-fx-font-weight: bold; -fx-text-fill: #D84315;");
         btnHeatmap.setOnAction(e -> {
             graphCanvas.setHeatmapMode(btnHeatmap.isSelected());
             graphCanvas.draw();
         });
 
-        // Le sélecteur d'algorithme
         ComboBox<String> algoSelector = new ComboBox<>();
         algoSelector.getItems().addAll("Algo : Aléatoire", "Algo : Dijkstra", "Algo : A*");
         algoSelector.setValue("Algo : Aléatoire");
         algoSelector.setOnAction(e -> {
-            if (algoSelector.getValue().contains("Dijkstra")) {
-                globalAlgo = Agent.AlgoType.DIJKSTRA;
-            } else if (algoSelector.getValue().contains("A*")) {
-                globalAlgo = Agent.AlgoType.ASTAR;
-            } else {
-                globalAlgo = Agent.AlgoType.RANDOM;
-            }
-            for (Agent a : engine.getAgents()) {
-                a.setAlgoType(globalAlgo);
-            }
+            if (algoSelector.getValue().contains("Dijkstra")) { globalAlgo = Agent.AlgoType.DIJKSTRA; } 
+            else if (algoSelector.getValue().contains("A*")) { globalAlgo = Agent.AlgoType.ASTAR; } 
+            else { globalAlgo = Agent.AlgoType.RANDOM; }
+            for (Agent a : engine.getAgents()) { a.setAlgoType(globalAlgo); }
         });
 
-        // On a ajouté le btnHeatmap à la toolbar
-        toolbar.getChildren().addAll(btnRestart, btnPlay, btnPause, btnStep, lblSpeed, speedSlider, btnHeatmap, algoSelector,
-                btnClear, btnSave,
-                menuLoad);
+        toolbar.getChildren().addAll(btnRestart, btnPlay, btnPause, btnStep, lblSpeed, speedSlider, btnHeatmap, algoSelector, btnClear, btnSave, menuLoad);
 
         BorderPane root = new BorderPane();
         root.setTop(toolbar);
@@ -122,7 +99,6 @@ public class Main extends Application {
         panelScroll.setStyle("-fx-background: #FAFAFA; -fx-background-color: #FAFAFA;");
         root.setRight(panelScroll);
 
-        // 4. CONTRÔLEURS
         SelectionSystem selectionSystem = new SelectionSystem(graph, agents, graphCanvas);
         graphCanvas.setSelectionSystem(selectionSystem);
         graphCanvas.setOnInteraction(propertiesPanel::refresh);
@@ -132,34 +108,25 @@ public class Main extends Application {
             propertiesPanel.refresh();
         });
 
-        // Saving button
         btnSave.setOnAction(e -> {
             FileService.ensureSaveDirectoryExists();
-
             FileChooser fileChooser = new FileChooser();
             fileChooser.setInitialDirectory(new File(FileService.SAVE_DIR));
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Simulation Files", "*.sim"));
-
             File file = fileChooser.showSaveDialog(primaryStage);
-
             if (file != null) {
                 try {
                     FileService.saveSimulation(file.getAbsolutePath(), graph, agents);
                     showAlert(AlertType.INFORMATION, "Succès", "Simulation enregistrée avec succès !");
-                    System.out.println("Succès : Sauvegarde réussie !");
                 } catch (Exception ex) {
                     showAlert(AlertType.ERROR, "Erreur", "Impossible de sauvegarder : " + ex.getMessage());
-                    System.out.println("Erreur : Impossible de sauvegarder .");
                 }
             }
         });
 
-        // Loading menu
         menuLoad.setOnShowing(e -> {
             menuLoad.getItems().clear(); 
-
             List<String> files = FileService.getSavedFiles();
-
             if (files.isEmpty()) {
                 MenuItem emptyItem = new MenuItem("Aucune sauvegarde");
                 emptyItem.setDisable(true);
@@ -173,22 +140,14 @@ public class Main extends Application {
             }
         });
 
-        btnClear.setOnAction(e -> {
-            agents.clear();
-            graph.clear();
-        });
-
-        // 4. CALLBACKS D'ÉDITION
+        btnClear.setOnAction(e -> { agents.clear(); graph.clear(); });
         propertiesPanel.setSelectionSystem(selectionSystem);
 
         propertiesPanel.setOnAddNode(() -> {
             int cap = propertiesPanel.getNodeCapacity();
             if (selectionSystem.hasPendingPosition()) {
-                graph.addNode((int) selectionSystem.getPendingNodeX(),
-                        (int) selectionSystem.getPendingNodeY(), cap);
+                graph.addNode((int) selectionSystem.getPendingNodeX(), (int) selectionSystem.getPendingNodeY(), cap);
                 selectionSystem.clearPendingPosition();
-            } else {
-                System.out.println("You tried to add a Node but did not select a place.");
             }
             graphCanvas.draw();
         });
@@ -196,54 +155,49 @@ public class Main extends Application {
         propertiesPanel.setOnRemoveNode(() -> {
             Node sel = propertiesPanel.getSelectedNode();
             if (sel == null) return;
-            
             engine.evictAgentsFromNode(sel);
             graph.removeNode(sel);
-            
-            for (List<Edge> edgeList : graph.getEdges()) {
-                edgeList.removeIf(e -> e.getTarget() == sel || e.getSource() == sel);
-            }
-            
+            for (List<Edge> edgeList : graph.getEdges()) { edgeList.removeIf(e -> e.getTarget() == sel || e.getSource() == sel); }
             graphCanvas.draw();
         });
 
         propertiesPanel.setOnRemoveEdge(() -> {
             Edge sel = propertiesPanel.getSelectedEdge();
             if (sel == null) return;
-            
             engine.evictAgentsFromEdge(sel);
-            
-            for (List<Edge> list : graph.getEdges())
-                list.removeIf(e -> e.getId() == sel.getId());
-                
-            System.out.println("[Main] Arête " + sel.getId() + " supprimée.");
+            for (List<Edge> list : graph.getEdges()) list.removeIf(e -> e.getId() == sel.getId());
             graphCanvas.draw();
         });
 
+        // AJOUT D'AGENT MANUEL 
+
         propertiesPanel.setOnAddAgent(() -> {
             Node sel = propertiesPanel.getSelectedNode();
-            if (sel == null)
-                return;
+            if (sel == null) return;
+            
             int newId = nextAgentId.getAndIncrement();
-            Agent newAgent = new Agent(newId, 2.5f, agentState.AVAILABLE);
+            Agent.agentBehavior chosenBehavior = propertiesPanel.getSelectedAgentBehavior();
+            
+            
+            float speed = (chosenBehavior == agentBehavior.VIP) ? 4.0f : 2.5f;
+            
+            Agent newAgent = new Agent(newId, speed, agentState.AVAILABLE);
             newAgent.setStartingNode(sel);
             newAgent.setAlgoType(globalAlgo); 
+            newAgent.setAgentBehavior(chosenBehavior); 
+            
             engine.addAgent(newAgent);
-            System.out.println("[Main] Agent " + newId + " ajouté sur nœud " + sel.getId());
             graphCanvas.draw();
         });
 
         propertiesPanel.setOnRemoveAgent(() -> {
             Agent sel = propertiesPanel.getSelectedAgent();
-            if (sel == null)
-                return;
+            if (sel == null) return;
             sel.releaseAll(); 
             agents.remove(sel); 
-            System.out.println("[Main] Agent " + sel.getId() + " supprimé de la simulation.");
             graphCanvas.draw();
         });
 
-        // ====================================================== GÉNÉRATION DE MASSE
         propertiesPanel.setOnGenerateGraph(() -> {
             int side = propertiesPanel.getGenGridSide();
             generateRandomGraph(graph, agents, engine, graphCanvas, side);
@@ -254,14 +208,10 @@ public class Main extends Application {
             spawnRandomAgents(graph, engine, graphCanvas, n);
         });
 
-        // --- ÉVÉNEMENTS DES BOUTONS DE LECTURE ---
         btnRestart.setOnAction(e -> engine.restartSimulation());
         btnPlay.setOnAction(e -> engine.start());
         btnPause.setOnAction(e -> engine.stop());
-        btnStep.setOnAction(e -> {
-            engine.stop();
-            engine.doSingleStep();
-        });
+        btnStep.setOnAction(e -> { engine.stop(); engine.doSingleStep(); });
 
         speedSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
             double speed = Math.round(newVal.doubleValue() * 10.0) / 10.0;
@@ -269,161 +219,83 @@ public class Main extends Application {
             lblSpeed.setText("Vitesse : " + speed + "x");
         });
 
-        // 6. SCÉNARIO DE TEST
         setupSampleGraph(graph, agents, engine);
-
-        // 7. LANCEMENT
         Scene scene = new Scene(root, 1100, 768);
         primaryStage.setTitle("Gestion d'entrepôt — Groupe D");
         primaryStage.setScene(scene);
         primaryStage.show();
-
         graphCanvas.draw();
         engine.start();
     }
 
     private void showAlert(AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        Alert alert = new Alert(type); alert.setTitle(title); alert.setHeaderText(null); alert.setContentText(message); alert.showAndWait();
     }
 
     private void loadSimulationFile(String fileName, Graph graph, List<Agent> agents, GraphCanvas graphCanvas) {
         try { 
-            String path = FileService.SAVE_DIR + fileName;
-            FileService.SimulationData data = FileService.loadSimulation(path);
-
-            graph.resetNodes();
-            graph.resetEdges();
-            agents.clear();
-
-            graph.addAllNodes(data.graph().getNodes());
-            graph.addAllEdges(data.graph().getEdges());
-            agents.addAll(data.agents());
-
+            FileService.SimulationData data = FileService.loadSimulation(FileService.SAVE_DIR + fileName);
+            graph.resetNodes(); graph.resetEdges(); agents.clear();
+            graph.addAllNodes(data.graph().getNodes()); graph.addAllEdges(data.graph().getEdges()); agents.addAll(data.agents());
             graphCanvas.draw();
-            System.out.println("Simulation chargée : " + fileName);
-        } catch (Exception ex) {
-            System.out.println("Erreur: Impossible de charger le fichier.");
-            showAlert(AlertType.ERROR, "Erreur", "Impossible de charger le fichier : " + ex.getMessage());
-        }
+        } catch (Exception ex) { showAlert(AlertType.ERROR, "Erreur", "Impossible de charger le fichier : " + ex.getMessage()); }
     }
 
-    private void generateRandomGraph(Graph graph, List<Agent> agents,
-            SimulationEngine engine, GraphCanvas canvas, int side) {
-
-        agents.clear();
-        graph.setNodes(new ArrayList<>());
-        graph.setEdges(new ArrayList<>());
-
-        if (side < 2)
-            side = 2;
-
-        int margin = 80;
-        double w = Math.max(canvas.getWidth(), 600);
-        double h = Math.max(canvas.getHeight(), 400);
-
-        double spacingX = (w - 2 * margin) / Math.max(1, side - 1);
-        double spacingY = (h - 2 * margin) / Math.max(1, side - 1);
-        double spacing = Math.min(spacingX, spacingY);
-
+    private void generateRandomGraph(Graph graph, List<Agent> agents, SimulationEngine engine, GraphCanvas canvas, int side) {
+        agents.clear(); graph.setNodes(new ArrayList<>()); graph.setEdges(new ArrayList<>());
+        if (side < 2) side = 2;
+        int margin = 80; double w = Math.max(canvas.getWidth(), 600); double h = Math.max(canvas.getHeight(), 400);
+        double spacingX = (w - 2 * margin) / Math.max(1, side - 1); double spacingY = (h - 2 * margin) / Math.max(1, side - 1); double spacing = Math.min(spacingX, spacingY);
         Node[][] grid = new Node[side][side];
-
         for (int r = 0; r < side; r++) {
             for (int c = 0; c < side; c++) {
-                int x = (int) (margin + c * spacing);
-                int y = (int) (margin + r * spacing);
-                int cap = 1 + random.nextInt(5);
-                graph.addNode(x, y, cap);
+                int x = (int) (margin + c * spacing); int y = (int) (margin + r * spacing);
+                graph.addNode(x, y, 1 + random.nextInt(5));
                 grid[r][c] = graph.getNodes().get(graph.getNodes().size() - 1);
             }
         }
-
         for (int r = 0; r < side; r++) {
             for (int c = 0; c < side; c++) {
-                if (c + 1 < side)
-                    graph.addEdge(grid[r][c], grid[r][c + 1], 1 + random.nextInt(5), true);
-                if (r + 1 < side)
-                    graph.addEdge(grid[r][c], grid[r + 1][c], 1 + random.nextInt(5), true);
+                if (c + 1 < side) graph.addEdge(grid[r][c], grid[r][c + 1], 1 + random.nextInt(5), true);
+                if (r + 1 < side) graph.addEdge(grid[r][c], grid[r + 1][c], 1 + random.nextInt(5), true);
             }
         }
-
-        System.out.println("[Main] Grille " + side + "x" + side + " générée ("
-                + graph.getNodes().size() + " nœuds).");
         canvas.draw();
     }
 
-    private void spawnRandomAgents(Graph graph, SimulationEngine engine,
-            GraphCanvas canvas, int n) {
+    private void spawnRandomAgents(Graph graph, SimulationEngine engine, GraphCanvas canvas, int n) {
         List<Node> nodes = graph.getNodes();
-        if (nodes.isEmpty()) {
-            System.out.println("[Main] Aucun nœud : générez d'abord un graphe.");
-            return;
-        }
-
+        if (nodes.isEmpty()) return;
         for (int i = 0; i < n; i++) {
             Node start = nodes.get(random.nextInt(nodes.size()));
-            int id = nextAgentId.getAndIncrement();
-            float speed = 2.0f + random.nextFloat() * 2.0f;
-            Agent agent = new Agent(id, speed, agentState.AVAILABLE);
+            Agent agent = new Agent(nextAgentId.getAndIncrement(), 2.0f + random.nextFloat() * 2.0f, agentState.AVAILABLE);
             agent.setStartingNode(start);
             agent.setAgentBehavior(random.nextBoolean() ? agentBehavior.PATIENT : agentBehavior.HURRIED);
             agent.setAlgoType(globalAlgo); 
             engine.addAgent(agent);
-            Node objective = nodes.get(random.nextInt(nodes.size()));
-            agent.addObjective(objective);
+            agent.addObjective(nodes.get(random.nextInt(nodes.size())));
         }
-
-        System.out.println("[Main] " + n + " agents générés.");
         canvas.draw();
     }
 
     private void setupSampleGraph(Graph graph, List<Agent> agents, SimulationEngine engine) {
-        int cols = 5;
-        int rows = 4;
-        int startX = 100;
-        int startY = 100;
-        int spacing = 150;
-
+        int cols = 5; int rows = 4; int startX = 100; int startY = 100; int spacing = 150;
         Node[][] grid = new Node[rows][cols];
-
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 graph.addNode(startX + c * spacing, startY + r * spacing, c + 1);
                 grid[r][c] = graph.getNodes().get(graph.getNodes().size() - 1);
             }
         }
-
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                if (c + 1 < cols)
-                    graph.addEdge(grid[r][c], grid[r][c + 1], r + c + 1, true);
-                if (r + 1 < rows)
-                    graph.addEdge(grid[r][c], grid[r + 1][c], r + c + 1, true);
+                if (c + 1 < cols) graph.addEdge(grid[r][c], grid[r][c + 1], r + c + 1, true);
+                if (r + 1 < rows) graph.addEdge(grid[r][c], grid[r + 1][c], r + c + 1, true);
             }
         }
-
-        Agent a1 = new Agent(007, 2.5f, Agent.agentState.AVAILABLE);
-        a1.setCurrentNode(grid[0][0]);
-        a1.setAgentBehavior(agentBehavior.PATIENT);
-        a1.setAlgoType(globalAlgo);
-        a1.setPriority(1);
-        engine.addAgent(a1);
-        Agent a2 = new Agent(15, 3.0f, Agent.agentState.AVAILABLE);
-        a2.setCurrentNode(grid[0][1]);
-        a2.setAgentBehavior(agentBehavior.HURRIED);
-        a2.setAlgoType(globalAlgo);
-        engine.addAgent(a2);
-
-        for (Agent agent : engine.agents) {
-            agent.addObjective(grid[3][4]);
-            agent.addObjective(grid[3][0]);
-        }
+        Agent a1 = new Agent(007, 2.5f, Agent.agentState.AVAILABLE); a1.setCurrentNode(grid[0][0]); a1.setAgentBehavior(agentBehavior.PATIENT); a1.setAlgoType(globalAlgo); engine.addAgent(a1);
+        Agent a2 = new Agent(15, 3.0f, Agent.agentState.AVAILABLE); a2.setCurrentNode(grid[0][1]); a2.setAgentBehavior(agentBehavior.HURRIED); a2.setAlgoType(globalAlgo); engine.addAgent(a2);
+        for (Agent agent : engine.agents) { agent.addObjective(grid[3][4]); agent.addObjective(grid[3][0]); }
     }
-
-    public static void main(String[] args) {
-        launch(args);
-    }
+    public static void main(String[] args) { launch(args); }
 }
