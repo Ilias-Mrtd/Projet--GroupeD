@@ -13,6 +13,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ToggleButton; 
 import javafx.geometry.Insets;
 import javafx.stage.Stage;
 import javafx.stage.FileChooser;
@@ -48,7 +49,7 @@ public class Main extends Application {
         Graph graph = new Graph();
         List<Agent> agents = new ArrayList<>();
 
-        // 2. MOTEUR (Déplacé plus haut pour que la toolbar puisse l'utiliser)
+        // 2. MOTEUR
         SimulationEngine engine = new SimulationEngine(graph, agents);
 
         // 3. VUE
@@ -79,6 +80,16 @@ public class Main extends Application {
         speedSlider.setShowTickLabels(true);
         speedSlider.setMajorTickUnit(1.0);
         speedSlider.setBlockIncrement(0.1);
+        
+
+        // BOUTON HEATMAP
+
+        ToggleButton btnHeatmap = new ToggleButton("Heatmap");
+        btnHeatmap.setStyle("-fx-font-weight: bold; -fx-text-fill: #D84315;");
+        btnHeatmap.setOnAction(e -> {
+            graphCanvas.setHeatmapMode(btnHeatmap.isSelected());
+            graphCanvas.draw();
+        });
 
         // Le sélecteur d'algorithme
         ComboBox<String> algoSelector = new ComboBox<>();
@@ -92,13 +103,13 @@ public class Main extends Application {
             } else {
                 globalAlgo = Agent.AlgoType.RANDOM;
             }
-            // Met à jour instantanément tous les agents existants
             for (Agent a : engine.getAgents()) {
                 a.setAlgoType(globalAlgo);
             }
         });
 
-        toolbar.getChildren().addAll(btnRestart, btnPlay, btnPause, btnStep, lblSpeed, speedSlider, algoSelector,
+        // On a ajouté le btnHeatmap à la toolbar
+        toolbar.getChildren().addAll(btnRestart, btnPlay, btnPause, btnStep, lblSpeed, speedSlider, btnHeatmap, algoSelector,
                 btnClear, btnSave,
                 menuLoad);
 
@@ -145,7 +156,7 @@ public class Main extends Application {
 
         // Loading menu
         menuLoad.setOnShowing(e -> {
-            menuLoad.getItems().clear(); // On vide les anciens items
+            menuLoad.getItems().clear(); 
 
             List<String> files = FileService.getSavedFiles();
 
@@ -186,10 +197,8 @@ public class Main extends Application {
             Node sel = propertiesPanel.getSelectedNode();
             if (sel == null) return;
             
-            
             engine.evictAgentsFromNode(sel);
             graph.removeNode(sel);
-            
             
             for (List<Edge> edgeList : graph.getEdges()) {
                 edgeList.removeIf(e -> e.getTarget() == sel || e.getSource() == sel);
@@ -201,7 +210,6 @@ public class Main extends Application {
         propertiesPanel.setOnRemoveEdge(() -> {
             Edge sel = propertiesPanel.getSelectedEdge();
             if (sel == null) return;
-            
             
             engine.evictAgentsFromEdge(sel);
             
@@ -219,7 +227,7 @@ public class Main extends Application {
             int newId = nextAgentId.getAndIncrement();
             Agent newAgent = new Agent(newId, 2.5f, agentState.AVAILABLE);
             newAgent.setStartingNode(sel);
-            newAgent.setAlgoType(globalAlgo); // Applique l'algo choisi
+            newAgent.setAlgoType(globalAlgo); 
             engine.addAgent(newAgent);
             System.out.println("[Main] Agent " + newId + " ajouté sur nœud " + sel.getId());
             graphCanvas.draw();
@@ -229,8 +237,8 @@ public class Main extends Application {
             Agent sel = propertiesPanel.getSelectedAgent();
             if (sel == null)
                 return;
-            sel.releaseAll(); // libère réservations + occupants + files
-            agents.remove(sel); // retire de la liste du moteur
+            sel.releaseAll(); 
+            agents.remove(sel); 
             System.out.println("[Main] Agent " + sel.getId() + " supprimé de la simulation.");
             graphCanvas.draw();
         });
@@ -283,11 +291,10 @@ public class Main extends Application {
     }
 
     private void loadSimulationFile(String fileName, Graph graph, List<Agent> agents, GraphCanvas graphCanvas) {
-        try { // On essaie de charger le fichier selectionner
+        try { 
             String path = FileService.SAVE_DIR + fileName;
             FileService.SimulationData data = FileService.loadSimulation(path);
 
-            // Nettoyage et chargement
             graph.resetNodes();
             graph.resetEdges();
             agents.clear();
@@ -304,21 +311,6 @@ public class Main extends Application {
         }
     }
 
-    // ============================================================== GRAPHE EN
-    // GRILLE
-
-    /**
-     * Génère un graphe en GRILLE CARRÉE de côté "side" (side x side nœuds).
-     *
-     * Principe simple (facile à présenter) :
-     * - "side" vient directement du panneau (+/-), donc chaque clic change la
-     * grille.
-     * - L'espacement entre nœuds s'adapte à la taille du canvas → la grille rentre
-     * toujours.
-     * - Chaque nœud est relié à son voisin de DROITE et du BAS (grille classique,
-     * connexe).
-     * - Capacités des nœuds et des arêtes aléatoires entre 1 et 5.
-     */
     private void generateRandomGraph(Graph graph, List<Agent> agents,
             SimulationEngine engine, GraphCanvas canvas, int side) {
 
@@ -378,7 +370,7 @@ public class Main extends Application {
             Agent agent = new Agent(id, speed, agentState.AVAILABLE);
             agent.setStartingNode(start);
             agent.setAgentBehavior(random.nextBoolean() ? agentBehavior.PATIENT : agentBehavior.HURRIED);
-            agent.setAlgoType(globalAlgo); // Applique l'algo choisi
+            agent.setAlgoType(globalAlgo); 
             engine.addAgent(agent);
             Node objective = nodes.get(random.nextInt(nodes.size()));
             agent.addObjective(objective);
