@@ -39,6 +39,73 @@ public class SimulationEngine extends AnimationTimer {
         System.out.println("Agent " + agent.getId() + " ajouté au moteur de simulation.");
     }
 
+  
+    // EXPULSIONS D'URGENCE (Forte Congestion)
+    public void evictAgentsFromNode(Node node) {
+        // 1. D'abord, gérer les agents qui roulaient sur une arête connectée à ce noeud
+        for (Agent a : agents) {
+            if (a.getCurrentEdge() != null) {
+                if (a.getCurrentEdge().getSource() == node || a.getCurrentEdge().getTarget() == node) {
+                    a.getCurrentEdge().leave();
+                    a.setCurrentEdge(null);
+                    a.setDistanceTraveledOnEdge(0.0f);
+                    Node source = a.getCurrentNode();
+                    if (source != null && source != node) {
+                        source.forceEnter();
+                        a.getPath().clear();
+                        a.logMsg("🚨 Arête détruite en cascade ! Retour forcé.");
+                    }
+                }
+            }
+        }
+
+        // 2. Ensuite, téléporter les agents physiquement sur le noeud détruit
+        for (Agent a : agents) {
+            if (a.getCurrentNode() == node && a.getCurrentEdge() == null) {
+                Node neighbor = null;
+                int index = graph.getNodes().indexOf(node);
+                if (index != -1 && !graph.getEdges().get(index).isEmpty()) {
+                    for (Edge edge : graph.getEdges().get(index)) {
+                        Node candidate = (edge.getSource() == node) ? edge.getTarget() : edge.getSource();
+                        if (candidate != node) {
+                            neighbor = candidate;
+                            break;
+                        }
+                    }
+                }
+                
+                if (neighbor != null) {
+                    node.leave();
+                    a.setCurrentNode(neighbor);
+                    neighbor.forceEnter(); // Force l'entrée (ça va déclencher la Forte Congestion !)
+                    a.getPath().clear();
+                    a.logMsg("🚨 Téléportation d'urgence (Forte congestion) !");
+                } else {
+                    a.logMsg("🚨 Nœud détruit sans aucun voisin. L'agent tombe dans le vide.");
+                    a.releaseAll();
+                }
+            }
+        }
+    }
+
+    public void evictAgentsFromEdge(Edge edge) {
+        for (Agent a : agents) {
+            if (a.getCurrentEdge() == edge) {
+                edge.leave();
+                a.setCurrentEdge(null);
+                a.setDistanceTraveledOnEdge(0.0f);
+                Node source = a.getCurrentNode();
+                if (source != null) {
+                    source.forceEnter();
+                    a.getPath().clear();
+                    a.logMsg("🚨 Arête détruite ! Retour forcé au nœud précédent.");
+                } else {
+                    a.releaseAll();
+                }
+            }
+        }
+    }
+
     @Override
     public void start() {
         this.lastUpdate = 0; // Évite un bond dans le temps quand on fait "Pause" puis "Play"

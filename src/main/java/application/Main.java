@@ -184,28 +184,30 @@ public class Main extends Application {
 
         propertiesPanel.setOnRemoveNode(() -> {
             Node sel = propertiesPanel.getSelectedNode();
-            if (sel == null)
-                return;
-            boolean occupied = agents.stream().anyMatch(a -> a.getCurrentNode() == sel);
-            if (occupied) {
-                System.out.println("[Main] Nœud " + sel.getId() + " occupé, suppression impossible.");
-                return;
-            }
+            if (sel == null) return;
+            
+            
+            engine.evictAgentsFromNode(sel);
             graph.removeNode(sel);
+            
+            
+            for (List<Edge> edgeList : graph.getEdges()) {
+                edgeList.removeIf(e -> e.getTarget() == sel || e.getSource() == sel);
+            }
+            
             graphCanvas.draw();
         });
 
         propertiesPanel.setOnRemoveEdge(() -> {
             Edge sel = propertiesPanel.getSelectedEdge();
-            if (sel == null)
-                return;
-            boolean occupied = agents.stream().anyMatch(a -> a.getCurrentEdge() == sel);
-            if (occupied) {
-                System.out.println("[Main] Arête " + sel.getId() + " occupée, suppression impossible.");
-                return;
-            }
+            if (sel == null) return;
+            
+            
+            engine.evictAgentsFromEdge(sel);
+            
             for (List<Edge> list : graph.getEdges())
                 list.removeIf(e -> e.getId() == sel.getId());
+                
             System.out.println("[Main] Arête " + sel.getId() + " supprimée.");
             graphCanvas.draw();
         });
