@@ -9,6 +9,11 @@ import simulationEngine.algorithm.Dijkstra;
 import simulationEngine.algorithm.AStar;
 import simulationEngine.algorithm.Algo;
 
+/**
+ * Represents an autonomous agent that navigates through the simulation graph.
+ * The agent can compute paths, handle traffic jams, and adapt to dynamic changes
+ * like edge/node destruction or heavy congestion.
+ */
 public class Agent implements Serializable {
 
     private int id;
@@ -44,7 +49,7 @@ public class Agent implements Serializable {
     private boolean isRetreating = false;
 
     // =========================================
-    // KPIs & STATS & CONGESTION
+    // KPIs, STATS & CONGESTION
     // =========================================
     private int abandonedObjectives = 0;
     private int objectivesReached = 0;
@@ -55,9 +60,13 @@ public class Agent implements Serializable {
     private List<String> historyLog = new ArrayList<>();
     private static final long serialVersionUID = 1L;
     
-    //  Chronomètre de la pénalité de Forte Congestion
+    // Timer for the heavy congestion penalty (2 seconds)
     private double congestionTimer = 0.0; 
 
+    /**
+     * Logs a message in the agent's history and prints it to the console.
+     * @param msg The message to log.
+     */
     public void logMsg(String msg) {
         String entry = String.format("[%.1fs] %s", totalActiveTime, msg);
         historyLog.add(entry);
@@ -72,6 +81,9 @@ public class Agent implements Serializable {
     public double getTotalDistance() { return totalDistance; }
     public List<String> getHistoryLog() { return historyLog; }
 
+    /**
+     * Resets all KPIs and statistics to their default values (used when restarting the simulation).
+     */
     public void resetStats() {
         this.abandonedObjectives = 0;
         this.objectivesReached = 0;
@@ -82,7 +94,7 @@ public class Agent implements Serializable {
         this.congestionTimer = 0.0;
         this.historyLog.clear();
         if (this.startingNode != null) {
-            logMsg("Réapparition sur le noeud " + this.startingNode.getId() + " (Redémarrage)");
+            logMsg("Respawned on node " + this.startingNode.getId() + " (Restart)");
         }
     }
 
@@ -99,7 +111,7 @@ public class Agent implements Serializable {
         this.startingNode = node;
         this.currentNode = node;
         this.previousNode = node;
-        logMsg("Apparition sur le noeud " + node.getId());
+        logMsg("Spawned on node " + node.getId());
     }
 
     public void setAgentBehavior(agentBehavior behavior) { this.behavior = behavior; }
@@ -107,8 +119,11 @@ public class Agent implements Serializable {
     public void setAlgoType(AlgoType type) { this.algoType = type; }
     public AlgoType getAlgoType() { return this.algoType; }
 
+    /**
+     * Executes the final behavior once the agent has completed all its objectives.
+     */
     private void handleEndBehavior() {
-        logMsg("A terminé tous ses objectifs. Comportement final : " + getEndBehavior());
+        logMsg("Completed all objectives. Final behavior: " + getEndBehavior());
         clearReservations();
         switch (getEndBehavior()) {
             case STOP:
@@ -117,7 +132,7 @@ public class Agent implements Serializable {
             case REMOVE:
                 setState(agentState.OUT);
                 if (getCurrentNode() != null) getCurrentNode().leave();
-                logMsg("Quitte la simulation.");
+                logMsg("Left the simulation.");
                 break;
             case RANDOM_WANDER:
                 setState(agentState.AVAILABLE);
@@ -153,6 +168,9 @@ public class Agent implements Serializable {
         getReservedEdges().clear();
     }
 
+    /**
+     * Safely removes the agent from the graph by freeing all reservations, queues, and occupants.
+     */
     public void releaseAll() {
         clearReservations();
         if (getCurrentEdge() != null) {
@@ -192,30 +210,37 @@ public class Agent implements Serializable {
 
     public void addObjective(Node dest) {
         getObjectives().add(dest);
-        logMsg("Nouvel objectif reçu : Noeud " + dest.getId());
+        logMsg("New objective received: Node " + dest.getId());
         if (getState() == agentState.AVAILABLE) {
             startNextObjective();
         }
     }
 
+    /**
+     * Determines which pathfinding algorithm to use based on the agent's preferences.
+     * @return The instantiated pathfinding algorithm.
+     */
     private Algo getCalculator() {
         if (this.algoType == AlgoType.DIJKSTRA) {
-            logMsg("Calcul (Algorithme forcé : Dijkstra)");
+            logMsg("Calculating path (Forced: Dijkstra)");
             return new Dijkstra(getGraph(), getCurrentNode(), getDestination());
         } else if (this.algoType == AlgoType.ASTAR) {
-            logMsg("Calcul (Algorithme forcé : A*)");
+            logMsg("Calculating path (Forced: A*)");
             return new AStar(getGraph(), getCurrentNode(), getDestination());
         } else {
             if (Math.random() < 0.5) {
-                logMsg("Calcul (Aléatoire -> Dijkstra)");
+                logMsg("Calculating path (Random -> Dijkstra)");
                 return new Dijkstra(getGraph(), getCurrentNode(), getDestination());
             } else {
-                logMsg("Calcul (Aléatoire -> A*)");
+                logMsg("Calculating path (Random -> A*)");
                 return new AStar(getGraph(), getCurrentNode(), getDestination());
             }
         }
     }
 
+    /**
+     * Fetches the next objective from the queue and computes the path to reach it.
+     */
     private void startNextObjective() {
         if (!getObjectives().isEmpty()) {
             setDestination(getObjectives().remove(0));
@@ -223,7 +248,7 @@ public class Agent implements Serializable {
             if (getGraph() != null && getCurrentNode() != null) {
                 Algo calculator = getCalculator();
                 if (calculator.getPath().isEmpty() && getCurrentNode().getId() != getDestination().getId()) {
-                    logMsg("❌ AUCUN CHEMIN vers " + getDestination().getId() + " ! Objectif abandonné.");
+                    logMsg("❌ NO PATH to node " + getDestination().getId() + "! Objective abandoned.");
                     abandonedObjectives++;
                     startNextObjective();
                     return;
@@ -233,15 +258,19 @@ public class Agent implements Serializable {
             }
             setState(agentState.RUNNING);
             setCurrentPatience(getMaxPatience());
-            logMsg(">>> En route vers l'objectif : Noeud " + getDestination().getId());
+            logMsg(">>> En route to objective: Node " + getDestination().getId());
         } else {
             handleEndBehavior();
         }
     }
 
+    /**
+     * Triggers a detour logic when the agent is stuck in traffic and loses patience.
+     * The agent will pick an available neighboring node to unblock the situation.
+     */
     private void applyDetour() {
         detoursTaken++;
-        logMsg("!!! Cherche à s'écarter pour débloquer la situation !!!");
+        logMsg("!!! Looking for a detour to unblock the situation !!!");
         List<Node> validDetours = new ArrayList<>();
         List<Node> fallbackDetours = new ArrayList<>();
 
@@ -278,16 +307,16 @@ public class Agent implements Serializable {
         }
 
         if (detour != null) {
-            logMsg("↪️ Fait un détour aléatoire vers le Noeud " + detour.getId());
+            logMsg("↪️ Taking a random detour to Node " + detour.getId());
             getPath().clear();
             getPath().add(detour);
             makeReservations();
         } else {
-            logMsg("Aucune rue pour s'écarter, recalcule la route...");
+            logMsg("No street to detour, recalculating route...");
             Algo calculator = getCalculator();
 
             if (calculator.getPath().isEmpty() && getCurrentNode().getId() != getDestination().getId()) {
-                logMsg("❌ Complètement bloqué vers " + getDestination().getId() + ". Objectif abandonné !");
+                logMsg("❌ Completely blocked towards node " + getDestination().getId() + ". Objective abandoned!");
                 abandonedObjectives++;
                 startNextObjective();
                 return;
@@ -317,6 +346,11 @@ public class Agent implements Serializable {
         return true;
     }
 
+    /**
+     * Core update loop for the agent's logic. Called at every frame by the SimulationEngine.
+     * Manages movements, queue waiting, patience depletion, and congestion penalties.
+     * @param deltaTime The time elapsed since the last frame.
+     */
     public void update(double deltaTime) {
 
         if (getState() == agentState.RUNNING || getState() == agentState.WAITING || getState() == agentState.CALCULATING) {
@@ -349,7 +383,7 @@ public class Agent implements Serializable {
                 }
 
                 if (getCurrentEdge() != null) {
-                    logMsg("!!! Perd patience et fait MARCHE ARRIÈRE sur l'arête !!!");
+                    logMsg("!!! Lost patience, REVERSING on the edge !!!");
                     setRetreating(true);
                     setState(agentState.RUNNING);
                 } else {
@@ -365,7 +399,7 @@ public class Agent implements Serializable {
                     setBlockedSince(isBlockedSince() + 1);
                     if (isBlockedSince() > 3) {
                         setBlockedSince(0);
-                        logMsg("Etape 3 : Recalcul de routine.");
+                        logMsg("Step 3: Routine recalculation.");
                         getPath().clear();
                         getObjectives().add(0, destination);
                         startNextObjective();
@@ -377,24 +411,26 @@ public class Agent implements Serializable {
 
             if (getCurrentEdge() == null) {
                 
-                //GESTION DE LA FORTE CONGESTION !
+                // ===============================================
+                // HEAVY CONGESTION MANAGEMENT!
+                // ===============================================
                 if (getCurrentNode() != null && getCurrentNode().getCurrentOccupants() > getCurrentNode().getCapacity()) {
-                    if (congestionTimer < 2.0) { // 2 secondes de pénalité !
+                    if (congestionTimer < 2.0) { // 2 seconds penalty!
                         congestionTimer += deltaTime;
                         if (getState() != agentState.WAITING) {
                             setState(agentState.WAITING);
-                            logMsg("⚠️ Forte Congestion du noeud ! Pénalité de 2s...");
+                            logMsg("⚠️ Heavy Node Congestion! 2s penalty applied...");
                         }
-                        return; // L'agent reste bloqué !
+                        return; // Agent stays blocked!
                     }
                 }
-                congestionTimer = 0.0; // Reset quand la pénalité est purgée
+                congestionTimer = 0.0; // Reset when the penalty is served
 
                 if (!getPath().isEmpty()) {
                     if (!isPathClearAhead(2)) {
                         if (getState() != agentState.WAITING) {
                             setState(agentState.WAITING);
-                            logMsg("🧠 Anticipe un bouchon et fait du SMART WAITING.");
+                            logMsg("🧠 Anticipating a traffic jam, doing SMART WAITING.");
                         }
                         return;
                     }
@@ -416,7 +452,7 @@ public class Agent implements Serializable {
                             setCurrentPatience(getMaxPatience());
 
                             nextNode.setIncomingOccupants(nextNode.getIncomingOccupants() + 1);
-                            logMsg("🟢 S'ENGAGE vers le noeud " + nextNode.getId());
+                            logMsg("🟢 ENTERING towards node " + nextNode.getId());
 
                         } else {
                             nextEdge.enqueue(this);
@@ -426,7 +462,7 @@ public class Agent implements Serializable {
                     }
                 } else {
                     if (getCurrentNode() != null && getDestination() != null && getCurrentNode().getId() == getDestination().getId()) {
-                        logMsg("✅ Objectif Noeud " + getDestination().getId() + " ATTEINT !");
+                        logMsg("✅ Objective Node " + getDestination().getId() + " REACHED!");
                         objectivesReached++;
                     }
                     if (getObjectives().isEmpty()) {
@@ -452,7 +488,7 @@ public class Agent implements Serializable {
                             getCurrentEdge().leave();
                             setCurrentEdge(null);
                             setRetreating(false);
-                            logMsg("Est revenu sur son noeud et libère l'arête.");
+                            logMsg("Returned to node and freed the edge.");
                             applyDetour();
                         } else {
                             getCurrentNode().enqueue(this);
@@ -486,11 +522,11 @@ public class Agent implements Serializable {
                             setCurrentEdge(null);
                             setState(agentState.RUNNING);
                             setCurrentPatience(getMaxPatience());
-                            logMsg("📍 EST ARRIVÉ au noeud " + getCurrentNode().getId());
+                            logMsg("📍 ARRIVED at node " + getCurrentNode().getId());
 
                             if (getPath().isEmpty()) {
                                 if (getCurrentNode().getId() == getDestination().getId()) {
-                                    logMsg("✅ Objectif final Noeud " + getDestination().getId() + " ATTEINT !");
+                                    logMsg("✅ Final Objective Node " + getDestination().getId() + " REACHED!");
                                     objectivesReached++;
                                     if (!getObjectives().isEmpty()) {
                                         startNextObjective();
@@ -498,10 +534,10 @@ public class Agent implements Serializable {
                                         handleEndBehavior();
                                     }
                                 } else {
-                                    logMsg("🔄 A terminé son évitement. Recalcul vers l'objectif " + getDestination().getId());
+                                    logMsg("🔄 Finished detouring. Recalculating path to objective " + getDestination().getId());
                                     Algo calculator = getCalculator();
                                     if (calculator.getPath().isEmpty()) {
-                                        logMsg("❌ Route détruite vers " + getDestination().getId() + ". Objectif abandonné !");
+                                        logMsg("❌ Route destroyed to node " + getDestination().getId() + ". Objective abandoned!");
                                         abandonedObjectives++;
                                         startNextObjective();
                                     } else {
@@ -520,7 +556,9 @@ public class Agent implements Serializable {
         }
     }
 
-    // GETTERS & SETTERS Standards...
+    // =========================================
+    // Standard GETTERS & SETTERS
+    // =========================================
     public void setId(int id) { this.id = id; }
     public int getId() { return this.id; }
     public float getSpeed() { return this.speed; }
