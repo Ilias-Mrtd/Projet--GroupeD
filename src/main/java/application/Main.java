@@ -4,6 +4,9 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.Pane; 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -12,9 +15,19 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SplitPane; 
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.ToggleButton; 
+import javafx.scene.control.Separator;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.cell.ComboBoxTableCell;
+import javafx.scene.control.cell.TextFieldTableCell; 
+import javafx.util.converter.FloatStringConverter; 
+import javafx.util.converter.IntegerStringConverter; 
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.stage.Stage;
 import javafx.stage.FileChooser;
 
@@ -52,32 +65,23 @@ public class Main extends Application {
         graphCanvas.setAgents(agents);
         PropertiesPanel propertiesPanel = new PropertiesPanel(graph, agents);
 
-        HBox toolbar = new HBox(15);
-        toolbar.setPadding(new Insets(10));
-        toolbar.setStyle("-fx-background-color: #E0E0E0; -fx-alignment: center-left;");
+        // ==========================================
+        // DOUBLE BARRE D'OUTILS (Évite le débordement)
+        // ==========================================
+        VBox topContainer = new VBox(5);
+        topContainer.setStyle("-fx-background-color: #E0E0E0;");
+        topContainer.setPadding(new Insets(10));
 
+        HBox toolbar1 = new HBox(15);
+        toolbar1.setStyle("-fx-alignment: center-left;");
         Button btnRestart = new Button("🔄 Relaunch");
         Button btnPlay = new Button("▶️ Play");
         Button btnPause = new Button("⏸️ Pause");
         Button btnStep = new Button("⏭️ Step");
-        Button btnClear = new Button("🗑️Clear");
+        Button btnClear = new Button("🗑️ Clear");
         Button btnSave = new Button("⤵️ Save");
         MenuButton menuLoad = new MenuButton("📂 Load");
-
-        Label lblSpeed = new Label("Vitesse : 1.0x");
-        Slider speedSlider = new Slider(0.1, 5.0, 1.0);
-        speedSlider.setShowTickMarks(true);
-        speedSlider.setShowTickLabels(true);
-        speedSlider.setMajorTickUnit(1.0);
-        speedSlider.setBlockIncrement(0.1);
         
-        ToggleButton btnHeatmap = new ToggleButton("🔥 Heatmap");
-        btnHeatmap.setStyle("-fx-font-weight: bold; -fx-text-fill: #D84315;");
-        btnHeatmap.setOnAction(e -> {
-            graphCanvas.setHeatmapMode(btnHeatmap.isSelected());
-            graphCanvas.draw();
-        });
-
         ComboBox<String> algoSelector = new ComboBox<>();
         algoSelector.getItems().addAll("Algo : Aléatoire", "Algo : Dijkstra", "Algo : A*");
         algoSelector.setValue("Algo : Aléatoire");
@@ -88,26 +92,158 @@ public class Main extends Application {
             for (Agent a : engine.getAgents()) { a.setAlgoType(globalAlgo); }
         });
 
-        toolbar.getChildren().addAll(btnRestart, btnPlay, btnPause, btnStep, lblSpeed, speedSlider, btnHeatmap, algoSelector, btnClear, btnSave, menuLoad);
+        ToggleButton btnHeatmap = new ToggleButton("🔥 Heatmap");
+        btnHeatmap.setStyle("-fx-font-weight: bold; -fx-text-fill: #D84315;");
+        btnHeatmap.setOnAction(e -> { graphCanvas.setHeatmapMode(btnHeatmap.isSelected()); graphCanvas.draw(); });
 
-        BorderPane root = new BorderPane();
-        root.setTop(toolbar);
-        root.setCenter(graphCanvas);
+        toolbar1.getChildren().addAll(btnRestart, btnPlay, btnPause, btnStep, btnClear, btnSave, menuLoad, new Separator(Orientation.VERTICAL), btnHeatmap, algoSelector);
+
+        HBox toolbar2 = new HBox(15);
+        toolbar2.setStyle("-fx-alignment: center-left;");
+        
+        Label lblSpeed = new Label("Vitesse : 1.0x");
+        Slider speedSlider = new Slider(0.1, 5.0, 1.0);
+        speedSlider.setShowTickMarks(true); speedSlider.setShowTickLabels(true); speedSlider.setMajorTickUnit(1.0); speedSlider.setBlockIncrement(0.1);
+
+        //Slider de Zoom
+        Label lblZoom = new Label("Zoom : 100%");
+        Slider zoomSlider = new Slider(0.2, 2.0, 1.0); // De 20% à 200%
+        zoomSlider.setShowTickMarks(true); zoomSlider.setShowTickLabels(true); zoomSlider.setMajorTickUnit(0.5);
+        zoomSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            lblZoom.setText("Zoom : " + Math.round(newVal.doubleValue() * 100) + "%");
+            graphCanvas.setZoomLevel(newVal.doubleValue());
+        });
+
+        //  Boutons pour afficher/masquer les panneaux
+        ToggleButton btnToggleRoster = new ToggleButton("Afficher Liste");
+        btnToggleRoster.setSelected(true);
+        ToggleButton btnToggleInspector = new ToggleButton("Afficher Inspecteur");
+        btnToggleInspector.setSelected(true);
+
+        toolbar2.getChildren().addAll(lblSpeed, speedSlider, new Separator(Orientation.VERTICAL), lblZoom, zoomSlider, new Separator(Orientation.VERTICAL), btnToggleRoster, btnToggleInspector);
+        topContainer.getChildren().addAll(toolbar1, toolbar2);
+
+
+        // ==========================================
+        // PANNEAU GAUCHE : ROSTER DES AGENTS (TABLEAU)
+        // ==========================================
+        VBox leftPanel = new VBox(10);
+        leftPanel.setPadding(new Insets(10));
+        leftPanel.setStyle("-fx-background-color: #FAFAFA;");
+        
+        Label leftTitle = new Label("📋 Liste des Agents");
+        leftTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #333;");
+
+        TableView<Agent> agentTable = new TableView<>();
+        agentTable.setEditable(true); 
+        agentTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        TableColumn<Agent, Integer> idCol = new TableColumn<>("ID");
+        idCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getId()));
+        idCol.setStyle("-fx-alignment: CENTER;");
+
+        TableColumn<Agent, Agent.agentState> stateCol = new TableColumn<>("État");
+        stateCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getState()));
+
+        TableColumn<Agent, Agent.agentBehavior> behaviorCol = new TableColumn<>("Caractère");
+        behaviorCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getAgentBehavior()));
+        behaviorCol.setCellFactory(ComboBoxTableCell.forTableColumn(Agent.agentBehavior.values()));
+        behaviorCol.setOnEditCommit(e -> {
+            e.getRowValue().setAgentBehavior(e.getNewValue());
+            if(e.getNewValue() == agentBehavior.VIP) e.getRowValue().setSpeed(4.0f);
+            else e.getRowValue().setSpeed(2.5f);
+        });
+
+        TableColumn<Agent, Float> speedCol = new TableColumn<>("Vitesse");
+        speedCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getSpeed()));
+        speedCol.setCellFactory(TextFieldTableCell.forTableColumn(new FloatStringConverter()));
+        speedCol.setOnEditCommit(e -> { if (e.getNewValue() != null && e.getNewValue() > 0) e.getRowValue().setSpeed(e.getNewValue()); });
+
+        TableColumn<Agent, Integer> patienceCol = new TableColumn<>("Patience max");
+        patienceCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getMaxPatience()));
+        patienceCol.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
+        patienceCol.setOnEditCommit(e -> { if (e.getNewValue() != null && e.getNewValue() > 0) e.getRowValue().setMaxPatience(e.getNewValue()); });
+
+        TableColumn<Agent, Agent.AlgoType> algoCol = new TableColumn<>("Algo");
+        algoCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getAlgoType()));
+        algoCol.setCellFactory(ComboBoxTableCell.forTableColumn(Agent.AlgoType.values()));
+        algoCol.setOnEditCommit(e -> { e.getRowValue().setAlgoType(e.getNewValue()); });
+
+        TableColumn<Agent, Agent.EndBehavior> endBehaviorCol = new TableColumn<>("Action Finale");
+        endBehaviorCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getEndBehavior()));
+        endBehaviorCol.setCellFactory(ComboBoxTableCell.forTableColumn(Agent.EndBehavior.values()));
+        endBehaviorCol.setOnEditCommit(e -> { e.getRowValue().setEndBehavior(e.getNewValue()); });
+
+        agentTable.getColumns().addAll(idCol, stateCol, behaviorCol, speedCol, patienceCol, algoCol, endBehaviorCol);
+        leftPanel.getChildren().addAll(leftTitle, agentTable);
+        VBox.setVgrow(agentTable, Priority.ALWAYS);
+
+        Runnable updateAgentTable = () -> { agentTable.getItems().setAll(agents); };
+
+
+        // ==========================================
+        // LAYOUT PRINCIPAL RESPONSIVE (SPLITPANE)
+        // ==========================================
+        Pane canvasContainer = new Pane(graphCanvas);
+        graphCanvas.widthProperty().bind(canvasContainer.widthProperty());
+        graphCanvas.heightProperty().bind(canvasContainer.heightProperty());
+        
         ScrollPane panelScroll = new ScrollPane(propertiesPanel);
         panelScroll.setFitToWidth(true);
         panelScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         panelScroll.setStyle("-fx-background: #FAFAFA; -fx-background-color: #FAFAFA;");
-        root.setRight(panelScroll);
+
+        // Le SplitPane permet de glisser les bordures et redimensionner la carte !
+        SplitPane splitPane = new SplitPane();
+        splitPane.getItems().addAll(leftPanel, canvasContainer, panelScroll);
+        splitPane.setDividerPositions(0.30, 0.75); // 30% tableau, 45% carte, 25% inspecteur
+
+        // Logique pour masquer / afficher les panneaux
+        Runnable updateLayout = () -> {
+            splitPane.getItems().clear();
+            if (btnToggleRoster.isSelected()) splitPane.getItems().add(leftPanel);
+            splitPane.getItems().add(canvasContainer);
+            if (btnToggleInspector.isSelected()) splitPane.getItems().add(panelScroll);
+            
+            // Repositionne joliment les barres
+            if (btnToggleRoster.isSelected() && btnToggleInspector.isSelected()) {
+                splitPane.setDividerPositions(0.30, 0.75);
+            } else if (btnToggleRoster.isSelected() || btnToggleInspector.isSelected()) {
+                splitPane.setDividerPositions(btnToggleRoster.isSelected() ? 0.35 : 0.65);
+            }
+        };
+        btnToggleRoster.setOnAction(e -> updateLayout.run());
+        btnToggleInspector.setOnAction(e -> updateLayout.run());
+
+        BorderPane root = new BorderPane();
+        root.setTop(topContainer);
+        root.setCenter(splitPane);
 
         SelectionSystem selectionSystem = new SelectionSystem(graph, agents, graphCanvas);
         graphCanvas.setSelectionSystem(selectionSystem);
         graphCanvas.setOnInteraction(propertiesPanel::refresh);
 
+        agentTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) { selectionSystem.selectAgent(newVal); propertiesPanel.refresh(); }
+        });
+
+        int[] tickCount = {0};
         engine.setOnTick(() -> {
             graphCanvas.draw();
             propertiesPanel.refresh();
+            
+            tickCount[0]++;
+            if (tickCount[0] % 15 == 0) {
+                // NE RAFRAÎCHIT PLUS SI TU ES EN TRAIN D'ÉDITER UNE CELLULE !
+                if (agentTable.getEditingCell() == null) {
+                    agentTable.refresh();
+                }
+            }
         });
 
+        // ========================================================
+        // CALLBACKS ET LOGIQUE DES BOUTONS (Inchangé)
+        // ========================================================
         btnSave.setOnAction(e -> {
             FileService.ensureSaveDirectoryExists();
             FileChooser fileChooser = new FileChooser();
@@ -115,12 +251,8 @@ public class Main extends Application {
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Simulation Files", "*.sim"));
             File file = fileChooser.showSaveDialog(primaryStage);
             if (file != null) {
-                try {
-                    FileService.saveSimulation(file.getAbsolutePath(), graph, agents);
-                    showAlert(AlertType.INFORMATION, "Succès", "Simulation enregistrée avec succès !");
-                } catch (Exception ex) {
-                    showAlert(AlertType.ERROR, "Erreur", "Impossible de sauvegarder : " + ex.getMessage());
-                }
+                try { FileService.saveSimulation(file.getAbsolutePath(), graph, agents); showAlert(AlertType.INFORMATION, "Succès", "Simulation enregistrée avec succès !");
+                } catch (Exception ex) { showAlert(AlertType.ERROR, "Erreur", "Impossible de sauvegarder : " + ex.getMessage()); }
             }
         });
 
@@ -128,102 +260,73 @@ public class Main extends Application {
             menuLoad.getItems().clear(); 
             List<String> files = FileService.getSavedFiles();
             if (files.isEmpty()) {
-                MenuItem emptyItem = new MenuItem("Aucune sauvegarde");
-                emptyItem.setDisable(true);
-                menuLoad.getItems().add(emptyItem);
+                MenuItem emptyItem = new MenuItem("Aucune sauvegarde"); emptyItem.setDisable(true); menuLoad.getItems().add(emptyItem);
             } else {
                 for (String fileName : files) {
                     MenuItem item = new MenuItem(fileName);
-                    item.setOnAction(event -> loadSimulationFile(fileName, graph, agents, graphCanvas));
+                    item.setOnAction(event -> { loadSimulationFile(fileName, graph, agents, graphCanvas); updateAgentTable.run(); });
                     menuLoad.getItems().add(item);
                 }
             }
         });
 
-        btnClear.setOnAction(e -> { agents.clear(); graph.clear(); });
+        btnClear.setOnAction(e -> { agents.clear(); graph.clear(); updateAgentTable.run(); });
         propertiesPanel.setSelectionSystem(selectionSystem);
 
         propertiesPanel.setOnAddNode(() -> {
             int cap = propertiesPanel.getNodeCapacity();
-            if (selectionSystem.hasPendingPosition()) {
-                graph.addNode((int) selectionSystem.getPendingNodeX(), (int) selectionSystem.getPendingNodeY(), cap);
-                selectionSystem.clearPendingPosition();
-            }
+            if (selectionSystem.hasPendingPosition()) { graph.addNode((int) selectionSystem.getPendingNodeX(), (int) selectionSystem.getPendingNodeY(), cap); selectionSystem.clearPendingPosition(); }
             graphCanvas.draw();
         });
 
         propertiesPanel.setOnRemoveNode(() -> {
-            Node sel = propertiesPanel.getSelectedNode();
-            if (sel == null) return;
-            engine.evictAgentsFromNode(sel);
-            graph.removeNode(sel);
+            Node sel = propertiesPanel.getSelectedNode(); if (sel == null) return;
+            engine.evictAgentsFromNode(sel); graph.removeNode(sel);
             for (List<Edge> edgeList : graph.getEdges()) { edgeList.removeIf(e -> e.getTarget() == sel || e.getSource() == sel); }
             graphCanvas.draw();
         });
 
         propertiesPanel.setOnRemoveEdge(() -> {
-            Edge sel = propertiesPanel.getSelectedEdge();
-            if (sel == null) return;
+            Edge sel = propertiesPanel.getSelectedEdge(); if (sel == null) return;
             engine.evictAgentsFromEdge(sel);
             for (List<Edge> list : graph.getEdges()) list.removeIf(e -> e.getId() == sel.getId());
             graphCanvas.draw();
         });
 
-        // AJOUT D'AGENT MANUEL 
-
         propertiesPanel.setOnAddAgent(() -> {
-            Node sel = propertiesPanel.getSelectedNode();
-            if (sel == null) return;
-            
-            int newId = nextAgentId.getAndIncrement();
+            Node sel = propertiesPanel.getSelectedNode(); if (sel == null) return;
             Agent.agentBehavior chosenBehavior = propertiesPanel.getSelectedAgentBehavior();
-            
-            
             float speed = (chosenBehavior == agentBehavior.VIP) ? 4.0f : 2.5f;
-            
-            Agent newAgent = new Agent(newId, speed, agentState.AVAILABLE);
-            newAgent.setStartingNode(sel);
-            newAgent.setAlgoType(globalAlgo); 
-            newAgent.setAgentBehavior(chosenBehavior); 
-            
-            engine.addAgent(newAgent);
-            graphCanvas.draw();
+            Agent newAgent = new Agent(nextAgentId.getAndIncrement(), speed, agentState.AVAILABLE);
+            newAgent.setStartingNode(sel); newAgent.setAlgoType(globalAlgo); newAgent.setAgentBehavior(chosenBehavior); 
+            engine.addAgent(newAgent); updateAgentTable.run(); graphCanvas.draw();
         });
 
         propertiesPanel.setOnRemoveAgent(() -> {
-            Agent sel = propertiesPanel.getSelectedAgent();
-            if (sel == null) return;
-            sel.releaseAll(); 
-            agents.remove(sel); 
-            graphCanvas.draw();
+            Agent sel = propertiesPanel.getSelectedAgent(); if (sel == null) return;
+            sel.releaseAll(); agents.remove(sel); updateAgentTable.run(); graphCanvas.draw();
         });
 
-        propertiesPanel.setOnGenerateGraph(() -> {
-            int side = propertiesPanel.getGenGridSide();
-            generateRandomGraph(graph, agents, engine, graphCanvas, side);
-        });
+        propertiesPanel.setOnGenerateGraph(() -> { int side = propertiesPanel.getGenGridSide(); generateRandomGraph(graph, agents, engine, graphCanvas, side); updateAgentTable.run(); });
+        propertiesPanel.setOnSpawnAgents(() -> { int n = propertiesPanel.getGenAgentCount(); spawnRandomAgents(graph, engine, graphCanvas, n); updateAgentTable.run(); });
 
-        propertiesPanel.setOnSpawnAgents(() -> {
-            int n = propertiesPanel.getGenAgentCount();
-            spawnRandomAgents(graph, engine, graphCanvas, n);
-        });
-
-        btnRestart.setOnAction(e -> engine.restartSimulation());
+        btnRestart.setOnAction(e -> { engine.restartSimulation(); updateAgentTable.run(); });
         btnPlay.setOnAction(e -> engine.start());
         btnPause.setOnAction(e -> engine.stop());
         btnStep.setOnAction(e -> { engine.stop(); engine.doSingleStep(); });
 
         speedSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            double speed = Math.round(newVal.doubleValue() * 10.0) / 10.0;
-            engine.setTimeMultiplier(speed);
-            lblSpeed.setText("Vitesse : " + speed + "x");
+            double speed = Math.round(newVal.doubleValue() * 10.0) / 10.0; engine.setTimeMultiplier(speed); lblSpeed.setText("Vitesse : " + speed + "x");
         });
 
         setupSampleGraph(graph, agents, engine);
-        Scene scene = new Scene(root, 1100, 768);
+        updateAgentTable.run(); 
+
+        Scene scene = new Scene(root, 1400, 800); 
         primaryStage.setTitle("Gestion d'entrepôt — Groupe D");
         primaryStage.setScene(scene);
         primaryStage.show();
+        
         graphCanvas.draw();
         engine.start();
     }

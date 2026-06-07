@@ -37,15 +37,11 @@ public class SelectionSystem {
     private Node linkSource = null;
 
     @FunctionalInterface
-    public interface EdgeLinkCallback {
-        void onEdgeLink(Node source, Node target);
-    }
+    public interface EdgeLinkCallback { void onEdgeLink(Node source, Node target); }
     private EdgeLinkCallback edgeLinkCallback = null;
 
     @FunctionalInterface
-    public interface EmptyClickCallback {
-        void onEmptyClick(double x, double y);
-    }
+    public interface EmptyClickCallback { void onEmptyClick(double x, double y); }
     private EmptyClickCallback emptyClickCallback = null;
 
     public SelectionSystem(Graph graph, List<Agent> agents, GraphCanvas canvas) {
@@ -53,8 +49,6 @@ public class SelectionSystem {
         this.agents = agents;
         this.canvas = canvas;
     }
-
-    // ================================================================= API
 
     public void startEdgeLinking(EdgeLinkCallback callback) {
         this.mode             = Mode.LINKING_EDGE;
@@ -83,23 +77,22 @@ public class SelectionSystem {
     public boolean hasPendingPosition()   { return hasPendingPosition; }
     public void clearPendingPosition()    { hasPendingPosition = false; pendingNodeX = -1; pendingNodeY = -1; }
 
-    // ================================================================= clics
-
     public void handleMouseClick(MouseEvent event) {
         if (event.getButton() == MouseButton.SECONDARY) {
             if (mode == Mode.LINKING_EDGE) cancelEdgeLinking();
             return;
         }
-        double x = event.getX();
-        double y = event.getY();
+        // On ajuste les clics en fonction du Zoom de la carte !
+        double x = event.getX() / canvas.getZoomLevel();
+        double y = event.getY() / canvas.getZoomLevel();
         if (mode == Mode.LINKING_EDGE) handleLinkingClick(x, y);
         else                           handleNormalClick(x, y);
     }
 
     public void handleMousePressed(MouseEvent event) {
         if (event.getButton() != MouseButton.PRIMARY || mode != Mode.NORMAL) return;
-        double x = event.getX();
-        double y = event.getY();
+        double x = event.getX() / canvas.getZoomLevel();
+        double y = event.getY() / canvas.getZoomLevel();
 
         Node clickedNode = findNodeAt(x, y);
         if (clickedNode == null) return;
@@ -119,8 +112,8 @@ public class SelectionSystem {
     public void handleMouseDragged(MouseEvent event) {
         if (!draggingNode || lastSelectedNode == null || mode != Mode.NORMAL) return;
 
-        double x = event.getX() - dragOffsetX;
-        double y = event.getY() - dragOffsetY;
+        double x = (event.getX() / canvas.getZoomLevel()) - dragOffsetX;
+        double y = (event.getY() / canvas.getZoomLevel()) - dragOffsetY;
 
         lastSelectedNode.setX((float) x);
         lastSelectedNode.setY((float) y);
@@ -191,12 +184,19 @@ public class SelectionSystem {
         canvas.draw();
     }
 
-    // ================================================================= helpers
-
-    private void clearAllSelections() {
-        if (getLastSelectedNode()  != null) { getLastSelectedNode().setSelected(false); setLastSelectedNode(null); }
-        if (getLastSelectedEdge()  != null) { getLastSelectedEdge().setSelected(false); setLastSelectedEdge(null); }
-        if (getLastSelectedAgent() != null) { getLastSelectedAgent().setSelected(false); setLastSelectedAgent(null); }
+   private void clearAllSelections() {
+        if (lastSelectedNode  != null) { lastSelectedNode.setSelected(false); lastSelectedNode = null; }
+        if (lastSelectedEdge  != null) { lastSelectedEdge.setSelected(false); lastSelectedEdge = null; }
+        if (lastSelectedAgent != null) { lastSelectedAgent.setSelected(false); lastSelectedAgent = null; }
+    }
+    
+    public void selectAgent(Agent agent) {
+        clearAllSelections();
+        if (agent != null) {
+            lastSelectedAgent = agent;
+            agent.setSelected(true);
+        }
+        canvas.draw();
     }
 
     private Node findNodeAt(double x, double y) {
@@ -248,83 +248,7 @@ public class SelectionSystem {
         return new Point2D(from.getX() + t*(to.getX()-from.getX()), from.getY() + t*(to.getY()-from.getY()));
     }
 
-    public Graph getGraph() {
-        return graph;
-    }
-
-    public GraphCanvas getCanvas() {
-        return canvas;
-    }
-
-    public List<Agent> getAgents() {
-        return agents;
-    }
-
-    public static double getNodeRadius() {
-        return NODE_RADIUS;
-    }
-
-    public static double getAgentRadius() {
-        return AGENT_RADIUS;
-    }
-
-    public static double getEdgeTol() {
-        return EDGE_TOL;
-    }
-
-    public void setLastSelectedNode(Node lastSelectedNode) {
-        this.lastSelectedNode = lastSelectedNode;
-    }
-
-    public void setLastSelectedEdge(Edge lastSelectedEdge) {
-        this.lastSelectedEdge = lastSelectedEdge;
-    }
-
-    public void setLastSelectedAgent(Agent lastSelectedAgent) {
-        this.lastSelectedAgent = lastSelectedAgent;
-    }
-
-    public void setPendingNodeX(double pendingNodeX) {
-        this.pendingNodeX = pendingNodeX;
-    }
-
-    public void setPendingNodeY(double pendingNodeY) {
-        this.pendingNodeY = pendingNodeY;
-    }
-
-    public boolean isHasPendingPosition() {
-        return hasPendingPosition;
-    }
-
-    public void setHasPendingPosition(boolean hasPendingPosition) {
-        this.hasPendingPosition = hasPendingPosition;
-    }
-
-    public void setMode(Mode mode) {
-        this.mode = mode;
-    }
-
-    public Node getLinkSource() {
-        return linkSource;
-    }
-
-    public void setLinkSource(Node linkSource) {
-        this.linkSource = linkSource;
-    }
-
-    public EdgeLinkCallback getEdgeLinkCallback() {
-        return edgeLinkCallback;
-    }
-
-    public void setEdgeLinkCallback(EdgeLinkCallback edgeLinkCallback) {
-        this.edgeLinkCallback = edgeLinkCallback;
-    }
-
-    public EmptyClickCallback getEmptyClickCallback() {
-        return emptyClickCallback;
-    }
-
-    public void setEmptyClickCallback(EmptyClickCallback emptyClickCallback) {
-        this.emptyClickCallback = emptyClickCallback;
-    }
+    public Graph getGraph() { return graph; }
+    public GraphCanvas getCanvas() { return canvas; }
+    public List<Agent> getAgents() { return agents; }
 }
