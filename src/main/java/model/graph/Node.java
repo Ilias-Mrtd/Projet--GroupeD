@@ -5,6 +5,15 @@ import java.util.LinkedList;
 
 import model.agents.Agent;
 
+/**
+ * Represents a discrete spatial intersection point (vertex/node) within the graph topology.
+ * Manages physical coordinates, strict occupancy constraint thresholds, operational structural 
+ * modifications (such as construction events), and a specialized priority queue system tailored 
+ * for sorting and injecting behavioral agents.
+ * * @author Group D
+ * @version 1.0
+ * @see java.io.Serializable
+ */
 public class Node implements Serializable {
 
     private int id;
@@ -22,6 +31,13 @@ public class Node implements Serializable {
     private boolean isUnderConstruction = false;
     private int savedCapacity = 1;
 
+    /**
+     * Constructs a new Node with specified coordinates and occupancy limits.
+     * * @param id       Unique numerical identifier for the node.
+     * @param x        The horizontal coordinate component mapping layout offsets.
+     * @param y        The vertical coordinate component mapping layout offsets.
+     * @param capacity Maximum number of concurrent agents authorized on this node.
+     */
     public Node(int id, float x, float y, int capacity) {
         this.id = id;
         this.x = x;
@@ -31,6 +47,12 @@ public class Node implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Modifies the node's construction status. Enabling construction preserves the initial
+     * capacity parameters before dropping operational limits down to zero and forcing a FULL status flag.
+     * Disabling construction gracefully restores the baseline configuration criteria.
+     * * @param underConstruction true to isolate this node for maintenance; false to re-enable it.
+     */
     public void setUnderConstruction(boolean underConstruction) {
         this.isUnderConstruction = underConstruction;
         if (underConstruction) {
@@ -45,14 +67,31 @@ public class Node implements Serializable {
         }
     }
 
+    /**
+     * Evaluates if the total count of active occupants has reached or bypassed the node's maximum capacity.
+     * * @return true if the node structural limits are fully saturated; false otherwise.
+     */
     public boolean isFull() {
         return getCurrentOccupants() >= getCapacity();
     }
 
+    /**
+     * Validates if a given agent is permitted to enter the node based on current capacity
+     * availability and priority placement at the front of the waiting line.
+     * * @param a The tracking Agent component requesting access validation.
+     * @return true if space is clear and the agent holds entry priority; false if blocked.
+     */
     public boolean canEnter(Agent a) {
         return !isFull() && (getWaitingQueue().isEmpty() || getWaitingQueue().peek() == a);
     }
 
+    /**
+     * Processes registration lookup interactions for an agent attempting to merge onto this vertex.
+     * Higher-order behavioral profiles like VIP bypass typical structural capacity thresholds, 
+     * forcing registration values forward instantly.
+     * * @param a The tracking Agent object requesting physical access clearance.
+     * @return true if structural parameters updated and entry was cleared; false if turned away.
+     */
     public boolean tryEnter(Agent a) {
 
         if (a.getAgentBehavior() == Agent.agentBehavior.VIP) {
@@ -75,6 +114,10 @@ public class Node implements Serializable {
         return false;
     }
 
+    /**
+     * Forcefully increments the internal occupant counters bypassing any conditional 
+     * validation workflows, matching safety status triggers as required.
+     */
     public void forceEnter() {
         setCurrentOccupants(getCurrentOccupants() + 1);
         if (isFull()) {
@@ -82,6 +125,10 @@ public class Node implements Serializable {
         }
     }
 
+    /**
+     * Decrements the active entity density registry whenever an occupant leaves the node vertex,
+     * resetting state descriptors to AVAILABLE when constraints clear up.
+     */
     public void leave() {
         if (getCurrentOccupants() > 0) {
             setCurrentOccupants(getCurrentOccupants() - 1);
@@ -91,6 +138,12 @@ public class Node implements Serializable {
         }
     }
 
+    /**
+     * Appends an agent into the structural waiting registration list. Priority rules 
+     * ensure that incoming VIP agents jump the queue, positioning themselves ahead of 
+     * standard agents while keeping behind already queued VIP elements.
+     * * @param a The tracking Agent component requesting queue insertion registration.
+     */
     public void enqueue(Agent a) {
         if (!getWaitingQueue().contains(a)) {
             if (a.getAgentBehavior() == Agent.agentBehavior.VIP) {
@@ -106,10 +159,17 @@ public class Node implements Serializable {
         }
     }
 
+    /**
+     * Removes an agent immediately from the structural waiting lineup array, canceling pending requests.
+     * * @param a The target Agent instance to dismiss from the line.
+     */
     public void removeQueue(Agent a) {
         getWaitingQueue().remove(a);
     }
 
+    /**
+     * Operational state descriptor flags characterizing node structural availability.
+     */
     public enum nodeState { OUT, AVAILABLE, FULL }
 
     public int getId() { return id; }

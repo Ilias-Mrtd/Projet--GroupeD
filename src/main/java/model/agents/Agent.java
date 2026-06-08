@@ -9,6 +9,14 @@ import simulationEngine.algorithm.Dijkstra;
 import simulationEngine.algorithm.AStar;
 import simulationEngine.algorithm.Algo;
 
+/**
+ * Represents an autonomous agent within the warehouse simulation.
+ * The agent manages its own state, pathfinding calculations, objective queues,
+ * spatial resource reservations, and movement mechanics along the graph topology.
+ * * @author Group D
+ * @version 1.0
+ * @see java.io.Serializable
+ */
 public class Agent implements Serializable {
 
     private int id;
@@ -36,6 +44,9 @@ public class Agent implements Serializable {
     private EndBehavior endBehavior = EndBehavior.REMOVE;
     private agentBehavior behavior = agentBehavior.PATIENT;
 
+    /**
+     * Supported routing algorithm options for path calculation.
+     */
     public enum AlgoType { DIJKSTRA, ASTAR, RANDOM }
     private AlgoType algoType = AlgoType.RANDOM;
 
@@ -43,7 +54,7 @@ public class Agent implements Serializable {
     private List<Edge> reservedEdges = new ArrayList<>();
     private boolean isRetreating = false;
     
-    //Statut de "Garé sur le bas-côté"
+    // Status for "Pulled over on the side"
     private boolean yieldingToVIP = false;
 
     private int abandonedObjectives = 0;
@@ -57,6 +68,11 @@ public class Agent implements Serializable {
     
     private double congestionTimer = 0.0; 
 
+    /**
+     * Logs a formatted timestamped message into the internal history ledger 
+     * and forwards it to the standard output console.
+     * * @param msg The descriptive tracking text to log.
+     */
     public void logMsg(String msg) {
         String entry = String.format("[%.1fs] %s", totalActiveTime, msg);
         historyLog.add(entry);
@@ -71,6 +87,10 @@ public class Agent implements Serializable {
     public double getTotalDistance() { return totalDistance; }
     public List<String> getHistoryLog() { return historyLog; }
 
+    /**
+     * Flushes and resets all tracking performance statistics, tracking timers, 
+     * and historical log entries for this entity.
+     */
     public void resetStats() {
         this.abandonedObjectives = 0; this.objectivesReached = 0; this.detoursTaken = 0;
         this.totalActiveTime = 0.0; this.totalWaitTime = 0.0; this.totalDistance = 0.0; this.congestionTimer = 0.0;
@@ -78,9 +98,19 @@ public class Agent implements Serializable {
         if (this.startingNode != null) { logMsg("Respawned on node " + this.startingNode.getId() + " (Restart)"); }
     }
 
+    /**
+     * Behaviors applied once all objectives in the queue have been successfully processed.
+     */
     public enum EndBehavior { STOP, REMOVE, RANDOM_WANDER }
+    
+    /**
+     * Internal structural state of the agent lifecycle framework.
+     */
     public enum agentState { AVAILABLE, CALCULATING, RUNNING, WAITING, OUT }
     
+    /**
+     * Behavioral profile defining the agent's reaction guidelines and traversal priorities.
+     */
     public enum agentBehavior {
         VIP(10), HURRIED(2), PATIENT(1), BROKEN(0); 
         private final int priority;
@@ -88,6 +118,10 @@ public class Agent implements Serializable {
         public int getPriority() { return priority; }
     }
 
+    /**
+     * Registers the starting entry anchor point location, placing the agent onto the node matrix.
+     * * @param node The physical Node location layer to instantiate positions onto.
+     */
     public void setStartingNode(Node node) {
         this.startingNode = node; this.currentNode = node; this.previousNode = node;
         logMsg("Spawned on node " + node.getId());
@@ -98,6 +132,10 @@ public class Agent implements Serializable {
     public void setAlgoType(AlgoType type) { this.algoType = type; }
     public AlgoType getAlgoType() { return this.algoType; }
 
+    /**
+     * Internal terminal routing block triggered when the objective list becomes empty.
+     * Clears physical tracking map footprints based on the configured EndBehavior.
+     */
     private void handleEndBehavior() {
         logMsg("Completed all objectives. Final behavior: " + getEndBehavior());
         clearReservations();
@@ -108,6 +146,10 @@ public class Agent implements Serializable {
         }
     }
 
+    /**
+     * Scans the pre-calculated node layout array to increment expected occupancy 
+     * density counters ahead of time, preventing deadlocks unless broken.
+     */
     private void makeReservations() {
         if (getAgentBehavior() == agentBehavior.BROKEN) return;
         clearReservations();
@@ -121,6 +163,9 @@ public class Agent implements Serializable {
         }
     }
 
+    /**
+     * Flushes and decrements expected occupation indicators across all previously requested nodes and edges.
+     */
     private void clearReservations() {
         for (Node n : getReservedNodes()) { if (n.getExpectedOccupants() > 0) n.setExpectedOccupants(n.getExpectedOccupants() - 1); }
         getReservedNodes().clear();
@@ -128,6 +173,10 @@ public class Agent implements Serializable {
         getReservedEdges().clear();
     }
 
+    /**
+     * Forces immediate evacuation from current structures, flushes tracking links, 
+     * and shifts the state to OUT to remove the agent from workspace updates safely.
+     */
     public void releaseAll() {
         clearReservations();
         if (getCurrentEdge() != null) {
@@ -139,10 +188,22 @@ public class Agent implements Serializable {
         getPath().clear(); getObjectives().clear(); setState(agentState.OUT);
     }
 
+    /**
+     * Main data constructor initializing tracking credentials.
+     * * @param id    Unique numerical reference value mapping tracking signatures.
+     * @param speed Spatial delta translation scale velocity magnitude factor.
+     * @param state Initial lifecycle configuration flag layer.
+     */
     public Agent(int id, float speed, agentState state) {
         setId(id); setSpeed(speed); setState(state); setCurrentPatience(getMaxPatience());
     }
 
+    /**
+     * Internal adjacency helper lookup mapping structural pathways connectivity.
+     * * @param s The starting source graph node model element.
+     * @param t The target destination graph node model element.
+     * @return The connecting Edge reference if validly located; null otherwise.
+     */
     private Edge findEdgeBetween(Node s, Node t) {
         int index = getGraph().getNodes().indexOf(s);
         if (index != -1) {
@@ -153,12 +214,21 @@ public class Agent implements Serializable {
         return null;
     }
 
+    /**
+     * Appends a target destination element onto the objective tracking pipeline array.
+     * Triggers navigation processing loops automatically if the agent is idle.
+     * * @param dest The target destination Node anchor object to compute routes for.
+     */
     public void addObjective(Node dest) {
         getObjectives().add(dest);
         logMsg("New objective received: Node " + dest.getId());
         if (getState() == agentState.AVAILABLE) { startNextObjective(); }
     }
 
+    /**
+     * Factories the specific discrete routing algorithm framework matching instructions parameters.
+     * * @return An instantiated path solver implementation matching requested constraints.
+     */
     private Algo getCalculator() {
         if (this.algoType == AlgoType.DIJKSTRA) {
             logMsg("Calculating path (Forced: Dijkstra)");
@@ -177,6 +247,10 @@ public class Agent implements Serializable {
         }
     }
 
+    /**
+     * Extracts the upcoming destination item to start calculations, computes routing grids, 
+     * sets up structural reservations, and marks state shifts.
+     */
     private void startNextObjective() {
         if (!getObjectives().isEmpty()) {
             setDestination(getObjectives().remove(0));
@@ -196,6 +270,10 @@ public class Agent implements Serializable {
         }
     }
 
+    /**
+     * Computes adjacent exit branches to execute random escape maneuvers 
+     * or forces dynamic path recalculated solutions when patience runs thin.
+     */
     private void applyDetour() {
         detoursTaken++;
         logMsg("!!! Looking for a detour to unblock the situation !!!");
@@ -238,6 +316,12 @@ public class Agent implements Serializable {
         setState(agentState.RUNNING); setCurrentPatience(getMaxPatience());
     }
 
+    /**
+     * Looks ahead along the upcoming path arrays to determine if subsequent 
+     * segments are over capacity thresholds, enabling early waiting triggers.
+     * * @param depth The look-ahead evaluation step horizon.
+     * @return true if the requested preview segments are clear; false if bottlenecks are detected.
+     */
     private boolean isPathClearAhead(int depth) {
         if (behavior == agentBehavior.HURRIED || behavior == agentBehavior.VIP) return true;
         if (getPath().size() < 2) return true;
@@ -255,10 +339,16 @@ public class Agent implements Serializable {
         return true;
     }
 
+    /**
+     * Main core physics frame loop tick processor method updates.
+     * Updates movement vectors, updates patience parameters, monitors structural traffic rules compliance, 
+     * evaluates emergency siren halts, handles detour switching logic and updates spatial counters.
+     * * @param deltaTime The frame delta execution multiplier scale factor tracking elapsed loop time.
+     */
     public void update(double deltaTime) {
         
         // =======================================================
-        // LOGIQUE D'ARRET D'URGENCE POUR LES VIP
+        // EMERGENCY STOP LOGIC FOR VIP PRIORITY
         // =======================================================
         if (yieldingToVIP) {
             if (getState() != agentState.WAITING) {
@@ -266,7 +356,7 @@ public class Agent implements Serializable {
                 logMsg("🚓 Sirens heard! Pulling over for VIP...");
             }
             totalWaitTime += deltaTime;
-            return; // ON QUITTE L'UPDATE : L'agent fige sur place !
+            return; // EXIT UPDATE: The agent freezes on the spot!
         }
 
         if (getState() == agentState.RUNNING || getState() == agentState.WAITING || getState() == agentState.CALCULATING) {
@@ -277,7 +367,7 @@ public class Agent implements Serializable {
             totalWaitTime += deltaTime;
             int decrease = 1;
             switch (getAgentBehavior()) {
-                case VIP: decrease = 5; break; // Le VIP perd patience hyper vite
+                case VIP: decrease = 5; break; // VIP loses patience extremely fast
                 case HURRIED: decrease = 3; break;
                 case PATIENT: decrease = 1; break;
                 case BROKEN: decrease = 1; break;
@@ -326,7 +416,7 @@ public class Agent implements Serializable {
             if (getCurrentEdge() == null) {
                 
                 if (getCurrentNode() != null && getCurrentNode().getCurrentOccupants() > getCurrentNode().getCapacity()) {
-                    if (behavior != agentBehavior.VIP) { // <-- LE VIP IGNORE LA PENALITE
+                    if (behavior != agentBehavior.VIP) { // <-- VIP IGNORES PENALTY
                         if (congestionTimer < 2.0) { 
                             congestionTimer += deltaTime;
                             if (getState() != agentState.WAITING) {
@@ -488,7 +578,6 @@ public class Agent implements Serializable {
     public void setPriority(int priority) { this.currentPriority = priority; }
     public int getCurrentPriority() { return this.currentPriority; }
     
-    // Getters et Setters pour la Sirène
     public void setYieldingToVIP(boolean yielding) { this.yieldingToVIP = yielding; }
     public boolean isYieldingToVIP() { return yieldingToVIP; }
 }

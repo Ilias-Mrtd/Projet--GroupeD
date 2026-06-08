@@ -47,12 +47,28 @@ import UI.*;
 import UI.renderers.*;
 import controllers.SelectionSystem;
 
+/**
+ * Main application class responsible for initializing and managing the 
+ * JavaFX Graphical User Interface of the Warehouse Management Simulation.
+ * It coordinates the simulation engine, graph models, entity rendering, 
+ * layout configuration, and real-time user interactions.
+ * * @author Group D
+ * @version 1.0
+ * @see javafx.application.Application
+ */
 public class Main extends Application {
 
     private final AtomicInteger nextAgentId = new AtomicInteger(1000);
     private final Random random = new Random();
     private Agent.AlgoType globalAlgo = Agent.AlgoType.RANDOM;
 
+    /**
+     * Initializes and builds the primary stage and root scene graph for the JavaFX application.
+     * Sets up UI panels, menu bars, canvas renderers, event-driven listeners, 
+     * and triggers the startup sequence of the core simulation engine.
+     * * @param primaryStage The primary stage for this application, onto which 
+     * the application scene can be set.
+     */
     @Override
     public void start(Stage primaryStage) {
 
@@ -65,13 +81,12 @@ public class Main extends Application {
         graphCanvas.setAgents(agents);
         PropertiesPanel propertiesPanel = new PropertiesPanel(graph, agents);
 
-        // ==========================================
-        // DOUBLE BARRE D'OUTILS
-        // ==========================================
+        // Top main navigation layout
         VBox topContainer = new VBox(5);
         topContainer.setStyle("-fx-background-color: #2D2D30; -fx-border-color: #3E3E42; -fx-border-width: 0 0 1 0;");
         topContainer.setPadding(new Insets(10));
-
+        
+        // Simulation engine control panel
         HBox toolbar1 = new HBox(15);
         toolbar1.setStyle("-fx-alignment: center-left;");
         Button btnRestart = new Button("🔄 Relaunch");
@@ -82,62 +97,65 @@ public class Main extends Application {
         Button btnSave = new Button("⤵️ Save");
         MenuButton menuLoad = new MenuButton("📂 Load");
         
+        // Algorithm selection configuration
         ComboBox<String> algoSelector = new ComboBox<>();
-        algoSelector.getItems().addAll("Algo : Aléatoire", "Algo : Dijkstra", "Algo : A*");
-        algoSelector.setValue("Algo : Aléatoire");
+        algoSelector.getItems().addAll("Algo: Random", "Algo: Dijkstra", "Algo: A*");
+        algoSelector.setValue("Algo: Random");
         algoSelector.setOnAction(e -> {
             if (algoSelector.getValue().contains("Dijkstra")) { globalAlgo = Agent.AlgoType.DIJKSTRA; } 
             else if (algoSelector.getValue().contains("A*")) { globalAlgo = Agent.AlgoType.ASTAR; } 
             else { globalAlgo = Agent.AlgoType.RANDOM; }
+            
+            // Dynamic routing runtime updates
             for (Agent a : engine.getAgents()) { a.setAlgoType(globalAlgo); }
         });
 
+        // Heatmap renderer option toggle
         ToggleButton btnHeatmap = new ToggleButton("🔥 Heatmap");
         btnHeatmap.setStyle("-fx-font-weight: bold; -fx-text-fill: #FF5722;");
         btnHeatmap.setOnAction(e -> { graphCanvas.setHeatmapMode(btnHeatmap.isSelected()); graphCanvas.draw(); });
 
         toolbar1.getChildren().addAll(btnRestart, btnPlay, btnPause, btnStep, btnClear, btnSave, menuLoad, new Separator(Orientation.VERTICAL), btnHeatmap, algoSelector);
 
+        // Secondary rendering & view customization bar
         HBox toolbar2 = new HBox(15);
         toolbar2.setStyle("-fx-alignment: center-left;");
         
-        Label lblSpeed = new Label("Vitesse : 1.0x");
+        Label lblSpeed = new Label("Speed: 1.0x");
         Slider speedSlider = new Slider(0.1, 5.0, 1.0);
         speedSlider.setShowTickMarks(true); speedSlider.setShowTickLabels(true); speedSlider.setMajorTickUnit(1.0); speedSlider.setBlockIncrement(0.1);
 
-        Label lblZoom = new Label("Zoom : 100%");
+        Label lblZoom = new Label("Zoom: 100%");
         Slider zoomSlider = new Slider(0.2, 2.0, 1.0); 
         zoomSlider.setShowTickMarks(true); zoomSlider.setShowTickLabels(true); zoomSlider.setMajorTickUnit(0.5);
         zoomSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            lblZoom.setText("Zoom : " + Math.round(newVal.doubleValue() * 100) + "%");
+            lblZoom.setText("Zoom: " + Math.round(newVal.doubleValue() * 100) + "%");
             graphCanvas.setZoomLevel(newVal.doubleValue());
         });
 
-        //  BOUTON CAMERA DE SUIVI
-        ToggleButton btnFollowCamera = new ToggleButton("Caméra Suivi");
+        // Toggle tracking camera bound to a selected target entity
+        ToggleButton btnFollowCamera = new ToggleButton("Follow Camera");
         btnFollowCamera.setStyle("-fx-font-weight: bold; -fx-text-fill: #00E5FF;");
         btnFollowCamera.setOnAction(e -> {
             graphCanvas.setFollowAgentMode(btnFollowCamera.isSelected());
             graphCanvas.draw();
         });
 
-        ToggleButton btnToggleRoster = new ToggleButton("Afficher Liste");
+        ToggleButton btnToggleRoster = new ToggleButton("Show List");
         btnToggleRoster.setSelected(true);
-        ToggleButton btnToggleInspector = new ToggleButton("Afficher Inspecteur");
+        ToggleButton btnToggleInspector = new ToggleButton("Show Inspector");
         btnToggleInspector.setSelected(true);
 
         toolbar2.getChildren().addAll(lblSpeed, speedSlider, new Separator(Orientation.VERTICAL), lblZoom, zoomSlider, new Separator(Orientation.VERTICAL), btnFollowCamera, btnToggleRoster, btnToggleInspector);
         topContainer.getChildren().addAll(toolbar1, toolbar2);
 
 
-        // ==========================================
-        // PANNEAU GAUCHE : ROSTER DES AGENTS
-        // ==========================================
+        // Sidebar: Real-time agent status tracker
         VBox leftPanel = new VBox(10);
         leftPanel.setPadding(new Insets(10));
         leftPanel.setStyle("-fx-background-color: #252526;");
         
-        Label leftTitle = new Label("📋 Liste des Agents");
+        Label leftTitle = new Label("📋 Agent Roster");
         leftTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #00E5FF;");
 
         TableView<Agent> agentTable = new TableView<>();
@@ -148,34 +166,36 @@ public class Main extends Application {
         idCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getId()));
         idCol.setStyle("-fx-alignment: CENTER;");
 
-        TableColumn<Agent, Agent.agentState> stateCol = new TableColumn<>("État");
+        TableColumn<Agent, Agent.agentState> stateCol = new TableColumn<>("State");
         stateCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getState()));
 
-        TableColumn<Agent, Agent.agentBehavior> behaviorCol = new TableColumn<>("Caractère");
+        // Editable behavior configurations mapped to entity properties updates
+        TableColumn<Agent, Agent.agentBehavior> behaviorCol = new TableColumn<>("Behavior");
         behaviorCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getAgentBehavior()));
         behaviorCol.setCellFactory(ComboBoxTableCell.forTableColumn(Agent.agentBehavior.values()));
         behaviorCol.setOnEditCommit(e -> {
             e.getRowValue().setAgentBehavior(e.getNewValue());
+            // Implicit physics alterations derived from behavior adjustments
             if(e.getNewValue() == agentBehavior.VIP) e.getRowValue().setSpeed(4.0f);
             else e.getRowValue().setSpeed(2.5f);
         });
 
-        TableColumn<Agent, Float> speedCol = new TableColumn<>("Vitesse");
+        TableColumn<Agent, Float> speedCol = new TableColumn<>("Speed");
         speedCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getSpeed()));
         speedCol.setCellFactory(TextFieldTableCell.forTableColumn(new FloatStringConverter()));
         speedCol.setOnEditCommit(e -> { if (e.getNewValue() != null && e.getNewValue() > 0) e.getRowValue().setSpeed(e.getNewValue()); });
 
-        TableColumn<Agent, Integer> patienceCol = new TableColumn<>("Patience max");
+        TableColumn<Agent, Integer> patienceCol = new TableColumn<>("Max Patience");
         patienceCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getMaxPatience()));
         patienceCol.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
         patienceCol.setOnEditCommit(e -> { if (e.getNewValue() != null && e.getNewValue() > 0) e.getRowValue().setMaxPatience(e.getNewValue()); });
 
-        TableColumn<Agent, Agent.AlgoType> algoCol = new TableColumn<>("Algo");
+        TableColumn<Agent, Agent.AlgoType> algoCol = new TableColumn<>("Algorithm");
         algoCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getAlgoType()));
         algoCol.setCellFactory(ComboBoxTableCell.forTableColumn(Agent.AlgoType.values()));
         algoCol.setOnEditCommit(e -> { e.getRowValue().setAlgoType(e.getNewValue()); });
 
-        TableColumn<Agent, Agent.EndBehavior> endBehaviorCol = new TableColumn<>("Action Finale");
+        TableColumn<Agent, Agent.EndBehavior> endBehaviorCol = new TableColumn<>("Final Action");
         endBehaviorCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getEndBehavior()));
         endBehaviorCol.setCellFactory(ComboBoxTableCell.forTableColumn(Agent.EndBehavior.values()));
         endBehaviorCol.setOnEditCommit(e -> { e.getRowValue().setEndBehavior(e.getNewValue()); });
@@ -187,9 +207,7 @@ public class Main extends Application {
         Runnable updateAgentTable = () -> { agentTable.getItems().setAll(agents); };
 
 
-        // ==========================================
-        // LAYOUT PRINCIPAL RESPONSIVE
-        // ==========================================
+        // Flexible Canvas & Layout architecture setup
         Pane canvasContainer = new Pane(graphCanvas);
         graphCanvas.widthProperty().bind(canvasContainer.widthProperty());
         graphCanvas.heightProperty().bind(canvasContainer.heightProperty());
@@ -203,12 +221,14 @@ public class Main extends Application {
         splitPane.getItems().addAll(leftPanel, canvasContainer, panelScroll);
         splitPane.setDividerPositions(0.30, 0.75); 
 
+        // Dynamic workspace component visibility toggling logic
         Runnable updateLayout = () -> {
             splitPane.getItems().clear();
             if (btnToggleRoster.isSelected()) splitPane.getItems().add(leftPanel);
             splitPane.getItems().add(canvasContainer);
             if (btnToggleInspector.isSelected()) splitPane.getItems().add(panelScroll);
             
+            // Layout math adjustment based on layout variations
             if (btnToggleRoster.isSelected() && btnToggleInspector.isSelected()) {
                 splitPane.setDividerPositions(0.30, 0.75);
             } else if (btnToggleRoster.isSelected() || btnToggleInspector.isSelected()) {
@@ -218,20 +238,24 @@ public class Main extends Application {
         btnToggleRoster.setOnAction(e -> updateLayout.run());
         btnToggleInspector.setOnAction(e -> updateLayout.run());
 
+        // Master UI Container Skin Definition
         BorderPane root = new BorderPane();
         root.setStyle("-fx-base: #1E1E1E; -fx-control-inner-background: #252526; -fx-background: #1E1E1E; -fx-text-base-color: #E0E0E0; -fx-accent: #00E5FF; -fx-font-family: 'Segoe UI', sans-serif;");
         
         root.setTop(topContainer);
         root.setCenter(splitPane);
 
+        // Graphics user interaction hook
         SelectionSystem selectionSystem = new SelectionSystem(graph, agents, graphCanvas);
         graphCanvas.setSelectionSystem(selectionSystem);
         graphCanvas.setOnInteraction(propertiesPanel::refresh);
 
+        // Connect data model table context selections to renderer systems
         agentTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) { selectionSystem.selectAgent(newVal); propertiesPanel.refresh(); }
         });
 
+        // Frame update throttling logic (updates table rows every 15 simulation iterations)
         int[] tickCount = {0};
         engine.setOnTick(() -> {
             graphCanvas.draw();
@@ -245,6 +269,7 @@ public class Main extends Application {
             }
         });
 
+        // I/O File System Persistence Handlers
         btnSave.setOnAction(e -> {
             FileService.ensureSaveDirectoryExists();
             FileChooser fileChooser = new FileChooser();
@@ -252,8 +277,8 @@ public class Main extends Application {
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Simulation Files", "*.sim"));
             File file = fileChooser.showSaveDialog(primaryStage);
             if (file != null) {
-                try { FileService.saveSimulation(file.getAbsolutePath(), graph, agents); showAlert(AlertType.INFORMATION, "Succès", "Simulation enregistrée avec succès !");
-                } catch (Exception ex) { showAlert(AlertType.ERROR, "Erreur", "Impossible de sauvegarder : " + ex.getMessage()); }
+                try { FileService.saveSimulation(file.getAbsolutePath(), graph, agents); showAlert(AlertType.INFORMATION, "Success", "Simulation saved successfully!");
+                } catch (Exception ex) { showAlert(AlertType.ERROR, "Error", "Unable to save file: " + ex.getMessage()); }
             }
         });
 
@@ -261,7 +286,7 @@ public class Main extends Application {
             menuLoad.getItems().clear(); 
             List<String> files = FileService.getSavedFiles();
             if (files.isEmpty()) {
-                MenuItem emptyItem = new MenuItem("Aucune sauvegarde"); emptyItem.setDisable(true); menuLoad.getItems().add(emptyItem);
+                MenuItem emptyItem = new MenuItem("No saves found"); emptyItem.setDisable(true); menuLoad.getItems().add(emptyItem);
             } else {
                 for (String fileName : files) {
                     MenuItem item = new MenuItem(fileName);
@@ -274,6 +299,7 @@ public class Main extends Application {
         btnClear.setOnAction(e -> { agents.clear(); graph.clear(); updateAgentTable.run(); });
         propertiesPanel.setSelectionSystem(selectionSystem);
 
+        // Graphical components interaction listeners
         propertiesPanel.setOnAddNode(() -> {
             int cap = propertiesPanel.getNodeCapacity();
             if (selectionSystem.hasPendingPosition()) { graph.addNode((int) selectionSystem.getPendingNodeX(), (int) selectionSystem.getPendingNodeY(), cap); selectionSystem.clearPendingPosition(); }
@@ -283,6 +309,7 @@ public class Main extends Application {
         propertiesPanel.setOnRemoveNode(() -> {
             Node sel = propertiesPanel.getSelectedNode(); if (sel == null) return;
             engine.evictAgentsFromNode(sel); graph.removeNode(sel);
+            // Evict orphan dependencies links safety loop
             for (List<Edge> edgeList : graph.getEdges()) { edgeList.removeIf(e -> e.getTarget() == sel || e.getSource() == sel); }
             graphCanvas.draw();
         });
@@ -317,14 +344,15 @@ public class Main extends Application {
         btnStep.setOnAction(e -> { engine.stop(); engine.doSingleStep(); });
 
         speedSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            double speed = Math.round(newVal.doubleValue() * 10.0) / 10.0; engine.setTimeMultiplier(speed); lblSpeed.setText("Vitesse : " + speed + "x");
+            double speed = Math.round(newVal.doubleValue() * 10.0) / 10.0; engine.setTimeMultiplier(speed); lblSpeed.setText("Speed: " + speed + "x");
         });
 
+        // Initialize default app data structures
         setupSampleGraph(graph, agents, engine);
         updateAgentTable.run(); 
 
         Scene scene = new Scene(root, 1400, 800); 
-        primaryStage.setTitle("Gestion d'entrepôt — Groupe D");
+        primaryStage.setTitle("Warehouse Management System — Group D");
         primaryStage.setScene(scene);
         primaryStage.show();
         
@@ -332,25 +360,50 @@ public class Main extends Application {
         engine.start();
     }
 
+    /**
+     * Helper method to instantiate and synchronously display a modal alert feedback window.
+     * * @param type    The JavaFX AlertType configuration representing the window style icon.
+     * @param title   The textual content mapped to the header title string bar.
+     * @param message The main body description contextual text shown inside the alert canvas.
+     */
     private void showAlert(AlertType type, String title, String message) {
         Alert alert = new Alert(type); alert.setTitle(title); alert.setHeaderText(null); alert.setContentText(message); alert.showAndWait();
     }
 
+    /**
+     * Requests data retrieval parsing from the disk storage subsystem to override runtime variables.
+     * Resets the active nodes, paths, and agents collections inside the current application stack.
+     * * @param fileName    The relative file descriptor or text name string representing the file.
+     * @param graph       The shared domain runtime Graph instance data model to flush and override.
+     * @param agents      The memory register tracking current entities arrays to refresh.
+     * @param graphCanvas The visual viewport area canvas forced to request a full interface draw.
+     */
     private void loadSimulationFile(String fileName, Graph graph, List<Agent> agents, GraphCanvas graphCanvas) {
         try { 
             FileService.SimulationData data = FileService.loadSimulation(FileService.SAVE_DIR + fileName);
             graph.resetNodes(); graph.resetEdges(); agents.clear();
             graph.addAllNodes(data.graph().getNodes()); graph.addAllEdges(data.graph().getEdges()); agents.addAll(data.agents());
             graphCanvas.draw();
-        } catch (Exception ex) { showAlert(AlertType.ERROR, "Erreur", "Impossible de charger le fichier : " + ex.getMessage()); }
+        } catch (Exception ex) { showAlert(AlertType.ERROR, "Error", "Unable to load file: " + ex.getMessage()); }
     }
 
+    /**
+     * Builds an interconnected mathematical grid layout matrix graph structure dynamically.
+     * Computes bounds safety margin distribution factors to align nodes proportional to the scene scale.
+     * * @param graph  The target topology instance data structure to push elements onto.
+     * @param agents The global monitoring list cleared prior to initializing structural alterations.
+     * @param engine The current background coordinator manager workflow.
+     * @param canvas The UI node workspace component defining width and height layout anchors.
+     * @param side   The dimension parameter defining total rows and columns counts.
+     */
     private void generateRandomGraph(Graph graph, List<Agent> agents, SimulationEngine engine, GraphCanvas canvas, int side) {
         agents.clear(); graph.setNodes(new ArrayList<>()); graph.setEdges(new ArrayList<>());
         if (side < 2) side = 2;
         int margin = 80; double w = Math.max(canvas.getWidth(), 600); double h = Math.max(canvas.getHeight(), 400);
         double spacingX = (w - 2 * margin) / Math.max(1, side - 1); double spacingY = (h - 2 * margin) / Math.max(1, side - 1); double spacing = Math.min(spacingX, spacingY);
         Node[][] grid = new Node[side][side];
+        
+        // Compute matrix locations nodes coordinates
         for (int r = 0; r < side; r++) {
             for (int c = 0; c < side; c++) {
                 int x = (int) (margin + c * spacing); int y = (int) (margin + r * spacing);
@@ -358,6 +411,7 @@ public class Main extends Application {
                 grid[r][c] = graph.getNodes().get(graph.getNodes().size() - 1);
             }
         }
+        // Link neighbors nodes linearly to structure orthogonal pathways paths configurations
         for (int r = 0; r < side; r++) {
             for (int c = 0; c < side; c++) {
                 if (c + 1 < side) graph.addEdge(grid[r][c], grid[r][c + 1], 1 + random.nextInt(5), true);
@@ -367,6 +421,14 @@ public class Main extends Application {
         canvas.draw();
     }
 
+    /**
+     * Spawns a parameterized quantity of simulation entities randomly across the existing node network.
+     * Allocates localized parameters, including variable speeds, behaviors, and initial target destinations.
+     * * @param graph  The active network reference model holding locations available for entity seeding.
+     * @param engine The processing system engine receiving the newly generated items registry.
+     * @param canvas The visual viewport requested to update changes.
+     * @param n      The amount of unique agent objects to generate and insert.
+     */
     private void spawnRandomAgents(Graph graph, SimulationEngine engine, GraphCanvas canvas, int n) {
         List<Node> nodes = graph.getNodes();
         if (nodes.isEmpty()) return;
@@ -382,6 +444,13 @@ public class Main extends Application {
         canvas.draw();
     }
 
+    /**
+     * Bootstraps standard demonstration infrastructure tracking workspace network environment.
+     * Builds a default 5x4 matrix setup equipped with predefined agent pathways for initial testing.
+     * * @param graph  The target model component to construct the initial node layout inside.
+     * @param agents The global entities registry array receiving preliminary items.
+     * @param engine The core task pipeline engine mapping runtime updates hooks.
+     */
     private void setupSampleGraph(Graph graph, List<Agent> agents, SimulationEngine engine) {
         int cols = 5; int rows = 4; int startX = 100; int startY = 100; int spacing = 150;
         Node[][] grid = new Node[rows][cols];
@@ -401,5 +470,10 @@ public class Main extends Application {
         Agent a2 = new Agent(15, 3.0f, Agent.agentState.AVAILABLE); a2.setCurrentNode(grid[0][1]); a2.setAgentBehavior(agentBehavior.HURRIED); a2.setAlgoType(globalAlgo); engine.addAgent(a2);
         for (Agent agent : engine.agents) { agent.addObjective(grid[3][4]); agent.addObjective(grid[3][0]); }
     }
+
+    /**
+     * Main runtime application entry point loop initialization sequence.
+     * * @param args Command-line execution argument matrix array parameters.
+     */
     public static void main(String[] args) { launch(args); }
 }
