@@ -85,7 +85,7 @@ public class Main extends Application {
         VBox topContainer = new VBox(5);
         topContainer.setStyle("-fx-background-color: #2D2D30; -fx-border-color: #3E3E42; -fx-border-width: 0 0 1 0;");
         topContainer.setPadding(new Insets(10));
-        
+
         // Simulation engine control panel
         HBox toolbar1 = new HBox(15);
         toolbar1.setStyle("-fx-alignment: center-left;");
@@ -96,16 +96,16 @@ public class Main extends Application {
         Button btnClear = new Button("🗑️ Clear");
         Button btnSave = new Button("⤵️ Save");
         MenuButton menuLoad = new MenuButton("📂 Load");
-        
+
         // Algorithm selection configuration
         ComboBox<String> algoSelector = new ComboBox<>();
         algoSelector.getItems().addAll("Algo: Random", "Algo: Dijkstra", "Algo: A*");
         algoSelector.setValue("Algo: Random");
         algoSelector.setOnAction(e -> {
-            if (algoSelector.getValue().contains("Dijkstra")) { globalAlgo = Agent.AlgoType.DIJKSTRA; } 
-            else if (algoSelector.getValue().contains("A*")) { globalAlgo = Agent.AlgoType.ASTAR; } 
+            if (algoSelector.getValue().contains("Dijkstra")) { globalAlgo = Agent.AlgoType.DIJKSTRA; }
+            else if (algoSelector.getValue().contains("A*")) { globalAlgo = Agent.AlgoType.ASTAR; }
             else { globalAlgo = Agent.AlgoType.RANDOM; }
-            
+
             // Dynamic routing runtime updates
             for (Agent a : engine.getAgents()) { a.setAlgoType(globalAlgo); }
         });
@@ -124,7 +124,7 @@ public class Main extends Application {
         // Secondary rendering & view customization bar
         HBox toolbar2 = new HBox(15);
         toolbar2.setStyle("-fx-alignment: center-left;");
-        
+
         Label lblSpeed = new Label("Speed: 1.0x");
         Slider speedSlider = new Slider(0.1, 5.0, 1.0);
         speedSlider.setShowTickMarks(true);
@@ -164,7 +164,7 @@ public class Main extends Application {
         VBox leftPanel = new VBox(10);
         leftPanel.setPadding(new Insets(10));
         leftPanel.setStyle("-fx-background-color: #252526;");
-        
+
         Label leftTitle = new Label("📋 Agent Roster");
         leftTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #00E5FF;");
 
@@ -386,6 +386,19 @@ public class Main extends Application {
             graphCanvas.draw();
         });
 
+        // Assigner un objectif en direct à l'agent sélectionné
+        propertiesPanel.setOnAssignObjective(() -> {
+            Agent sel = propertiesPanel.getSelectedAgent();
+            if (sel == null) return;
+            selectionSystem.startAssignObjective(sel, (agent, targetNode) -> {
+                agent.addObjective(targetNode);
+                propertiesPanel.objectiveAssignedDone();
+                System.out.println("[Main] Objectif noeud " + targetNode.getId()
+                        + " assigne a l'agent " + agent.getId());
+                graphCanvas.draw();
+            });
+        });
+
         propertiesPanel.setOnGenerateGraph(() -> {
             int side = propertiesPanel.getGenGridSide();
             generateRandomGraph(graph, agents, engine, graphCanvas, side);
@@ -418,7 +431,7 @@ public class Main extends Application {
         setupSampleGraph(graph, agents, engine);
         updateAgentTable.run();
 
-        Scene scene = new Scene(root, 1400, 800); 
+        Scene scene = new Scene(root, 1400, 800);
         primaryStage.setTitle("Warehouse Management System — Group D");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -465,7 +478,7 @@ public class Main extends Application {
     }
 
     private void generateRandomGraph(Graph graph, List<Agent> agents, SimulationEngine engine, GraphCanvas canvas,
-            int side) {
+                                     int side) {
         agents.clear();
         graph.setNodes(new ArrayList<>());
         graph.setEdges(new ArrayList<>());
@@ -478,7 +491,7 @@ public class Main extends Application {
         double spacingY = (h - 2 * margin) / Math.max(1, side - 1);
         double spacing = Math.min(spacingX, spacingY);
         Node[][] grid = new Node[side][side];
-        
+
         // Compute matrix locations nodes coordinates
         for (int r = 0; r < side; r++) {
             for (int c = 0; c < side; c++) {

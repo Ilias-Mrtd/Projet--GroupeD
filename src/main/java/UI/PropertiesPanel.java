@@ -23,6 +23,7 @@ public class PropertiesPanel extends VBox {
     private Runnable onGenerateGraph;
     private Runnable onSpawnAgents;
     private Runnable onRemoveAgent;
+    private Runnable onAssignObjective;
 
     private final Label titleLabel;
 
@@ -36,6 +37,7 @@ public class PropertiesPanel extends VBox {
     private final Button btnRemoveEdge;
     private final Button btnAddAgent;
     private final Button btnRemoveAgent;
+    private final Button btnAssignObjective;
 
     private final ComboBox<Agent.agentBehavior> cbAgentBehavior;
 
@@ -54,6 +56,7 @@ public class PropertiesPanel extends VBox {
     private final Label lblGenAgents;
 
     private boolean linkingActive = false;
+    private boolean assigningObjective = false;
 
     public PropertiesPanel(Graph graph, List<Agent> agents) {
         this.graph = graph;
@@ -211,6 +214,10 @@ public class PropertiesPanel extends VBox {
         btnRemoveAgent.setDisable(true);
         btnRemoveAgent.setOnAction(e -> handleRemoveAgent());
 
+        btnAssignObjective = buildButton("🎯 Assigner un objectif", "#FBC02D");
+        btnAssignObjective.setDisable(true);
+        btnAssignObjective.setOnAction(e -> handleAssignObjective());
+
         Separator sep4 = new Separator();
 
         // ---- Section génération de masse ----
@@ -245,7 +252,7 @@ public class PropertiesPanel extends VBox {
                 titleLabel, inspectorTabs,
                 sep1, lblNodeSection, nodeCapBox, chkUnderConstruction, btnAddNode, btnRemoveNode,
                 sep2, lblEdgeSection, edgeCapBox, edgeSpeedBox, btnToggleDir, btnAddEdge, btnRemoveEdge,
-                sep3, lblAgentSection, cbAgentBehavior, btnAddAgent, btnRemoveAgent, 
+                sep3, lblAgentSection, cbAgentBehavior, btnAddAgent, btnRemoveAgent, btnAssignObjective,
                 sep4, lblGenSection, genNodesBox, btnGenerateGraph, genAgentsBox, btnSpawnAgents);
     }
 
@@ -265,7 +272,8 @@ public class PropertiesPanel extends VBox {
     public void setOnGenerateGraph(Runnable r) { this.onGenerateGraph = r; }
     public void setOnSpawnAgents(Runnable r) { this.onSpawnAgents = r; }
     public void setOnRemoveAgent(Runnable r) { this.onRemoveAgent = r; }
-    
+    public void setOnAssignObjective(Runnable r) { this.onAssignObjective = r; }
+
     public Agent.agentBehavior getSelectedAgentBehavior() {
         return cbAgentBehavior.getValue();
     }
@@ -349,6 +357,12 @@ public class PropertiesPanel extends VBox {
         btnRemoveEdge.setDisable(!edgeSelected);
         btnRemoveAgent.setDisable(!agentSelected);
 
+        // bouton "assigner objectif" actif seulement si un agent est sélectionné
+        // (sauf pendant le mode actif où on garde le libellé d'annulation)
+        if (!assigningObjective) {
+            btnAssignObjective.setDisable(!agentSelected);
+        }
+
         if (linkingActive) {
             btnAddEdge.setText("↩ Annuler liaison");
             btnAddEdge.setStyle(buttonStyle("#F57C00"));
@@ -357,11 +371,19 @@ public class PropertiesPanel extends VBox {
             btnAddEdge.setStyle(buttonStyle("#7B1FA2"));
         }
 
+        if (assigningObjective) {
+            btnAssignObjective.setText("↩ Annuler objectif");
+            btnAssignObjective.setStyle(buttonStyle("#F57C00"));
+        } else {
+            btnAssignObjective.setText("🎯 Assigner un objectif");
+            btnAssignObjective.setStyle(buttonStyle("#FBC02D"));
+        }
+
         updateGlobalScoreboard();
     }
 
     private void updateGlobalScoreboard() {
-        int[] counts = new int[3]; 
+        int[] counts = new int[3];
         int[] objs = new int[3];
         int[] abds = new int[3];
         double[] act = new double[3];
@@ -384,7 +406,7 @@ public class PropertiesPanel extends VBox {
 
         String[] names = { " ÉQUIPE DIJKSTRA", " ÉQUIPE A-STAR", " ÉQUIPE ALÉATOIRE" };
         for (int i = 0; i < 3; i++) {
-            if (counts[i] == 0) continue; 
+            if (counts[i] == 0) continue;
             double avgEff = 100.0;
             if (act[i] > 0) avgEff = ((act[i] - wait[i]) / act[i]) * 100.0;
             sb.append(names[i]).append("\n  Agents actifs : ").append(counts[i]).append("\n  Obj. atteints : ").append(objs[i]).append("\n  Obj. ratés    : ").append(abds[i]).append("\n  Efficacité    : ").append(String.format("%.1f%%", avgEff)).append("\n  Attente (total): ").append(String.format("%.1fs", wait[i])).append("\n\n");
@@ -454,6 +476,25 @@ public class PropertiesPanel extends VBox {
         Agent sel = selectionSystem != null ? selectionSystem.getLastSelectedAgent() : null;
         if (sel == null) return;
         if (onRemoveAgent != null) onRemoveAgent.run();
+    }
+
+    private void handleAssignObjective() {
+        if (selectionSystem == null) return;
+        if (assigningObjective) {
+            // annulation
+            selectionSystem.cancelAssignObjective();
+            assigningObjective = false;
+            return;
+        }
+        Agent sel = selectionSystem.getLastSelectedAgent();
+        if (sel == null) return;
+        assigningObjective = true;
+        if (onAssignObjective != null) onAssignObjective.run();
+    }
+
+    // Appelée par Main une fois l'objectif posé (pour réinitialiser le bouton)
+    public void objectiveAssignedDone() {
+        assigningObjective = false;
     }
 
     private Object findSelectedItem() {

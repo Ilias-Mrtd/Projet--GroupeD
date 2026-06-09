@@ -32,9 +32,13 @@ public class SelectionSystem {
     private double pendingNodeY = -1;
     private boolean hasPendingPosition = false;
 
-    public enum Mode { NORMAL, LINKING_EDGE }
+    // NEW : ajout du mode ASSIGN_OBJECTIVE
+    public enum Mode { NORMAL, LINKING_EDGE, ASSIGN_OBJECTIVE }
     private Mode mode = Mode.NORMAL;
     private Node linkSource = null;
+
+    // NEW : agent qui recevra l'objectif pendant ASSIGN_OBJECTIVE
+    private Agent objectiveAgent = null;
 
     @FunctionalInterface
     public interface EdgeLinkCallback { void onEdgeLink(Node source, Node target); }
@@ -43,6 +47,11 @@ public class SelectionSystem {
     @FunctionalInterface
     public interface EmptyClickCallback { void onEmptyClick(double x, double y); }
     private EmptyClickCallback emptyClickCallback = null;
+
+    // NEW : callback quand un objectif est assigné (agent, nœud cible)
+    @FunctionalInterface
+    public interface ObjectiveCallback { void onObjectiveAssigned(Agent agent, Node target); }
+    private ObjectiveCallback objectiveCallback = null;
 
     public SelectionSystem(Graph graph, List<Agent> agents, GraphCanvas canvas) {
         this.graph  = graph;
@@ -66,6 +75,30 @@ public class SelectionSystem {
         canvas.draw();
     }
 
+    // NEW : démarre le mode "assigner un objectif" pour un agent donné
+    public void startAssignObjective(Agent agent, ObjectiveCallback callback) {
+        if (agent == null) return;
+        this.mode              = Mode.ASSIGN_OBJECTIVE;
+        this.objectiveAgent    = agent;
+        this.objectiveCallback = callback;
+        // on garde l'agent sélectionné visuellement
+        clearAllSelections();
+        objectiveAgent = agent;
+        agent.setSelected(true);
+        lastSelectedAgent = agent;
+        canvas.draw();
+        System.out.println("[SelectionSystem] Mode ASSIGN_OBJECTIVE — cliquez sur un nœud cible pour l'agent " + agent.getId());
+    }
+
+    // NEW : annule le mode objectif
+    public void cancelAssignObjective() {
+        mode              = Mode.NORMAL;
+        objectiveAgent    = null;
+        objectiveCallback = null;
+        canvas.draw();
+        System.out.println("[SelectionSystem] Mode ASSIGN_OBJECTIVE annulé.");
+    }
+
     public void setOnEmptyClick(EmptyClickCallback cb) { this.emptyClickCallback = cb; }
 
     public Mode   getMode()               { return mode; }
@@ -80,18 +113,21 @@ public class SelectionSystem {
     public void handleMouseClick(MouseEvent event) {
         if (event.getButton() == MouseButton.SECONDARY) {
             if (mode == Mode.LINKING_EDGE) cancelEdgeLinking();
+            else if (mode == Mode.ASSIGN_OBJECTIVE) cancelAssignObjective();   // NEW
             return;
         }
-        // NOUVEAU : Conversion des coordonnées Souris -> Carte
+        // Conversion des coordonnées Souris -> Carte
         Point2D worldPos = canvas.screenToWorld(event.getX(), event.getY());
         double x = worldPos.getX();
         double y = worldPos.getY();
-        
-        if (mode == Mode.LINKING_EDGE) handleLinkingClick(x, y);
-        else                           handleNormalClick(x, y);
+
+        if (mode == Mode.LINKING_EDGE)            handleLinkingClick(x, y);
+        else if (mode == Mode.ASSIGN_OBJECTIVE)   handleObjectiveClick(x, y);  // NEW
+        else                                      handleNormalClick(x, y);
     }
 
     public void handleMousePressed(MouseEvent event) {
+        // Pas de drag pendant les modes spéciaux
         if (event.getButton() != MouseButton.PRIMARY || mode != Mode.NORMAL) return;
         Point2D worldPos = canvas.screenToWorld(event.getX(), event.getY());
         double x = worldPos.getX();
@@ -153,6 +189,22 @@ public class SelectionSystem {
         }
     }
 
+    // NEW : gestion du clic en mode ASSIGN_OBJECTIVE
+    private void handleObjectiveClick(double x, double y) {
+        Node clicked = findNodeAt(x, y);
+        if (clicked == null) return; // on ignore les clics dans le vide
+
+        Agent agent = objectiveAgent;
+        // on repasse en mode normal avant le callback
+        mode = Mode.NORMAL;
+        if (agent != null && objectiveCallback != null) {
+            objectiveCallback.onObjectiveAssigned(agent, clicked);
+        }
+        objectiveAgent    = null;
+        objectiveCallback = null;
+        canvas.draw();
+    }
+
     private void handleNormalClick(double x, double y) {
         clearAllSelections();
         hasPendingPosition = false;
@@ -193,7 +245,7 @@ public class SelectionSystem {
         if (lastSelectedEdge  != null) { lastSelectedEdge.setSelected(false); lastSelectedEdge = null; }
         if (lastSelectedAgent != null) { lastSelectedAgent.setSelected(false); lastSelectedAgent = null; }
     }
-    
+
     public void selectAgent(Agent agent) {
         clearAllSelections();
         if (agent != null) {
@@ -236,7 +288,6 @@ public class SelectionSystem {
         return null;
     }
 
-    // Doit être PUBLIC pour que le Canvas puisse calculer la position de la caméra !
     public Point2D computeAgentPosition(Agent agent) {
         if (agent.getCurrentNode() == null) return null;
         if (agent.getCurrentEdge() == null) return new Point2D(agent.getCurrentNode().getX(), agent.getCurrentNode().getY());
