@@ -2,179 +2,139 @@ package simulationEngine.algorithm;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import model.graph.*;
 
 public class Dijkstra extends Algo {
 
     private static final double TRAFFIC_PENALTY = 5000.0;
 
-    @Override
-    public String toString() {
-        String s = getCurrentNode().getId() + ":";
-        for (Node node : getPath()) {
-            s += node.getId() + ";";
-        }
-        return s;
-    }
-
     public Dijkstra(Graph graph, Node source, Node target) {
         super(graph, source, target);
     }
 
+    /**
+     * Serializes the current path node chain into a formatted string sequence.
+     * @return A semicolon-separated list of node IDs.
+     */
+    @Override
+    public String toString() {
+        StringBuilder s = new StringBuilder(getCurrentNode().getId() + ":");
+        for (Node node : getPath()) {
+            s.append(node.getId()).append(";");
+        }
+        return s.toString();
+    }
+
+    /**
+     * Executes the Dijkstra path minimization graph traversal algorithm.
+     * @param graph The model network topology.
+     * @param source The origin entry vertex.
+     * @param target The requested objective node.
+     */
     @Override
     public void findPath(Graph graph, Node source, Node target) {
-        List<Node> nearestVertice = new ArrayList<>(); // liste du noeud precedent
-        List<Boolean> foundVertice = new ArrayList<>(); // liste de confirmation
-        List<Double> pathLength = new ArrayList<>(); // distances a la source
-        int indiceSource = 0;
         int graphSize = graph.getNodes().size();
+        List<Node> nearestVertice = new ArrayList<>(graphSize);
+        List<Boolean> foundVertice = new ArrayList<>(graphSize);
+        List<Double> pathLength = new ArrayList<>(graphSize);
 
-        // initialisation
+        // Reused inherited nodeIndice to eliminate manual ID verification loops
+        int sourceIndex = nodeIndice(graph, source, graphSize);
+
         for (int i = 0; i < graphSize; i++) {
             foundVertice.add(false);
             nearestVertice.add(null);
             pathLength.add(Double.POSITIVE_INFINITY);
-            if (graph.getNodes().get(i).getId() == source.getId()) {
-                foundVertice.set(i, true);
-                indiceSource = i;
-                pathLength.set(i, 0.0);
-            }
         }
 
-        int indiceMinimum = indiceSource;
+        if (sourceIndex == -1) return;
+
+        foundVertice.set(sourceIndex, true);
+        pathLength.set(sourceIndex, 0.0);
+
+        int indiceMinimum = sourceIndex;
 
         for (int j = 0; j < graphSize - 1; j++) {
             if (graph.getNodes().get(indiceMinimum).getId() == target.getId() && foundVertice.get(indiceMinimum)) {
                 System.out.println("Chemin trouver !");
                 break;
-            } else {
-                double minimumLength = Double.POSITIVE_INFINITY;
-                if (graph.getEdges().get(indiceSource).size() > 0) {
-                    // 1er phase
-                    for (int i = 0; i < graph.getEdges().get(indiceSource).size(); i++) {
-                        Edge edge = graph.getEdges().get(indiceSource).get(i);
-                        if (edge.hasDirection()) {
-                            Node destNode = destination(graph.getNodes().get(indiceSource), edge);
+            }
 
-                            // NOUVEAU : On ignore totalement les noeuds en travaux !
-                            if (destNode.isUnderConstruction())
-                                continue;
+            double minimumLength = Double.POSITIVE_INFINITY;
+            if (!graph.getEdges().get(sourceIndex).isEmpty()) {
+                
+                // Scan and relax weights for all connected edges
+                for (int i = 0; i < graph.getEdges().get(sourceIndex).size(); i++) {
+                    Edge edge = graph.getEdges().get(sourceIndex).get(i);
+                    Node destNode = null;
 
-                            // NOUVEAU : On divise la longueur par le multiplicateur de vitesse
-                            double dynamicCost = (edge.getLength() / edge.getSpeedModifier())
-                                    + (edge.getExpectedOccupants() * getTrafficPenalty())
-                                    + (destNode.getExpectedOccupants() * getTrafficPenalty());
-
-                            int destIndex = nodeIndice(graph, destNode, graphSize);
-
-                            if (pathLength.get(indiceSource) + dynamicCost < pathLength.get(destIndex)) {
-                                nearestVertice.set(destIndex, graph.getNodes().get(indiceSource));
-                                pathLength.set(destIndex, pathLength.get(indiceSource) + dynamicCost);
-                            }
+                    if (!edge.hasDirection()) {
+                        if (edge.getSource() == graph.getNodes().get(sourceIndex)) {
+                            destNode = edge.getTarget();
                         } else {
-                            if (edge.getTarget() != graph.getNodes().get(indiceSource)) {
-                                Node destNode = edge.getTarget();
-
-                                // NOUVEAU : Pareil pour le sens inverse
-                                if (destNode.isUnderConstruction())
-                                    continue;
-
-                                // NOUVEAU : Division par la vitesse
-                                double dynamicCost = (edge.getLength() / edge.getSpeedModifier())
-                                        + (edge.getExpectedOccupants() * getTrafficPenalty())
-                                        + (destNode.getExpectedOccupants() * getTrafficPenalty());
-
-                                int destIndex = nodeIndice(graph, destNode, graphSize);
-
-                                if (pathLength.get(indiceSource) + dynamicCost < pathLength.get(destIndex)) {
-                                    nearestVertice.set(destIndex, graph.getNodes().get(indiceSource));
-                                    pathLength.set(destIndex, pathLength.get(indiceSource) + dynamicCost);
-                                }
-                            }
+                            continue;
                         }
-                    }
-                    // phase de validation
-                    for (int i = 0; i < graphSize; i++) {
-                        if (pathLength.get(i) <= minimumLength && foundVertice.get(i) == false) {
-                            minimumLength = pathLength.get(i);
-                            indiceMinimum = i;
-                        }
-                    }
-                    foundVertice.set(indiceMinimum, true);
-                    indiceSource = indiceMinimum;
-                } else {
-                    // phase de validation
-                    for (int i = 0; i < graphSize; i++) {
-                        if (pathLength.get(i) <= minimumLength && foundVertice.get(i) == false) {
-                            if (graph.getEdges().size() > indiceSource
-                                    && graph.getEdges().get(indiceMinimum).size() > i) {
-                                minimumLength = graph.getEdges().get(indiceSource).get(i).getLength();
-                                indiceMinimum = i;
-                            } else {
-                                // Case where the path doesn't exist ಥ_ಥ
-                                System.out.println("The assigned objective is not accessible for this agent.");
-                                // Il serait interessant de reassigner l'objectif a un autre agent
-                                getPath().clear();
-                                return;
-                            }
-                        }
-                        foundVertice.set(indiceMinimum, true);
-                        indiceSource = indiceMinimum;
-                    }
-                }
-            }
-        }
-        // creation de la liste de noeuds
-        Node auxNode = target;
-        for (int v = 0; v < graphSize; v++) {
-            for (int u = 0; u < graphSize; u++) {
-                if (auxNode == null) {
-                    getPath().clear();
-                    break;
-                } else {
-                    if (auxNode.getId() == source.getId()) {
-                        break;
                     } else {
-                        if (graph.getNodes().get(u).getId() == auxNode.getId()) {
-                            getPath().add(0, graph.getNodes().get(u));
-                            auxNode = nearestVertice.get(u);
+                        destNode = destination(graph.getNodes().get(sourceIndex), edge);
+                    }
+
+                    if (destNode == null || destNode.isUnderConstruction()) continue;
+
+                    // Consolidated unified cost assignment logic pipeline
+                    double dynamicCost = (edge.getLength() / edge.getSpeedModifier())
+                            + (edge.getExpectedOccupants() * TRAFFIC_PENALTY)
+                            + (destNode.getExpectedOccupants() * TRAFFIC_PENALTY);
+
+                    int destIndex = nodeIndice(graph, destNode, graphSize);
+
+                    if (pathLength.get(sourceIndex) + dynamicCost < pathLength.get(destIndex)) {
+                        nearestVertice.set(destIndex, graph.getNodes().get(sourceIndex));
+                        pathLength.set(destIndex, pathLength.get(sourceIndex) + dynamicCost);
+                    }
+                }
+
+                // Evaluation validation phase
+                for (int i = 0; i < graphSize; i++) {
+                    if (!foundVertice.get(i) && pathLength.get(i) <= minimumLength) {
+                        minimumLength = pathLength.get(i);
+                        indiceMinimum = i;
+                    }
+                }
+                foundVertice.set(indiceMinimum, true);
+                sourceIndex = indiceMinimum;
+            } else {
+                // Evaluation validation phase for dead ends
+                for (int i = 0; i < graphSize; i++) {
+                    if (!foundVertice.get(i) && pathLength.get(i) <= minimumLength) {
+                        if (graph.getEdges().size() > sourceIndex && graph.getEdges().get(indiceMinimum).size() > i) {
+                            minimumLength = graph.getEdges().get(sourceIndex).get(i).getLength();
+                            indiceMinimum = i;
+                        } else {
+                            System.out.println("The assigned objective is not accessible for this agent.");
+                            getPath().clear();
+                            return;
                         }
                     }
                 }
-                if (auxNode == null) {
-                    getPath().clear();
-                    break;
-                } else {
-                    if (auxNode.getId() == source.getId()) {
-                        break;
-                    }
-                }
+                foundVertice.set(indiceMinimum, true);
+                sourceIndex = indiceMinimum;
             }
         }
-        /**
-         * Affiche le tableau de Dijkstra
-         * for (Node node : graph.Nodes) {
-         * System.out.print(node.id + " ");
-         * }
-         * System.out.println();
-         * for (Node node : nearestVertice) {
-         * if (node == null) {
-         * System.out.print("null ");
-         * } else {
-         * System.out.print(node.id + " ");
-         * }
-         * }
-         * System.out.println();
-         * for (double d : pathLength) {
-         * System.out.print(d + " ");
-         * }
-         * System.out.println();
-         */
+
+        // Cleaned up trace-back path building sequence using AStar standard
+        Node auxNode = target;
+        while (auxNode != null && auxNode.getId() != source.getId()) {
+            int u = nodeIndice(graph, auxNode, graphSize);
+            if (u == -1 || nearestVertice.get(u) == null) {
+                getPath().clear();
+                return;
+            }
+            getPath().add(0, auxNode);
+            auxNode = nearestVertice.get(u);
+        }
     }
 
     public static double getTrafficPenalty() {
         return TRAFFIC_PENALTY;
     }
-
 }

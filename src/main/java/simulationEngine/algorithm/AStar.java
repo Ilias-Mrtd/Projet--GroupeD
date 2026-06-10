@@ -12,10 +12,22 @@ public class AStar extends Algo {
         super(graph, source, target);
     }
 
+    /**
+     * Calculates the straight-line Euclidean distance heuristic between two nodes.
+     * @param a The origin node.
+     * @param b The destination node.
+     * @return The straight-line distance cost.
+     */
     private double heuristic(Node a, Node b) {
         return Math.sqrt(Math.pow(a.getX() - b.getX(), 2) + Math.pow(a.getY() - b.getY(), 2));
     }
 
+    /**
+     * Executes the A* pathfinding loop using dynamic weights and directional constraints.
+     * @param graph The model network topology.
+     * @param source The origin entry vertex.
+     * @param target The requested objective node.
+     */
     @Override
     public void findPath(Graph graph, Node source, Node target) {
         int graphSize = graph.getNodes().size();
@@ -24,18 +36,15 @@ public class AStar extends Algo {
         List<Double> gScore = new ArrayList<>(graphSize); 
         List<Double> fScore = new ArrayList<>(graphSize); 
 
-        int sourceIndex = -1;
-        int targetIndex = -1;
+        // Refactored: Reused inherited nodeIndice to eliminate manual ID check loops
+        int sourceIndex = nodeIndice(graph, source, graphSize);
+        int targetIndex = nodeIndice(graph, target, graphSize);
 
         for (int i = 0; i < graphSize; i++) {
             closedSet.add(false);
             nearestVertice.add(null);
             gScore.add(Double.POSITIVE_INFINITY);
             fScore.add(Double.POSITIVE_INFINITY);
-            
-            Node n = graph.getNodes().get(i);
-            if (n.getId() == source.getId()) sourceIndex = i;
-            if (n.getId() == target.getId()) targetIndex = i;
         }
 
         if (sourceIndex == -1 || targetIndex == -1) return;
@@ -63,12 +72,12 @@ public class AStar extends Algo {
             for (Edge edge : graph.getEdges().get(current)) {
                 Node neighbor = null;
                 
-                // CORRECTION : true = Bidirectionnel, false = Sens unique !
+                // Directional constraint enforcement mapping loops
                 if (!edge.hasDirection()) {
                     if (edge.getSource() == currentNode) {
                         neighbor = edge.getTarget();
                     } else {
-                        continue; // Sens interdit !
+                        continue; 
                     }
                 } else {
                     neighbor = (edge.getSource() == currentNode) ? edge.getTarget() : edge.getSource();
@@ -79,6 +88,7 @@ public class AStar extends Algo {
                 int neighborIndex = nodeIndice(graph, neighbor, graphSize);
                 if (closedSet.get(neighborIndex)) continue;
 
+                // Dynamic weight generation factoring in traffic delays and speeds
                 double dynamicCost = (edge.getLength() / edge.getSpeedModifier())
                         + (edge.getExpectedOccupants() * TRAFFIC_PENALTY)
                         + (neighbor.getExpectedOccupants() * TRAFFIC_PENALTY);
@@ -93,6 +103,7 @@ public class AStar extends Algo {
             }
         }
 
+        // Reconstruct the sequential path trace back to origin
         Node auxNode = target;
         while (auxNode != null && auxNode.getId() != source.getId()) {
             int u = nodeIndice(graph, auxNode, graphSize);
