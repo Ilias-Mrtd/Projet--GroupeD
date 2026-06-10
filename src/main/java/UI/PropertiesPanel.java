@@ -536,14 +536,22 @@ public class PropertiesPanel extends VBox {
     }
 
     private void handleAddNode() {
-        if (onAddNode != null)
+        if (onAddNode != null) {
             onAddNode.run();
-        else {
+        } else {
+            int x, y;
             if (selectionSystem != null && selectionSystem.hasPendingPosition()) {
-                graph.addNode((int) selectionSystem.getPendingNodeX(),
-                        (int) selectionSystem.getPendingNodeY(), nodeCapacity);
+                x = (int) selectionSystem.getPendingNodeX();
+                y = (int) selectionSystem.getPendingNodeY();
             } else {
-                graph.addNode(400, 300, nodeCapacity);
+                x = 400;
+                y = 300;
+            }
+
+            if (!graph.isNodePositionAvailable(x, y, Node.RADIUS, null)) {
+                System.out.println("Impossible d'ajouter le nœud : position en collision avec un autre objet.");
+            } else {
+                graph.addNode(x, y, nodeCapacity);
             }
         }
         btnAddNode.setText("➕ Ajouter un nœud ici");
@@ -573,7 +581,11 @@ public class PropertiesPanel extends VBox {
             final int cap = edgeCapacity;
             final boolean dir = edgeDirection;
             selectionSystem.startEdgeLinking((source, target) -> {
-                graph.addEdge(source, target, cap, dir);
+                if (!graph.canAddEdge(source, target, dir)) {
+                    System.out.println("Impossible d'ajouter l'arête : connexion déjà existante ou invalide.");
+                } else {
+                    graph.addEdge(source, target, cap, dir);
+                }
                 linkingActive = false;
             });
         }

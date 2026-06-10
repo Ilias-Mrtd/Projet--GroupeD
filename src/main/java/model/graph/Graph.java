@@ -49,7 +49,77 @@ public class Graph implements Serializable {
         return newId;
     }
 
+    private static final double EDGE_CLEARANCE         = 6.0;
+
+    public boolean isNodePositionAvailable(double x, double y, double radius, Node ignoredNode) {
+        for (Node node : getNodes()) {
+            if (node == ignoredNode) continue;
+            double dx = node.getX() - x;
+            double dy = node.getY() - y;
+            if (Math.hypot(dx, dy) < (radius + Node.RADIUS + Node.COLLISION_CLEARANCE)) {
+                return false;
+            }
+        }
+
+        for (List<Edge> edgeList : getEdges()) {
+            for (Edge edge : edgeList) {
+                if (isPointNearEdge(x, y, edge, radius + EDGE_CLEARANCE)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public boolean canAddEdge(Node source, Node target, boolean direction) {
+        if (source == null || target == null || source.getId() == target.getId()) {
+            return false;
+        }
+
+        for (List<Edge> edgeList : getEdges()) {
+            for (Edge existing : edgeList) {
+                if (sameConnection(existing, source, target)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private boolean sameConnection(Edge edge, Node source, Node target) {
+        boolean directMatch = edge.getSource().getId() == source.getId() && edge.getTarget().getId() == target.getId();
+        boolean reverseMatch = edge.getSource().getId() == target.getId() && edge.getTarget().getId() == source.getId();
+        return directMatch || reverseMatch;
+    }
+
+    private boolean isPointNearEdge(double x, double y, Edge edge, double minDistance) {
+        double x1 = edge.getSource().getX();
+        double y1 = edge.getSource().getY();
+        double x2 = edge.getTarget().getX();
+        double y2 = edge.getTarget().getY();
+
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        double segmentSquared = Math.pow(dx, 2) + Math.pow(dy, 2);
+        if (segmentSquared == 0) {
+            return Math.hypot(x - x1, y - y1) <= minDistance;
+        }
+
+        double t = ((x - x1) * dx + (y - y1) * dy) / segmentSquared;
+        t = Math.max(0, Math.min(1, t));
+
+        double projectionX = x1 + t * dx;
+        double projectionY = y1 + t * dy;
+        return Math.hypot(x - projectionX, y - projectionY) <= minDistance;
+    }
+
     public void addNode(int x, int y, int capacity) {
+        if (!isNodePositionAvailable(x, y, Node.RADIUS, null)) {
+            System.out.println("Node placement rejected: position overlaps existing node or edge.");
+            return;
+        }
 
         // Creation du noeud avec nouvel id unique
         int newId = newNodeId();
@@ -64,6 +134,11 @@ public class Graph implements Serializable {
     }
 
     public void addEdge(Node source, Node target, int capacity, boolean direction) {
+        if (!canAddEdge(source, target, direction)) {
+            System.out.println("Edge creation rejected: same connection already exists or invalid endpoint.");
+            return;
+        }
+
         // Creation de l'arete avec nouvel id unique
         int newId = newEdgeId();
         Edge newEdge = new Edge(newId, source, target, capacity, direction);

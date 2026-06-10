@@ -8,6 +8,9 @@ import model.agents.Agent;
 
 public class Node implements Serializable {
 
+    public static final double RADIUS = 16.0;
+    public static final double COLLISION_CLEARANCE = 2.0;
+
     private int id;
     private float x;
     private float y;

@@ -16,7 +16,6 @@ public class SelectionSystem {
     private final GraphCanvas canvas;
     private final List<Agent> agents;
 
-    private static final double NODE_RADIUS  = 30.0;
     private static final double AGENT_RADIUS = 10.0;
     private static final double EDGE_TOL     = 5.0;
 
@@ -119,11 +118,23 @@ public class SelectionSystem {
     public void handleMouseDragged(MouseEvent event) {
         if (!draggingNode || lastSelectedNode == null || mode != Mode.NORMAL) return;
 
-        double x = event.getX() - dragOffsetX;
-        double y = event.getY() - dragOffsetY;
+        double desiredX = event.getX() - dragOffsetX;
+        double desiredY = event.getY() - dragOffsetY;
 
-        lastSelectedNode.setX((float) x);
-        lastSelectedNode.setY((float) y);
+        if (graph.isNodePositionAvailable(desiredX, desiredY, Node.RADIUS, lastSelectedNode)) {
+            lastSelectedNode.setX((float) desiredX);
+            lastSelectedNode.setY((float) desiredY);
+        } else {
+            Point2D current = new Point2D(lastSelectedNode.getX(), lastSelectedNode.getY());
+            Point2D target = new Point2D(desiredX, desiredY);
+            Point2D validTarget = computeMaxValidPosition(current, target);
+
+            if (!validTarget.equals(current)) {
+                lastSelectedNode.setX((float) validTarget.getX());
+                lastSelectedNode.setY((float) validTarget.getY());
+            }
+        }
+
         graph.refreshEdgeLengths();
         canvas.draw();
     }
@@ -184,6 +195,12 @@ public class SelectionSystem {
             return;
         }
 
+        if (!graph.isNodePositionAvailable(x, y, Node.RADIUS, null)) {
+            System.out.println("Position invalide pour ajouter un nœud : trop proche d'un autre élément.");
+            canvas.draw();
+            return;
+        }
+
         pendingNodeX       = x;
         pendingNodeY       = y;
         hasPendingPosition = true;
@@ -202,7 +219,7 @@ public class SelectionSystem {
     private Node findNodeAt(double x, double y) {
         Point2D click = new Point2D(x, y);
         for (Node node : graph.getNodes())
-            if (click.distance(new Point2D(node.getX(), node.getY())) <= NODE_RADIUS)
+            if (click.distance(new Point2D(node.getX(), node.getY())) <= Node.RADIUS)
                 return node;
         return null;
     }
@@ -214,6 +231,27 @@ public class SelectionSystem {
             if (pos != null && click.distance(pos) <= AGENT_RADIUS) return a;
         }
         return null;
+    }
+
+    private Point2D computeMaxValidPosition(Point2D current, Point2D target) {
+        double low = 0.0;
+        double high = 1.0;
+        Point2D best = current;
+
+        for (int i = 0; i < 12; i++) {
+            double mid = (low + high) / 2.0;
+            double testX = current.getX() + (target.getX() - current.getX()) * mid;
+            double testY = current.getY() + (target.getY() - current.getY()) * mid;
+
+            if (graph.isNodePositionAvailable(testX, testY, Node.RADIUS, lastSelectedNode)) {
+                best = new Point2D(testX, testY);
+                low = mid;
+            } else {
+                high = mid;
+            }
+        }
+
+        return best;
     }
 
     private Edge findEdgeAt(double x, double y) {
@@ -240,7 +278,7 @@ public class SelectionSystem {
         double edgeLength = edge.getLength();
         double visualDist = agent.getDistanceTraveledOnEdge();
         if (visualDist >= edgeLength)
-            visualDist = Math.max(0, edgeLength - NODE_RADIUS - (AGENT_RADIUS / 2.0));
+            visualDist = Math.max(0, edgeLength - Node.RADIUS - (AGENT_RADIUS / 2.0));
 
         double t    = (edgeLength > 0) ? Math.min(visualDist / edgeLength, 1.0) : 1.0;
         Node   from = (edge.getSource() == agent.getCurrentNode()) ? edge.getSource() : edge.getTarget();
@@ -261,7 +299,7 @@ public class SelectionSystem {
     }
 
     public static double getNodeRadius() {
-        return NODE_RADIUS;
+        return Node.RADIUS;
     }
 
     public static double getAgentRadius() {

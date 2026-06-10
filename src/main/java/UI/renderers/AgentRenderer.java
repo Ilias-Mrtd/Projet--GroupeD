@@ -9,7 +9,7 @@ import model.graph.Edge;
 import model.graph.Node;
 
 public class AgentRenderer implements AgentRendering {
-    private final int NODE_RADIUS = 15;
+    private final double NODE_RADIUS = Node.RADIUS;
     private final int AGENT_RADIUS = 10;
     private final float EDGE_WIDTH = 8.0f;
     private Color agentColor = Color.GREEN;

@@ -6,7 +6,7 @@ import javafx.scene.paint.Color;
 import model.graph.Node;
 
 public class NodeRenderer implements NodeRendering {
-    protected final int RADIUS = 30;
+    protected final double RADIUS = Node.RADIUS;
 
     @Override
     public void drawNode(GraphicsContext gc, Node node) {
