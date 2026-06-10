@@ -7,29 +7,43 @@ import model.graph.Edge;
 public class EdgeRenderer implements EdgeRendering {
     private final float EDGE_WIDTH = 8.0f;
 
+    /**
+     * Renders a single graph edge on the canvas, applying status colors, 
+     * traffic stress gradients, selection highlights, and directional markers.
+     * @param gc The active graphics context of the canvas.
+     * @param edge The target graph edge to draw.
+     */
     @Override
     public void drawEdge(GraphicsContext gc, Edge edge) {
+        // Cache node coordinates to avoid redundant reference lookups
+        double xSource = edge.getSource().getX();
+        double ySource = edge.getSource().getY();
+        double xTarget = edge.getTarget().getX();
+        double yTarget = edge.getTarget().getY();
 
-        // Halo de sélection CYAN
+        // 1. Render selection halo highlight
         if (edge.isSelected()) {
             gc.setStroke(Color.web("#00E5FF"));
             gc.setLineWidth(EDGE_WIDTH + 10.0f);
-            gc.strokeLine(edge.getSource().getX(), edge.getSource().getY(), edge.getTarget().getX(), edge.getTarget().getY());
+            gc.strokeLine(xSource, ySource, xTarget, yTarget);
         }
 
-        // Effet "Asphalte" (Route de fond)
+        // 2. Render asphalt road background base
         gc.setStroke(Color.web("#263238"));
         gc.setLineWidth(EDGE_WIDTH + 6.0f);
-        gc.strokeLine(edge.getSource().getX(), edge.getSource().getY(), edge.getTarget().getX(), edge.getTarget().getY());
+        gc.strokeLine(xSource, ySource, xTarget, yTarget);
 
+        // 3. Determine edge inner stroke color based on current status state
         switch (edge.getState()) {
             case OUT:
                 gc.setStroke(Color.web("#37474F"));
                 break;
             case AVAILABLE:
-                // Bleu ciel vers Rouge
-                Color edgeStress = Color.web("#4FC3F7").interpolate(Color.web("#F44336"),
-                        ((double) edge.getCurrentOccupants() / (double) edge.getCapacity()));
+                // Dynamic stress interpolation shifting from sky blue to absolute red
+                double occupancyRatio = (edge.getCapacity() > 0) 
+                        ? (double) edge.getCurrentOccupants() / (double) edge.getCapacity() 
+                        : 0.0;
+                Color edgeStress = Color.web("#4FC3F7").interpolate(Color.web("#F44336"), occupancyRatio);
                 gc.setStroke(edgeStress);
                 break;
             case FULL:
@@ -37,39 +51,40 @@ public class EdgeRenderer implements EdgeRendering {
                 break;
         }
 
+        // 4. Render the inner core status track
         gc.setLineWidth(EDGE_WIDTH);
-        gc.strokeLine(edge.getSource().getX(), edge.getSource().getY(), edge.getTarget().getX(), edge.getTarget().getY());
+        gc.strokeLine(xSource, ySource, xTarget, yTarget);
         gc.setLineWidth(1.0f);
 
-        // Etiquette
+        // 5. Render descriptive identification label at edge midpoint
+        double midX = (xSource + xTarget) / 2.0;
+        double midY = (ySource + yTarget) / 2.0;
         gc.setFill(Color.web("#FFFFFF")); 
-        gc.fillText("id: " + edge.getId(), (edge.getSource().getX() + edge.getTarget().getX()) / 2 + 10, (edge.getSource().getY() + edge.getTarget().getY()) / 2 + 20);
+        gc.fillText("id: " + edge.getId(), midX + 10, midY + 20);
 
-        // Flèche directionnelle
+        // 6. Render directional indicator arrows where layout limits traffic orientation
         if (!edge.hasDirection()) {
-            int mx = (int) ((edge.getSource().getX() + edge.getTarget().getX()) / 2);
-            int my = (int) ((edge.getSource().getY() + edge.getTarget().getY()) / 2);
+            double angle = Math.atan2(yTarget - ySource, xTarget - xSource);
+            double headAngle = Math.PI / 6.0;
+            int lineLength = 8;
+            int headLength = 7;
 
-            double angle = Math.atan2(edge.getTarget().getY() - edge.getSource().getY(),
-                    edge.getTarget().getX() - edge.getSource().getX());
-            double headAng = Math.PI / 6;
-            int len = 8;
-            int head = 7;
-
-            int x2 = mx + (int) (len * Math.cos(angle));
-            int y2 = my + (int) (len * Math.sin(angle));
-            int x1 = mx - (int) (len * Math.cos(angle));
-            int y1 = my - (int) (len * Math.sin(angle));
+            double x2 = midX + (lineLength * Math.cos(angle));
+            double y2 = midY + (lineLength * Math.sin(angle));
+            double x1 = midX - (lineLength * Math.cos(angle));
+            double y1 = midY - (lineLength * Math.sin(angle));
 
             gc.setStroke(Color.WHITE);
             gc.setLineWidth(1.5f);
             gc.strokeLine(x1, y1, x2, y2);
+            
+            // Draw directional arrow wings
             gc.strokeLine(x2, y2,
-                    x2 - (int) (head * Math.cos(angle - headAng)),
-                    y2 - (int) (head * Math.sin(angle - headAng)));
+                    x2 - (headLength * Math.cos(angle - headAngle)),
+                    y2 - (headLength * Math.sin(angle - headAngle)));
             gc.strokeLine(x2, y2,
-                    x2 - (int) (head * Math.cos(angle + headAng)),
-                    y2 - (int) (head * Math.sin(angle + headAng)));
+                    x2 - (headLength * Math.cos(angle + headAngle)),
+                    y2 - (headLength * Math.sin(angle + headAngle)));
             gc.setLineWidth(1.0f);
         }
     }

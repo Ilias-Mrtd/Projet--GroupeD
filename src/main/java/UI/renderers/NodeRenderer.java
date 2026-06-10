@@ -5,43 +5,59 @@ import javafx.scene.paint.Color;
 import model.graph.Node;
 
 public class NodeRenderer implements NodeRendering {
-    protected final int RADIUS = 30;
+    private static final int RADIUS = 30;
 
+    /**
+     * Renders a single graph node vertex on the canvas, applying status colors,
+     * capacity stress gradients, selection highlights, and construction overlays.
+     * @param gc The active graphics context of the canvas.
+     * @param node The target graph node to draw.
+     */
     @Override
     public void drawNode(GraphicsContext gc, Node node) {
+        // Cache node coordinates and metrics to optimize repetitive geometry drawing operations
+        double x = node.getX();
+        double y = node.getY();
+        double halfRadius = RADIUS / 2.0;
 
-        // Bordure sombre pour donner un effet de volume
+        // 1. Render dark background stroke edge to provide depth perception
         gc.setFill(Color.web("#263238"));
-        gc.fillOval(node.getX() - RADIUS / 2 - 4, node.getY() - RADIUS / 2 - 4, RADIUS + 8, RADIUS + 8);
+        gc.fillOval(x - halfRadius - 4, y - halfRadius - 4, RADIUS + 8, RADIUS + 8);
 
-        // Halo de selection CYAN FLUORESCENT
+        // 2. Render fluorescent cyan selection halo highlight if active
         if (node.isSelected()) {
             gc.setFill(Color.web("#00E5FF"));
-            gc.fillOval(node.getX() - RADIUS / 2 - 6, node.getY() - RADIUS / 2 - 6, RADIUS + 12, RADIUS + 12);
+            gc.fillOval(x - halfRadius - 6, y - halfRadius - 6, RADIUS + 12, RADIUS + 12);
         }
 
+        // 3. Determine structural node color base according to operational metrics
         switch (node.getState()) {
             case OUT:
                 gc.setFill(Color.web("#37474F"));
                 break;
             case AVAILABLE:
-                // Du Bleu clair au Rouge
-                Color nodeStress = Color.web("#4FC3F7").interpolate(Color.web("#F44336"),
-                        ((double) node.getCurrentOccupants() / (double) node.getCapacity()));
+                // Dynamic occupancy stress shifting linearly from sky blue to absolute red
+                double occupancyRatio = (node.getCapacity() > 0)
+                        ? (double) node.getCurrentOccupants() / (double) node.getCapacity()
+                        : 0.0;
+                Color nodeStress = Color.web("#4FC3F7").interpolate(Color.web("#F44336"), occupancyRatio);
                 gc.setFill(nodeStress);
                 break;
             case FULL:
                 gc.setFill(Color.web("#D32F2F"));
                 break;
         }
+
+        // 4. Override color tracking if node is flagged under active construction works
         if (node.isUnderConstruction()) {
-            gc.setFill(Color.web("#FFC107")); // Jaune travaux
+            gc.setFill(Color.web("#FFC107")); // Construction amber yellow
         }
 
-        gc.fillOval(node.getX() - RADIUS / 2, node.getY() - RADIUS / 2, RADIUS, RADIUS);
+        // 5. Render core node surface circle
+        gc.fillOval(x - halfRadius, y - halfRadius, RADIUS, RADIUS);
 
-        // Etiquette blanche pour être lisible
+        // 6. Render high-contrast descriptive identification text label
         gc.setFill(Color.web("#FFFFFF"));
-        gc.fillText("id: " + node.getId(), node.getX() + 15, node.getY() + 20);
+        gc.fillText("id: " + node.getId(), x + 15, y + 20);
     }
 }
