@@ -48,11 +48,12 @@ import UI.renderers.*;
 import controllers.SelectionSystem;
 
 /**
- * Main application class responsible for initializing and managing the 
+ * Main application class responsible for initializing and managing the
  * JavaFX Graphical User Interface of the Warehouse Management Simulation.
- * It coordinates the simulation engine, graph models, entity rendering, 
+ * It coordinates the simulation engine, graph models, entity rendering,
  * layout configuration, and real-time user interactions.
  * * @author Group D
+ * 
  * @version 1.0
  * @see javafx.application.Application
  */
@@ -63,10 +64,11 @@ public class Main extends Application {
     private Agent.AlgoType globalAlgo = Agent.AlgoType.RANDOM;
 
     /**
-     * Initializes and builds the primary stage and root scene graph for the JavaFX application.
-     * Sets up UI panels, menu bars, canvas renderers, event-driven listeners, 
+     * Initializes and builds the primary stage and root scene graph for the JavaFX
+     * application.
+     * Sets up UI panels, menu bars, canvas renderers, event-driven listeners,
      * and triggers the startup sequence of the core simulation engine.
-     * * @param primaryStage The primary stage for this application, onto which 
+     * * @param primaryStage The primary stage for this application, onto which
      * the application scene can be set.
      */
     @Override
@@ -102,12 +104,18 @@ public class Main extends Application {
         algoSelector.getItems().addAll("Algo: Random", "Algo: Dijkstra", "Algo: A*");
         algoSelector.setValue("Algo: Random");
         algoSelector.setOnAction(e -> {
-            if (algoSelector.getValue().contains("Dijkstra")) { globalAlgo = Agent.AlgoType.DIJKSTRA; }
-            else if (algoSelector.getValue().contains("A*")) { globalAlgo = Agent.AlgoType.ASTAR; }
-            else { globalAlgo = Agent.AlgoType.RANDOM; }
+            if (algoSelector.getValue().contains("Dijkstra")) {
+                globalAlgo = Agent.AlgoType.DIJKSTRA;
+            } else if (algoSelector.getValue().contains("A*")) {
+                globalAlgo = Agent.AlgoType.ASTAR;
+            } else {
+                globalAlgo = Agent.AlgoType.RANDOM;
+            }
 
             // Dynamic routing runtime updates
-            for (Agent a : engine.getAgents()) { a.setAlgoType(globalAlgo); }
+            for (Agent a : engine.getAgents()) {
+                a.setAlgoType(globalAlgo);
+            }
         });
 
         // Heatmap renderer option toggle
@@ -158,7 +166,6 @@ public class Main extends Application {
         toolbar2.getChildren().addAll(lblSpeed, speedSlider, new Separator(Orientation.VERTICAL), lblZoom, zoomSlider,
                 new Separator(Orientation.VERTICAL), btnFollowCamera, btnToggleRoster, btnToggleInspector);
         topContainer.getChildren().addAll(toolbar1, toolbar2);
-
 
         // Sidebar: Real-time agent status tracker
         VBox leftPanel = new VBox(10);
@@ -282,8 +289,9 @@ public class Main extends Application {
             }
         });
 
-        // Frame update throttling logic (updates table rows every 15 simulation iterations)
-        int[] tickCount = {0};
+        // Frame update throttling logic (updates table rows every 15 simulation
+        // iterations)
+        int[] tickCount = { 0 };
         engine.setOnTick(() -> {
             graphCanvas.draw();
             propertiesPanel.refresh();
@@ -304,8 +312,12 @@ public class Main extends Application {
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Simulation Files", "*.sim"));
             File file = fileChooser.showSaveDialog(primaryStage);
             if (file != null) {
-                try { FileService.saveSimulation(file.getAbsolutePath(), graph, agents); showAlert(AlertType.INFORMATION, "Success", "Simulation saved successfully!");
-                } catch (Exception ex) { showAlert(AlertType.ERROR, "Error", "Unable to save file: " + ex.getMessage()); }
+                try {
+                    FileService.saveSimulation(file.getAbsolutePath(), graph, agents);
+                    showAlert(AlertType.INFORMATION, "Success", "Simulation saved successfully!");
+                } catch (Exception ex) {
+                    showAlert(AlertType.ERROR, "Error", "Unable to save file: " + ex.getMessage());
+                }
             }
         });
 
@@ -313,7 +325,9 @@ public class Main extends Application {
             menuLoad.getItems().clear();
             List<String> files = FileService.getSavedFiles();
             if (files.isEmpty()) {
-                MenuItem emptyItem = new MenuItem("No saves found"); emptyItem.setDisable(true); menuLoad.getItems().add(emptyItem);
+                MenuItem emptyItem = new MenuItem("No saves found");
+                emptyItem.setDisable(true);
+                menuLoad.getItems().add(emptyItem);
             } else {
                 for (String fileName : files) {
                     MenuItem item = new MenuItem(fileName);
@@ -344,10 +358,15 @@ public class Main extends Application {
         });
 
         propertiesPanel.setOnRemoveNode(() -> {
-            Node sel = propertiesPanel.getSelectedNode(); if (sel == null) return;
-            engine.evictAgentsFromNode(sel); graph.removeNode(sel);
+            Node sel = propertiesPanel.getSelectedNode();
+            if (sel == null)
+                return;
+            engine.evictAgentsFromNode(sel);
+            graph.removeNode(sel);
             // Evict orphan dependencies links safety loop
-            for (List<Edge> edgeList : graph.getEdges()) { edgeList.removeIf(e -> e.getTarget() == sel || e.getSource() == sel); }
+            for (List<Edge> edgeList : graph.getEdges()) {
+                edgeList.removeIf(e -> e.getTarget() == sel || e.getSource() == sel);
+            }
             graphCanvas.draw();
         });
 
@@ -389,7 +408,8 @@ public class Main extends Application {
         // Assigner un objectif en direct à l'agent sélectionné
         propertiesPanel.setOnAssignObjective(() -> {
             Agent sel = propertiesPanel.getSelectedAgent();
-            if (sel == null) return;
+            if (sel == null)
+                return;
             selectionSystem.startAssignObjective(sel, (agent, targetNode) -> {
                 agent.addObjective(targetNode);
                 propertiesPanel.objectiveAssignedDone();
@@ -441,10 +461,14 @@ public class Main extends Application {
     }
 
     /**
-     * Helper method to instantiate and synchronously display a modal alert feedback window.
-     * * @param type    The JavaFX AlertType configuration representing the window style icon.
+     * Helper method to instantiate and synchronously display a modal alert feedback
+     * window.
+     * * @param type The JavaFX AlertType configuration representing the window
+     * style icon.
+     * 
      * @param title   The textual content mapped to the header title string bar.
-     * @param message The main body description contextual text shown inside the alert canvas.
+     * @param message The main body description contextual text shown inside the
+     *                alert canvas.
      */
     private void showAlert(AlertType type, String title, String message) {
         Alert alert = new Alert(type);
@@ -455,12 +479,19 @@ public class Main extends Application {
     }
 
     /**
-     * Requests data retrieval parsing from the disk storage subsystem to override runtime variables.
-     * Resets the active nodes, paths, and agents collections inside the current application stack.
-     * * @param fileName    The relative file descriptor or text name string representing the file.
-     * @param graph       The shared domain runtime Graph instance data model to flush and override.
-     * @param agents      The memory register tracking current entities arrays to refresh.
-     * @param graphCanvas The visual viewport area canvas forced to request a full interface draw.
+     * Requests data retrieval parsing from the disk storage subsystem to override
+     * runtime variables.
+     * Resets the active nodes, paths, and agents collections inside the current
+     * application stack.
+     * * @param fileName The relative file descriptor or text name string
+     * representing the file.
+     * 
+     * @param graph       The shared domain runtime Graph instance data model to
+     *                    flush and override.
+     * @param agents      The memory register tracking current entities arrays to
+     *                    refresh.
+     * @param graphCanvas The visual viewport area canvas forced to request a full
+     *                    interface draw.
      */
     private void loadSimulationFile(String fileName, Graph graph, List<Agent> agents, GraphCanvas graphCanvas) {
         try {
@@ -478,7 +509,7 @@ public class Main extends Application {
     }
 
     private void generateRandomGraph(Graph graph, List<Agent> agents, SimulationEngine engine, GraphCanvas canvas,
-                                     int side) {
+            int side) {
         agents.clear();
         graph.setNodes(new ArrayList<>());
         graph.setEdges(new ArrayList<>());
@@ -501,7 +532,8 @@ public class Main extends Application {
                 grid[r][c] = graph.getNodes().get(graph.getNodes().size() - 1);
             }
         }
-        // Link neighbors nodes linearly to structure orthogonal pathways paths configurations
+        // Link neighbors nodes linearly to structure orthogonal pathways paths
+        // configurations
         for (int r = 0; r < side; r++) {
             for (int c = 0; c < side; c++) {
                 if (c + 1 < side)
@@ -514,10 +546,15 @@ public class Main extends Application {
     }
 
     /**
-     * Spawns a parameterized quantity of simulation entities randomly across the existing node network.
-     * Allocates localized parameters, including variable speeds, behaviors, and initial target destinations.
-     * * @param graph  The active network reference model holding locations available for entity seeding.
-     * @param engine The processing system engine receiving the newly generated items registry.
+     * Spawns a parameterized quantity of simulation entities randomly across the
+     * existing node network.
+     * Allocates localized parameters, including variable speeds, behaviors, and
+     * initial target destinations.
+     * * @param graph The active network reference model holding locations available
+     * for entity seeding.
+     * 
+     * @param engine The processing system engine receiving the newly generated
+     *               items registry.
      * @param canvas The visual viewport requested to update changes.
      * @param n      The amount of unique agent objects to generate and insert.
      */
@@ -539,52 +576,25 @@ public class Main extends Application {
     }
 
     /**
-     * Bootstraps standard demonstration infrastructure tracking workspace network environment.
-     * Builds a default 5x4 matrix setup equipped with predefined agent pathways for initial testing.
-     * * @param graph  The target model component to construct the initial node layout inside.
+     * Bootstraps standard demonstration infrastructure tracking workspace network
+     * environment.
+     * Builds a default 5x4 matrix setup equipped with predefined agent pathways for
+     * initial testing.
+     * * @param graph The target model component to construct the initial node
+     * layout inside.
+     * 
      * @param agents The global entities registry array receiving preliminary items.
      * @param engine The core task pipeline engine mapping runtime updates hooks.
      */
     private void setupSampleGraph(Graph graph, List<Agent> agents, SimulationEngine engine) {
-        int cols = 5;
-        int rows = 4;
-        int startX = 100;
-        int startY = 100;
-        int spacing = 150;
-        Node[][] grid = new Node[rows][cols];
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                graph.addNode(startX + c * spacing, startY + r * spacing, c + 1);
-                grid[r][c] = graph.getNodes().get(graph.getNodes().size() - 1);
-            }
-        }
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                if (c + 1 < cols)
-                    graph.addEdge(grid[r][c], grid[r][c + 1], r + c + 1, true);
-                if (r + 1 < rows)
-                    graph.addEdge(grid[r][c], grid[r + 1][c], r + c + 1, true);
-            }
-        }
-        Agent a1 = new Agent(007, 2.5f, Agent.agentState.AVAILABLE);
-        a1.setCurrentNode(grid[0][0]);
-        a1.setAgentBehavior(agentBehavior.PATIENT);
-        a1.setAlgoType(globalAlgo);
-        engine.addAgent(a1);
-        Agent a2 = new Agent(15, 3.0f, Agent.agentState.AVAILABLE);
-        a2.setCurrentNode(grid[0][1]);
-        a2.setAgentBehavior(agentBehavior.HURRIED);
-        a2.setAlgoType(globalAlgo);
-        engine.addAgent(a2);
-        for (Agent agent : engine.agents) {
-            agent.addObjective(grid[3][4]);
-            agent.addObjective(grid[3][0]);
-        }
+
     }
 
     /**
      * Main runtime application entry point loop initialization sequence.
      * * @param args Command-line execution argument matrix array parameters.
      */
-    public static void main(String[] args) { launch(args); }
+    public static void main(String[] args) {
+        launch(args);
+    }
 }

@@ -8,9 +8,10 @@ public class EdgeRenderer implements EdgeRendering {
     private final float EDGE_WIDTH = 8.0f;
 
     /**
-     * Renders a single graph edge on the canvas, applying status colors, 
+     * Renders a single graph edge on the canvas, applying status colors,
      * traffic stress gradients, selection highlights, and directional markers.
-     * @param gc The active graphics context of the canvas.
+     * 
+     * @param gc   The active graphics context of the canvas.
      * @param edge The target graph edge to draw.
      */
     @Override
@@ -40,8 +41,8 @@ public class EdgeRenderer implements EdgeRendering {
                 break;
             case AVAILABLE:
                 // Dynamic stress interpolation shifting from sky blue to absolute red
-                double occupancyRatio = (edge.getCapacity() > 0) 
-                        ? (double) edge.getCurrentOccupants() / (double) edge.getCapacity() 
+                double occupancyRatio = (edge.getCapacity() > 0)
+                        ? (double) edge.getCurrentOccupants() / (double) edge.getCapacity()
                         : 0.0;
                 Color edgeStress = Color.web("#4FC3F7").interpolate(Color.web("#F44336"), occupancyRatio);
                 gc.setStroke(edgeStress);
@@ -59,10 +60,11 @@ public class EdgeRenderer implements EdgeRendering {
         // 5. Render descriptive identification label at edge midpoint
         double midX = (xSource + xTarget) / 2.0;
         double midY = (ySource + yTarget) / 2.0;
-        gc.setFill(Color.web("#FFFFFF")); 
+        gc.setFill(Color.web("#161111"));
         gc.fillText("id: " + edge.getId(), midX + 10, midY + 20);
 
-        // 6. Render directional indicator arrows where layout limits traffic orientation
+        // 6. Render directional indicator arrows where layout limits traffic
+        // orientation
         if (!edge.hasDirection()) {
             double angle = Math.atan2(yTarget - ySource, xTarget - xSource);
             double headAngle = Math.PI / 6.0;
@@ -77,7 +79,7 @@ public class EdgeRenderer implements EdgeRendering {
             gc.setStroke(Color.WHITE);
             gc.setLineWidth(1.5f);
             gc.strokeLine(x1, y1, x2, y2);
-            
+
             // Draw directional arrow wings
             gc.strokeLine(x2, y2,
                     x2 - (headLength * Math.cos(angle - headAngle)),

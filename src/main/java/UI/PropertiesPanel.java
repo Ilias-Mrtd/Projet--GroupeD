@@ -9,8 +9,9 @@ import controllers.SelectionSystem;
 import java.util.List;
 
 /**
- * Control dashboard sidebar detailing individual element configurations, 
- * simulation performance logs, dynamic KPIs, and automated infrastructure controls.
+ * Control dashboard sidebar detailing individual element configurations,
+ * simulation performance logs, dynamic KPIs, and automated infrastructure
+ * controls.
  */
 public class PropertiesPanel extends VBox {
 
@@ -68,8 +69,13 @@ public class PropertiesPanel extends VBox {
         setPrefWidth(280);
         setStyle("-fx-background-color: #252526; -fx-border-color: #3E3E42; -fx-border-width: 0 0 0 1;");
 
-        titleLabel = new Label("🔍 Inspector");
+        titleLabel = new Label("✏️ Graph manager");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #00E5FF;");
+
+        // ----- Inspector ------
+
+        Label lblInspectorSection = new Label("🔎 Inspector");
+        lblInspectorSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #E0E0E0;");
 
         TabPane inspectorTabs = new TabPane();
         inspectorTabs.setPrefHeight(300);
@@ -117,13 +123,24 @@ public class PropertiesPanel extends VBox {
         Button btnNodeCapPlus = smallButton("+");
         btnNodeCapMinus.setOnAction(e -> {
             Node sel = getSelectedNode();
-            if (sel != null) { if (sel.getCapacity() > 1) sel.setCapacity(sel.getCapacity() - 1); } else if (nodeCapacity > 1) { nodeCapacity--; }
-            refresh(); redrawCanvas();
+            if (sel != null) {
+                if (sel.getCapacity() > 1)
+                    sel.setCapacity(sel.getCapacity() - 1);
+            } else if (nodeCapacity > 1) {
+                nodeCapacity--;
+            }
+            refresh();
+            redrawCanvas();
         });
         btnNodeCapPlus.setOnAction(e -> {
             Node sel = getSelectedNode();
-            if (sel != null) { sel.setCapacity(sel.getCapacity() + 1); } else { nodeCapacity++; }
-            refresh(); redrawCanvas();
+            if (sel != null) {
+                sel.setCapacity(sel.getCapacity() + 1);
+            } else {
+                nodeCapacity++;
+            }
+            refresh();
+            redrawCanvas();
         });
         HBox nodeCapBox = new HBox(6, btnNodeCapMinus, lblNodeCap, btnNodeCapPlus);
         nodeCapBox.setStyle("-fx-alignment: center-left;");
@@ -133,8 +150,10 @@ public class PropertiesPanel extends VBox {
         chkUnderConstruction.setDisable(true);
         chkUnderConstruction.setOnAction(e -> {
             Node sel = getSelectedNode();
-            if (sel != null) sel.setUnderConstruction(chkUnderConstruction.isSelected());
-            refresh(); redrawCanvas();
+            if (sel != null)
+                sel.setUnderConstruction(chkUnderConstruction.isSelected());
+            refresh();
+            redrawCanvas();
         });
 
         btnAddNode = buildButton("➕ Add Node Here", "#0288D1");
@@ -156,13 +175,24 @@ public class PropertiesPanel extends VBox {
         Button btnEdgeCapPlus = smallButton("+");
         btnEdgeCapMinus.setOnAction(e -> {
             Edge sel = getSelectedEdge();
-            if (sel != null) { if (sel.getCapacity() > 1) sel.setCapacity(sel.getCapacity() - 1); } else if (edgeCapacity > 1) { edgeCapacity--; }
-            refresh(); redrawCanvas();
+            if (sel != null) {
+                if (sel.getCapacity() > 1)
+                    sel.setCapacity(sel.getCapacity() - 1);
+            } else if (edgeCapacity > 1) {
+                edgeCapacity--;
+            }
+            refresh();
+            redrawCanvas();
         });
         btnEdgeCapPlus.setOnAction(e -> {
             Edge sel = getSelectedEdge();
-            if (sel != null) { sel.setCapacity(sel.getCapacity() + 1); } else { edgeCapacity++; }
-            refresh(); redrawCanvas();
+            if (sel != null) {
+                sel.setCapacity(sel.getCapacity() + 1);
+            } else {
+                edgeCapacity++;
+            }
+            refresh();
+            redrawCanvas();
         });
         HBox edgeCapBox = new HBox(6, btnEdgeCapMinus, lblEdgeCap, btnEdgeCapPlus);
         edgeCapBox.setStyle("-fx-alignment: center-left;");
@@ -173,13 +203,17 @@ public class PropertiesPanel extends VBox {
         Button btnEdgeSpeedPlus = smallButton("+");
         btnEdgeSpeedMinus.setOnAction(e -> {
             Edge sel = getSelectedEdge();
-            if (sel != null && sel.getSpeedModifier() > 0.2f) sel.setSpeedModifier(sel.getSpeedModifier() - 0.2f);
-            refresh(); redrawCanvas();
+            if (sel != null && sel.getSpeedModifier() > 0.2f)
+                sel.setSpeedModifier(sel.getSpeedModifier() - 0.2f);
+            refresh();
+            redrawCanvas();
         });
         btnEdgeSpeedPlus.setOnAction(e -> {
             Edge sel = getSelectedEdge();
-            if (sel != null && sel.getSpeedModifier() < 5.0f) sel.setSpeedModifier(sel.getSpeedModifier() + 0.2f);
-            refresh(); redrawCanvas();
+            if (sel != null && sel.getSpeedModifier() < 5.0f)
+                sel.setSpeedModifier(sel.getSpeedModifier() + 0.2f);
+            refresh();
+            redrawCanvas();
         });
         HBox edgeSpeedBox = new HBox(6, btnEdgeSpeedMinus, lblEdgeSpeed, btnEdgeSpeedPlus);
         edgeSpeedBox.setStyle("-fx-alignment: center-left;");
@@ -187,8 +221,13 @@ public class PropertiesPanel extends VBox {
         Button btnToggleDir = buildButton("Bidirectional ⇄", "#455A64");
         btnToggleDir.setOnAction(e -> {
             Edge sel = getSelectedEdge();
-            if (sel != null) { sel.setDirection(!sel.hasDirection()); } else { edgeDirection = !edgeDirection; }
-            refresh(); redrawCanvas();
+            if (sel != null) {
+                sel.setDirection(!sel.hasDirection());
+            } else {
+                edgeDirection = !edgeDirection;
+            }
+            refresh();
+            redrawCanvas();
             btnToggleDir.setText(edgeDirection ? "Bidirectional ⇄" : "Directed →");
         });
 
@@ -205,7 +244,8 @@ public class PropertiesPanel extends VBox {
         lblAgentSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #E0E0E0;");
 
         cbAgentBehavior = new ComboBox<>();
-        cbAgentBehavior.getItems().addAll(Agent.agentBehavior.PATIENT, Agent.agentBehavior.HURRIED, Agent.agentBehavior.VIP);
+        cbAgentBehavior.getItems().addAll(Agent.agentBehavior.PATIENT, Agent.agentBehavior.HURRIED,
+                Agent.agentBehavior.VIP);
         cbAgentBehavior.setValue(Agent.agentBehavior.PATIENT);
         cbAgentBehavior.setStyle("-fx-font-size: 12px;");
         cbAgentBehavior.setMaxWidth(Double.MAX_VALUE);
@@ -228,36 +268,68 @@ public class PropertiesPanel extends VBox {
         Label lblGenSection = new Label("Batch Matrix Generation");
         lblGenSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #E0E0E0;");
 
-        lblGenNodes = new Label("Grid Map: " + genGridSide + "x" + genGridSide + " (" + (genGridSide * genGridSide) + " vertices)");
+        lblGenNodes = new Label(
+                "Grid Map: " + genGridSide + "x" + genGridSide + " (" + (genGridSide * genGridSide) + " vertices)");
         lblGenNodes.setStyle("-fx-font-size: 12px; -fx-text-fill: #CCCCCC;");
         Button btnGenNodesMinus = smallButton("−");
         Button btnGenNodesPlus = smallButton("+");
-        btnGenNodesMinus.setOnAction(e -> { if (genGridSide > 2) { genGridSide--; lblGenNodes.setText("Grid Map: " + genGridSide + "x" + genGridSide + " (" + (genGridSide * genGridSide) + " vertices)"); } });
-        btnGenNodesPlus.setOnAction(e -> { if (genGridSide < 12) { genGridSide++; lblGenNodes.setText("Grid Map: " + genGridSide + "x" + genGridSide + " (" + (genGridSide * genGridSide) + " vertices)"); } });
+        btnGenNodesMinus.setOnAction(e -> {
+            if (genGridSide > 2) {
+                genGridSide--;
+                lblGenNodes.setText("Grid Map: " + genGridSide + "x" + genGridSide + " (" + (genGridSide * genGridSide)
+                        + " vertices)");
+            }
+        });
+        btnGenNodesPlus.setOnAction(e -> {
+            if (genGridSide < 12) {
+                genGridSide++;
+                lblGenNodes.setText("Grid Map: " + genGridSide + "x" + genGridSide + " (" + (genGridSide * genGridSide)
+                        + " vertices)");
+            }
+        });
         HBox genNodesBox = new HBox(6, btnGenNodesMinus, lblGenNodes, btnGenNodesPlus);
         genNodesBox.setStyle("-fx-alignment: center-left;");
 
         Button btnGenGraphAction = buildButton("🏙 Generate Synthesized Graph", "#303F9F");
-        btnGenGraphAction.setOnAction(e -> { if (onGenerateGraph != null) onGenerateGraph.run(); });
+        btnGenGraphAction.setOnAction(e -> {
+            if (onGenerateGraph != null)
+                onGenerateGraph.run();
+        });
 
         lblGenAgents = new Label("Entity Profiles: " + genAgentCount);
         lblGenAgents.setStyle("-fx-font-size: 12px; -fx-text-fill: #CCCCCC;");
         Button btnGenAgentsMinus = smallButton("−");
         Button btnGenAgentsPlus = smallButton("+");
-        btnGenAgentsMinus.setOnAction(e -> { if (genAgentCount > 1) { genAgentCount--; lblGenAgents.setText("Entity Profiles: " + genAgentCount); } });
-        btnGenAgentsPlus.setOnAction(e -> { if (genAgentCount < 100) { genAgentCount++; lblGenAgents.setText("Entity Profiles: " + genAgentCount); } });
+        btnGenAgentsMinus.setOnAction(e -> {
+            if (genAgentCount > 1) {
+                genAgentCount--;
+                lblGenAgents.setText("Entity Profiles: " + genAgentCount);
+            }
+        });
+        btnGenAgentsPlus.setOnAction(e -> {
+            if (genAgentCount < 100) {
+                genAgentCount++;
+                lblGenAgents.setText("Entity Profiles: " + genAgentCount);
+            }
+        });
         HBox genAgentsBox = new HBox(6, btnGenAgentsMinus, lblGenAgents, btnGenAgentsPlus);
         genAgentsBox.setStyle("-fx-alignment: center-left;");
 
         Button btnSpawnAgentsAction = buildButton("👥 Spawn Agent Clusters", "#00796B");
-        btnSpawnAgentsAction.setOnAction(e -> { if (onSpawnAgents != null) onSpawnAgents.run(); });
+        btnSpawnAgentsAction.setOnAction(e -> {
+            if (onSpawnAgents != null)
+                onSpawnAgents.run();
+        });
+
+        Separator sep5 = new Separator();
 
         getChildren().addAll(
-                titleLabel, inspectorTabs,
+                titleLabel,
                 sep1, lblNodeSection, nodeCapBox, chkUnderConstruction, btnAddNode, btnRemoveNode,
                 sep2, lblEdgeSection, edgeCapBox, edgeSpeedBox, btnToggleDir, btnAddEdge, btnRemoveEdge,
                 sep3, lblAgentSection, cbAgentBehavior, btnAddAgent, btnRemoveAgent, btnAssignObjective,
-                sep4, lblGenSection, genNodesBox, btnGenGraphAction, genAgentsBox, btnSpawnAgentsAction);
+                sep4, lblGenSection, genNodesBox, btnGenGraphAction, genAgentsBox, btnSpawnAgentsAction,
+                sep5, lblInspectorSection, inspectorTabs);
     }
 
     public void setSelectionSystem(SelectionSystem ss) {
@@ -269,16 +341,41 @@ public class PropertiesPanel extends VBox {
         btnAddAgent.setDisable(true);
     }
 
-    public void setOnAddNode(Runnable r) { this.onAddNode = r; }
-    public void setOnRemoveNode(Runnable r) { this.onRemoveNode = r; }
-    public void setOnRemoveEdge(Runnable r) { this.onRemoveEdge = r; }
-    public void setOnAddAgent(Runnable r) { this.onAddAgent = r; }
-    public void setOnGenerateGraph(Runnable r) { this.onGenerateGraph = r; }
-    public void setOnSpawnAgents(Runnable r) { this.onSpawnAgents = r; }
-    public void setOnRemoveAgent(Runnable r) { this.onRemoveAgent = r; }
-    public void setOnAssignObjective(Runnable r) { this.onAssignObjective = r; }
+    public void setOnAddNode(Runnable r) {
+        this.onAddNode = r;
+    }
 
-    public Agent.agentBehavior getSelectedAgentBehavior() { return cbAgentBehavior.getValue(); }
+    public void setOnRemoveNode(Runnable r) {
+        this.onRemoveNode = r;
+    }
+
+    public void setOnRemoveEdge(Runnable r) {
+        this.onRemoveEdge = r;
+    }
+
+    public void setOnAddAgent(Runnable r) {
+        this.onAddAgent = r;
+    }
+
+    public void setOnGenerateGraph(Runnable r) {
+        this.onGenerateGraph = r;
+    }
+
+    public void setOnSpawnAgents(Runnable r) {
+        this.onSpawnAgents = r;
+    }
+
+    public void setOnRemoveAgent(Runnable r) {
+        this.onRemoveAgent = r;
+    }
+
+    public void setOnAssignObjective(Runnable r) {
+        this.onAssignObjective = r;
+    }
+
+    public Agent.agentBehavior getSelectedAgentBehavior() {
+        return cbAgentBehavior.getValue();
+    }
 
     /**
      * Refreshes content panels based on currently tracked entity selection models.
@@ -288,8 +385,11 @@ public class PropertiesPanel extends VBox {
 
         if (selected instanceof Agent) {
             Agent a = (Agent) selected;
-            double avgSpeed = (a.getTotalActiveTime() > 0) ? (a.getTotalDistance() / a.getTotalActiveTime()) / 60.0 : 0.0;
-            double efficiency = (a.getTotalActiveTime() > 0) ? ((a.getTotalActiveTime() - a.getTotalWaitTime()) / a.getTotalActiveTime()) * 100.0 : 100.0;
+            double avgSpeed = (a.getTotalActiveTime() > 0) ? (a.getTotalDistance() / a.getTotalActiveTime()) / 60.0
+                    : 0.0;
+            double efficiency = (a.getTotalActiveTime() > 0)
+                    ? ((a.getTotalActiveTime() - a.getTotalWaitTime()) / a.getTotalActiveTime()) * 100.0
+                    : 100.0;
 
             StringBuilder sb = new StringBuilder();
             sb.append("Type     : Agent [").append(a.getAgentBehavior()).append("]\n")
@@ -308,7 +408,7 @@ public class PropertiesPanel extends VBox {
 
             if (a.getCurrentEdge() != null && a.getDestination() != null) {
                 sb.append("On Connection Link : ").append(a.getCurrentEdge().getId()).append("\n")
-                  .append("Target Destination : ").append(a.getDestination().getId());
+                        .append("Target Destination : ").append(a.getDestination().getId());
             } else if (a.getCurrentNode() != null) {
                 sb.append("Current Position   : Node ").append(a.getCurrentNode().getId());
             }
@@ -323,12 +423,19 @@ public class PropertiesPanel extends VBox {
 
         } else if (selected instanceof Node) {
             Node n = (Node) selected;
-            infoLabel.setText("Type     : Node Vertex\nID       : " + n.getId() + "\nCoordinates: (" + (int) n.getX() + ", " + (int) n.getY() + ")\nIn Works : " + (n.isUnderConstruction() ? "YES (Closed)" : "No") + "\nCapacity : " + n.getCapacity() + "\nStatus   : " + n.getState() + "\nOccupancy: " + n.getCurrentOccupants() + "/" + n.getCapacity());
+            infoLabel.setText("Type     : Node Vertex\nID       : " + n.getId() + "\nCoordinates: (" + (int) n.getX()
+                    + ", " + (int) n.getY() + ")\nIn Works : " + (n.isUnderConstruction() ? "YES (Closed)" : "No")
+                    + "\nCapacity : " + n.getCapacity() + "\nStatus   : " + n.getState() + "\nOccupancy: "
+                    + n.getCurrentOccupants() + "/" + n.getCapacity());
             logArea.setText("History logs are unavailable for infrastructure nodes.");
         } else if (selected instanceof Edge) {
             Edge ed = (Edge) selected;
             String directionSymbol = ed.hasDirection() ? " --> " : " <--> ";
-            infoLabel.setText("Type      : Edge Connection\nID        : " + ed.getId() + "\nConnection: " + ed.getSource().getId() + directionSymbol + ed.getTarget().getId() + "\nLength    : " + String.format("%.1f", ed.getLength()) + "\nSpeed Mult: x" + String.format("%.1f", ed.getSpeedModifier()) + "\nCapacity  : " + ed.getCapacity() + "\nStatus    : " + ed.getState());
+            infoLabel.setText("Type      : Edge Connection\nID        : " + ed.getId() + "\nConnection: "
+                    + ed.getSource().getId() + directionSymbol + ed.getTarget().getId() + "\nLength    : "
+                    + String.format("%.1f", ed.getLength()) + "\nSpeed Mult: x"
+                    + String.format("%.1f", ed.getSpeedModifier()) + "\nCapacity  : " + ed.getCapacity()
+                    + "\nStatus    : " + ed.getState());
             logArea.setText("History logs are unavailable for routing edges.");
         } else {
             infoLabel.setText("Click on an entity\nto view its details.\n \n \n \n ");
@@ -386,7 +493,8 @@ public class PropertiesPanel extends VBox {
     }
 
     /**
-     * Aggregates cluster runtime data metrics grouped by analytical routing algorithms.
+     * Aggregates cluster runtime data metrics grouped by analytical routing
+     * algorithms.
      */
     private void updateGlobalScoreboard() {
         int[] counts = new int[3];
@@ -397,8 +505,10 @@ public class PropertiesPanel extends VBox {
 
         for (Agent ag : agents) {
             int idx = 2;
-            if (ag.getAlgoType() == Agent.AlgoType.DIJKSTRA) idx = 0;
-            else if (ag.getAlgoType() == Agent.AlgoType.ASTAR) idx = 1;
+            if (ag.getAlgoType() == Agent.AlgoType.DIJKSTRA)
+                idx = 0;
+            else if (ag.getAlgoType() == Agent.AlgoType.ASTAR)
+                idx = 1;
 
             counts[idx]++;
             objs[idx] += ag.getObjectivesReached();
@@ -412,49 +522,61 @@ public class PropertiesPanel extends VBox {
 
         String[] teamNames = { " TEAM DIJKSTRA ROUTING", " TEAM A-STAR OPTIMIZED", " TEAM RANDOM NAVIGATOR" };
         for (int i = 0; i < 3; i++) {
-            if (counts[i] == 0) continue;
+            if (counts[i] == 0)
+                continue;
             double avgEff = (act[i] > 0) ? ((act[i] - wait[i]) / act[i]) * 100.0 : 100.0;
             sb.append(teamNames[i]).append("\n  Active Agents: ").append(counts[i])
-              .append("\n  Goals Reached: ").append(objs[i])
-              .append("\n  Goals Missed : ").append(abds[i])
-              .append("\n  Net Efficiency: ").append(String.format("%.1f%%", avgEff))
-              .append("\n  Total Delay  : ").append(String.format("%.1fs", wait[i])).append("\n\n");
+                    .append("\n  Goals Reached: ").append(objs[i])
+                    .append("\n  Goals Missed : ").append(abds[i])
+                    .append("\n  Net Efficiency: ").append(String.format("%.1f%%", avgEff))
+                    .append("\n  Total Delay  : ").append(String.format("%.1fs", wait[i])).append("\n\n");
         }
-        if (agents.isEmpty()) { 
-            sb.append("No active agents tracked\non spatial grid maps."); 
+        if (agents.isEmpty()) {
+            sb.append("No active agents tracked\non spatial grid maps.");
         }
-        
+
         String newText = sb.toString();
-        if (!globalStatsArea.getText().equals(newText)) { 
-            globalStatsArea.setText(newText); 
+        if (!globalStatsArea.getText().equals(newText)) {
+            globalStatsArea.setText(newText);
         }
     }
 
     private void redrawCanvas() {
-        if (selectionSystem != null && selectionSystem.getCanvas() != null) { selectionSystem.getCanvas().draw(); }
+        if (selectionSystem != null && selectionSystem.getCanvas() != null) {
+            selectionSystem.getCanvas().draw();
+        }
     }
 
     private void handleAddNode() {
-        if (onAddNode != null) onAddNode.run();
+        if (onAddNode != null)
+            onAddNode.run();
         else {
             if (selectionSystem != null && selectionSystem.hasPendingPosition()) {
-                graph.addNode((int) selectionSystem.getPendingNodeX(), (int) selectionSystem.getPendingNodeY(), nodeCapacity);
-            } else { graph.addNode(400, 300, nodeCapacity); }
+                graph.addNode((int) selectionSystem.getPendingNodeX(), (int) selectionSystem.getPendingNodeY(),
+                        nodeCapacity);
+            } else {
+                graph.addNode(400, 300, nodeCapacity);
+            }
         }
         btnAddNode.setText("➕ Add Node Here");
         btnAddNode.setDisable(true);
-        if (selectionSystem != null) selectionSystem.clearPendingPosition();
+        if (selectionSystem != null)
+            selectionSystem.clearPendingPosition();
     }
 
     private void handleRemoveNode() {
         Node sel = selectionSystem != null ? selectionSystem.getLastSelectedNode() : null;
-        if (sel == null) return;
-        if (onRemoveNode != null) onRemoveNode.run();
-        else graph.removeNode(sel);
+        if (sel == null)
+            return;
+        if (onRemoveNode != null)
+            onRemoveNode.run();
+        else
+            graph.removeNode(sel);
     }
 
     private void handleAddEdge() {
-        if (selectionSystem == null) return;
+        if (selectionSystem == null)
+            return;
         if (linkingActive) {
             selectionSystem.cancelEdgeLinking();
             linkingActive = false;
@@ -471,55 +593,102 @@ public class PropertiesPanel extends VBox {
 
     private void handleRemoveEdge() {
         Edge sel = selectionSystem != null ? selectionSystem.getLastSelectedEdge() : null;
-        if (sel == null) return;
-        if (onRemoveEdge != null) onRemoveEdge.run();
-        else removeEdgeFromGraph(sel);
+        if (sel == null)
+            return;
+        if (onRemoveEdge != null)
+            onRemoveEdge.run();
+        else
+            removeEdgeFromGraph(sel);
     }
 
     private void removeEdgeFromGraph(Edge edge) {
-        for (List<Edge> list : graph.getEdges()) list.removeIf(e -> e.getId() == edge.getId());
+        for (List<Edge> list : graph.getEdges())
+            list.removeIf(e -> e.getId() == edge.getId());
     }
 
     private void handleAddAgent() {
         Node sel = selectionSystem != null ? selectionSystem.getLastSelectedNode() : null;
-        if (sel == null) return;
-        if (onAddAgent != null) onAddAgent.run();
+        if (sel == null)
+            return;
+        if (onAddAgent != null)
+            onAddAgent.run();
     }
 
     private void handleRemoveAgent() {
         Agent sel = selectionSystem != null ? selectionSystem.getLastSelectedAgent() : null;
-        if (sel == null) return;
-        if (onRemoveAgent != null) onRemoveAgent.run();
+        if (sel == null)
+            return;
+        if (onRemoveAgent != null)
+            onRemoveAgent.run();
     }
 
     private void handleAssignObjective() {
-        if (selectionSystem == null) return;
+        if (selectionSystem == null)
+            return;
         if (assigningObjective) {
             selectionSystem.cancelAssignObjective();
             assigningObjective = false;
             return;
         }
         Agent sel = selectionSystem.getLastSelectedAgent();
-        if (sel == null) return;
+        if (sel == null)
+            return;
         assigningObjective = true;
-        if (onAssignObjective != null) onAssignObjective.run();
+        if (onAssignObjective != null)
+            onAssignObjective.run();
     }
 
-    public void objectiveAssignedDone() { assigningObjective = false; }
+    public void objectiveAssignedDone() {
+        assigningObjective = false;
+    }
 
     private Object findSelectedItem() {
-        for (Agent a : agents) if (a.isSelected()) return a;
-        for (Node n : graph.getNodes()) if (n.isSelected()) return n;
-        for (List<Edge> edges : graph.getEdges()) for (Edge e : edges) if (e.isSelected()) return e;
+        for (Agent a : agents)
+            if (a.isSelected())
+                return a;
+        for (Node n : graph.getNodes())
+            if (n.isSelected())
+                return n;
+        for (List<Edge> edges : graph.getEdges())
+            for (Edge e : edges)
+                if (e.isSelected())
+                    return e;
         return null;
     }
 
-    public Node getSelectedNode() { for (Node n : graph.getNodes()) if (n.isSelected()) return n; return null; }
-    public Agent getSelectedAgent() { for (Agent a : agents) if (a.isSelected()) return a; return null; }
-    public Edge getSelectedEdge() { for (List<Edge> edges : graph.getEdges()) for (Edge e : edges) if (e.isSelected()) return e; return null; }
-    public int getNodeCapacity() { return nodeCapacity; }
-    public int getGenGridSide() { return genGridSide; }
-    public int getGenAgentCount() { return genAgentCount; }
+    public Node getSelectedNode() {
+        for (Node n : graph.getNodes())
+            if (n.isSelected())
+                return n;
+        return null;
+    }
+
+    public Agent getSelectedAgent() {
+        for (Agent a : agents)
+            if (a.isSelected())
+                return a;
+        return null;
+    }
+
+    public Edge getSelectedEdge() {
+        for (List<Edge> edges : graph.getEdges())
+            for (Edge e : edges)
+                if (e.isSelected())
+                    return e;
+        return null;
+    }
+
+    public int getNodeCapacity() {
+        return nodeCapacity;
+    }
+
+    public int getGenGridSide() {
+        return genGridSide;
+    }
+
+    public int getGenAgentCount() {
+        return genAgentCount;
+    }
 
     private Button buildButton(String text, String hexColor) {
         Button btn = new Button(text);
@@ -530,11 +699,13 @@ public class PropertiesPanel extends VBox {
 
     private Button smallButton(String text) {
         Button btn = new Button(text);
-        btn.setStyle("-fx-font-size: 13px; -fx-padding: 2 8 2 8; -fx-background-color: #3E3E42; -fx-text-fill: #E0E0E0; -fx-background-radius: 4; -fx-cursor: hand;");
+        btn.setStyle(
+                "-fx-font-size: 13px; -fx-padding: 2 8 2 8; -fx-background-color: #3E3E42; -fx-text-fill: #E0E0E0; -fx-background-radius: 4; -fx-cursor: hand;");
         return btn;
     }
 
     private String buttonStyle(String hexColor) {
-        return "-fx-background-color: " + hexColor + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px; -fx-padding: 7 10 7 10; -fx-background-radius: 4; -fx-cursor: hand;";
+        return "-fx-background-color: " + hexColor
+                + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px; -fx-padding: 7 10 7 10; -fx-background-radius: 4; -fx-cursor: hand;";
     }
 }
