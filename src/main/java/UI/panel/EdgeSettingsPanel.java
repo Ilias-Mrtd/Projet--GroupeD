@@ -17,10 +17,10 @@ import java.util.List;
 public class EdgeSettingsPanel extends VBox {
 
     private final Graph graph;
+    private SelectionSystem selectionSystem;
     private final Runnable refreshCallback;
     private final Runnable redrawCallback;
     private final Runnable onRemoveEdge;
-    private SelectionSystem selectionSystem;
 
     private final Label lblEdgeCap;
     private final Label lblEdgeSpeed;
@@ -46,10 +46,10 @@ public class EdgeSettingsPanel extends VBox {
         setSpacing(10);
 
         Label lblSection = new Label("Edge Settings");
-        lblSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #E0E0E0;");
+        lblSection.setStyle(UIComponents.SECTION_TITLE_STYLE);
 
         lblEdgeCap = new Label("Capacity: 1");
-        lblEdgeCap.setStyle("-fx-font-size: 12px; -fx-text-fill: #CCCCCC;");
+        lblEdgeCap.setStyle(UIComponents.BASE_LABEL_STYLE);
 
         Button btnCapMinus = UIComponents.createSmallButton("−");
         Button btnCapPlus = UIComponents.createSmallButton("+");
@@ -60,7 +60,7 @@ public class EdgeSettingsPanel extends VBox {
         capBox.setStyle("-fx-alignment: center-left;");
 
         lblEdgeSpeed = new Label("Speed: x1.0");
-        lblEdgeSpeed.setStyle("-fx-font-size: 12px; -fx-text-fill: #CCCCCC;");
+        lblEdgeSpeed.setStyle(UIComponents.BASE_LABEL_STYLE);
 
         Button btnSpeedMinus = UIComponents.createSmallButton("−");
         Button btnSpeedPlus = UIComponents.createSmallButton("+");
@@ -81,6 +81,15 @@ public class EdgeSettingsPanel extends VBox {
         btnRemoveEdge.setOnAction(e -> handleRemoveEdgeAction());
 
         getChildren().addAll(lblSection, capBox, speedBox, btnToggleDir, btnAddEdge, btnRemoveEdge);
+    }
+
+    /**
+     * Sets the delayed contextual selection system reference token.
+     *
+     * @param selectionSystem the central interactive selector instance
+     */
+    public void setSelectionSystem(SelectionSystem selectionSystem) {
+        this.selectionSystem = selectionSystem;
     }
 
     private void handleCapacityAdjustment(int delta) {
@@ -145,9 +154,7 @@ public class EdgeSettingsPanel extends VBox {
         if (onRemoveEdge != null) {
             onRemoveEdge.run();
         } else {
-            for (List<Edge> list : graph.getEdges()) {
-                list.removeIf(e -> e.getId() == sel.getId());
-            }
+            graph.getEdges().forEach(list -> list.removeIf(e -> e.getId() == sel.getId()));
         }
         refreshCallback.run();
         redrawCallback.run();
@@ -182,9 +189,5 @@ public class EdgeSettingsPanel extends VBox {
 
     private Edge getSelectedEdge() {
         return graph.getEdges().stream().flatMap(List::stream).filter(Edge::isSelected).findFirst().orElse(null);
-    }
-    
-    public void setSelectionSystem(SelectionSystem selectionSystem) {
-        this.selectionSystem = selectionSystem;
     }
 }

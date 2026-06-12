@@ -17,11 +17,11 @@ import model.graph.Node;
 public class NodeSettingsPanel extends VBox {
 
     private final Graph graph;
+    private SelectionSystem selectionSystem;
     private final Runnable refreshCallback;
     private final Runnable redrawCallback;
     private final Runnable onAddNode;
     private final Runnable onRemoveNode;
-    private SelectionSystem selectionSystem;
 
     private final Label lblNodeCap;
     private final CheckBox chkUnderConstruction;
@@ -31,13 +31,6 @@ public class NodeSettingsPanel extends VBox {
 
     /**
      * Constructs the node controller layout sub-section mapping functional listeners.
-     *
-     * @param graph           the data model tracking graph topography instances
-     * @param selectionSystem the centralized contextual application selection engine
-     * @param refreshCallback pipeline execution trigger for panel state reloads
-     * @param redrawCallback  pipeline execution trigger for canvas map updates
-     * @param onAddNode       the external custom router logic handling node creations
-     * @param onRemoveNode    the external custom router logic handling node removals
      */
     public NodeSettingsPanel(Graph graph, SelectionSystem selectionSystem, Runnable refreshCallback, 
                              Runnable redrawCallback, Runnable onAddNode, Runnable onRemoveNode) {
@@ -51,10 +44,10 @@ public class NodeSettingsPanel extends VBox {
         setSpacing(10);
 
         Label lblSection = new Label("Node Settings");
-        lblSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #E0E0E0;");
+        lblSection.setStyle(UIComponents.SECTION_TITLE_STYLE);
 
         lblNodeCap = new Label("Capacity: 1");
-        lblNodeCap.setStyle("-fx-font-size: 12px; -fx-text-fill: #CCCCCC;");
+        lblNodeCap.setStyle(UIComponents.BASE_LABEL_STYLE);
 
         Button btnMinus = UIComponents.createSmallButton("−");
         Button btnPlus = UIComponents.createSmallButton("+");
@@ -66,7 +59,7 @@ public class NodeSettingsPanel extends VBox {
         capBox.setStyle("-fx-alignment: center-left;");
 
         chkUnderConstruction = new CheckBox("Under Construction (Closed)");
-        chkUnderConstruction.setStyle("-fx-text-fill: #CCCCCC;");
+        chkUnderConstruction.setStyle(UIComponents.CHKBOX_STYLE);
         chkUnderConstruction.setDisable(true);
         chkUnderConstruction.setOnAction(e -> {
             Node sel = getSelectedNode();
@@ -86,6 +79,15 @@ public class NodeSettingsPanel extends VBox {
         btnRemoveNode.setOnAction(e -> handleRemoveNodeAction());
 
         getChildren().addAll(lblSection, capBox, chkUnderConstruction, btnAddNode, btnRemoveNode);
+    }
+
+    /**
+     * Sets the delayed contextual selection system reference token.
+     *
+     * @param selectionSystem the central interactive selector instance
+     */
+    public void setSelectionSystem(SelectionSystem selectionSystem) {
+        this.selectionSystem = selectionSystem;
     }
 
     private void handleCapacityAdjustment(int delta) {
@@ -135,8 +137,6 @@ public class NodeSettingsPanel extends VBox {
 
     /**
      * Synchronizes local display widgets with live attribute maps of selected targets.
-     *
-     * @param selected the entity item currently receiving user focus flags
      */
     public void updateUIState(Object selected) {
         boolean isNode = (selected instanceof Node);
@@ -154,29 +154,7 @@ public class NodeSettingsPanel extends VBox {
         }
     }
 
-    /**
-     * Returns the globally configured default base creation capacity metric.
-     *
-     * @return quantitative default edge sizing limit values
-     */
-    public int getDefaultNodeCapacity() {
-        return defaultNodeCapacity;
-    }
-
-    /**
-     * Exposes reference modifiers directly updating activation states on actions.
-     *
-     * @return the interactive vertex action instantiation button references
-     */
-    public Button getBtnAddNode() {
-        return btnAddNode;
-    }
-
-    private Node getSelectedNode() {
-        return graph.getNodes().stream().filter(Node::isSelected).findFirst().orElse(null);
-    }
-
-    public void setSelectionSystem(SelectionSystem selectionSystem) {
-        this.selectionSystem = selectionSystem;
-    }
+    public int getDefaultNodeCapacity() { return defaultNodeCapacity; }
+    public Button getBtnAddNode() { return btnAddNode; }
+    private Node getSelectedNode() { return graph.getNodes().stream().filter(Node::isSelected).findFirst().orElse(null); }
 }

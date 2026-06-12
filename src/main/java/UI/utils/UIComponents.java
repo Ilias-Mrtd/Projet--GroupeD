@@ -4,9 +4,24 @@ import javafx.scene.control.Button;
 
 /**
  * Utility factory for constructing consistently styled JavaFX UI elements 
- * across the simulation control dashboard environment.
+ * and centralizing application theme matrix styles.
  */
 public final class UIComponents {
+
+    // Centralized Design System Constants
+    public static final String PANEL_BACKGROUND = "-fx-background-color: #252526; -fx-border-color: #3E3E42; -fx-border-width: 0 0 0 1;";
+    public static final String INSPECTOR_SCROLL_BG = "-fx-background: #1E1E1E;";
+    
+    public static final String TITLE_LABEL_STYLE = "-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #00E5FF;";
+    public static final String SECTION_TITLE_STYLE = "-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #E0E0E0;";
+    public static final String BASE_LABEL_STYLE = "-fx-font-size: 12px; -fx-text-fill: #CCCCCC;";
+    public static final String CHKBOX_STYLE = "-fx-text-fill: #CCCCCC;";
+    
+    public static final String DETAILS_TEXT_STYLE = "-fx-font-size: 13px; -fx-text-fill: #CCCCCC; -fx-padding: 5px;";
+    public static final String MONO_LOG_STYLE = "-fx-font-size: 11px; -fx-font-family: monospace;";
+    public static final String MONO_SCOREBOARD_STYLE = "-fx-font-size: 12px; -fx-font-family: monospace; -fx-text-fill: #00E5FF;";
+    
+    public static final String SMALL_BUTTON_STYLE = "-fx-font-size: 13px; -fx-padding: 2 8 2 8; -fx-background-color: #3E3E42; -fx-text-fill: #E0E0E0; -fx-background-radius: 4; -fx-cursor: hand;";
 
     private UIComponents() {
         // Prevent instantiation of utility class
@@ -34,8 +49,7 @@ public final class UIComponents {
      */
     public static Button createSmallButton(String text) {
         Button btn = new Button(text);
-        btn.setStyle("-fx-font-size: 13px; -fx-padding: 2 8 2 8; -fx-background-color: #3E3E42; "
-                   + "-fx-text-fill: #E0E0E0; -fx-background-radius: 4; -fx-cursor: hand;");
+        btn.setStyle(SMALL_BUTTON_STYLE);
         return btn;
     }
 

@@ -31,10 +31,10 @@ public class BatchGenerationPanel extends VBox {
         setSpacing(10);
 
         Label lblGenSection = new Label("Batch Matrix Generation");
-        lblGenSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #E0E0E0;");
+        lblGenSection.setStyle(UIComponents.SECTION_TITLE_STYLE);
 
         lblGenNodes = new Label("Grid Map: " + genGridSide + "x" + genGridSide + " (" + (genGridSide * genGridSide) + " vertices)");
-        lblGenNodes.setStyle("-fx-font-size: 12px; -fx-text-fill: #CCCCCC;");
+        lblGenNodes.setStyle(UIComponents.BASE_LABEL_STYLE);
 
         Button btnGenNodesMinus = UIComponents.createSmallButton("−");
         Button btnGenNodesPlus = UIComponents.createSmallButton("+");
@@ -61,7 +61,7 @@ public class BatchGenerationPanel extends VBox {
         });
 
         lblGenAgents = new Label("Entity Profiles: " + genAgentCount);
-        lblGenAgents.setStyle("-fx-font-size: 12px; -fx-text-fill: #CCCCCC;");
+        lblGenAgents.setStyle(UIComponents.BASE_LABEL_STYLE);
 
         Button btnGenAgentsMinus = UIComponents.createSmallButton("−");
         Button btnGenAgentsPlus = UIComponents.createSmallButton("+");
@@ -98,9 +98,6 @@ public class BatchGenerationPanel extends VBox {
         lblGenAgents.setText("Entity Profiles: " + genAgentCount);
     }
 
-    /** Returns current side scaling count configuration metric bounds. */
     public int getGenGridSide() { return genGridSide; }
-
-    /** Returns numerical quantity metrics configured for active mass spawning operations. */
     public int getGenAgentCount() { return genAgentCount; }
 }

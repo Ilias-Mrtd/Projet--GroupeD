@@ -17,11 +17,11 @@ import java.util.List;
 public class AgentSettingsPanel extends VBox {
 
     private final List<Agent> agents;
+    private SelectionSystem selectionSystem;
     private final Runnable refreshCallback;
     private final Runnable onAddAgent;
     private final Runnable onRemoveAgent;
     private final Runnable onAssignObjective;
-    private SelectionSystem selectionSystem;
 
     private final ComboBox<Agent.agentBehavior> cbAgentBehavior;
     private final Button btnAddAgent;
@@ -44,12 +44,12 @@ public class AgentSettingsPanel extends VBox {
         setSpacing(10);
 
         Label lblSection = new Label("Agent Settings");
-        lblSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #E0E0E0;");
+        lblSection.setStyle(UIComponents.SECTION_TITLE_STYLE);
 
         cbAgentBehavior = new ComboBox<>();
         cbAgentBehavior.getItems().addAll(Agent.agentBehavior.PATIENT, Agent.agentBehavior.HURRIED, Agent.agentBehavior.VIP);
         cbAgentBehavior.setValue(Agent.agentBehavior.PATIENT);
-        cbAgentBehavior.setStyle("-fx-font-size: 12px;");
+        cbAgentBehavior.setStyle("-fx-font-size: 12px;"); // Minor layout font tweak
         cbAgentBehavior.setMaxWidth(Double.MAX_VALUE);
 
         btnAddAgent = UIComponents.buildButton("🤖 Add Autonomous Agent", "#388E3C");
@@ -64,6 +64,15 @@ public class AgentSettingsPanel extends VBox {
         btnAssignObjective.setOnAction(e -> handleAssignObjectiveAction());
 
         getChildren().addAll(lblSection, cbAgentBehavior, btnAddAgent, btnRemoveAgent, btnAssignObjective);
+    }
+
+    /**
+     * Sets the delayed contextual selection system reference token.
+     *
+     * @param selectionSystem the central interactive selector instance
+     */
+    public void setSelectionSystem(SelectionSystem selectionSystem) {
+        this.selectionSystem = selectionSystem;
     }
 
     private void handleAddAgentAction() {
@@ -94,12 +103,7 @@ public class AgentSettingsPanel extends VBox {
         refreshCallback.run();
     }
 
-    /**
-     * Notifies container that external asset allocation routines have concluded.
-     */
-    public void objectiveAssignedDone() {
-        this.assigningObjective = false;
-    }
+    public void objectiveAssignedDone() { this.assigningObjective = false; }
 
     /**
      * Resolves currently active choices tracking user navigation modifiers.
@@ -124,25 +128,6 @@ public class AgentSettingsPanel extends VBox {
         }
     }
 
-    /**
-     * Returns the selected enum routing parameter behavior currently evaluated.
-     *
-     * @return the selected strategy configuration model item
-     */
-    public Agent.agentBehavior getSelectedAgentBehavior() {
-        return cbAgentBehavior.getValue();
-    }
-
-    /**
-     * Sets external access tracking tags managing button overrides.
-     *
-     * @param state binary execution configuration parameter flag
-     */
-    public void setAddAgentDisable(boolean state) {
-        btnAddAgent.setDisable(state);
-    }
-
-    public void setSelectionSystem(SelectionSystem selectionSystem) {
-        this.selectionSystem = selectionSystem;
-    }
+    public Agent.agentBehavior getSelectedAgentBehavior() { return cbAgentBehavior.getValue(); }
+    public void setAddAgentDisable(boolean state) { btnAddAgent.setDisable(state); }
 }

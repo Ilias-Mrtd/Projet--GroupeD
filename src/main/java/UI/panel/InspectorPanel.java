@@ -1,5 +1,6 @@
 package UI.panel;
 
+import UI.utils.UIComponents;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
@@ -35,7 +36,7 @@ public class InspectorPanel extends VBox {
         setSpacing(10);
 
         Label lblInspectorSection = new Label("🔎 Inspector");
-        lblInspectorSection.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #E0E0E0;");
+        lblInspectorSection.setStyle(UIComponents.SECTION_TITLE_STYLE);
 
         TabPane inspectorTabs = new TabPane();
         inspectorTabs.setPrefHeight(300);
@@ -43,18 +44,18 @@ public class InspectorPanel extends VBox {
         Tab tabDetails = new Tab("Details");
         tabDetails.setClosable(false);
         infoLabel = new Label("Click on an entity\nto view its details.");
-        infoLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #CCCCCC; -fx-padding: 5px;");
+        infoLabel.setStyle(UIComponents.DETAILS_TEXT_STYLE);
         infoLabel.setWrapText(true);
         ScrollPane detailsScroll = new ScrollPane(infoLabel);
         detailsScroll.setFitToWidth(true);
-        detailsScroll.setStyle("-fx-background: #1E1E1E;");
+        detailsScroll.setStyle(UIComponents.INSPECTOR_SCROLL_BG);
         tabDetails.setContent(detailsScroll);
 
         Tab tabHistory = new Tab("History");
         tabHistory.setClosable(false);
         logArea = new TextArea();
         logArea.setEditable(false);
-        logArea.setStyle("-fx-font-size: 11px; -fx-font-family: monospace;");
+        logArea.setStyle(UIComponents.MONO_LOG_STYLE);
         logArea.setWrapText(true);
         tabHistory.setContent(logArea);
 
@@ -62,7 +63,7 @@ public class InspectorPanel extends VBox {
         tabGlobal.setClosable(false);
         globalStatsArea = new TextArea();
         globalStatsArea.setEditable(false);
-        globalStatsArea.setStyle("-fx-font-size: 12px; -fx-font-family: monospace; -fx-text-fill: #00E5FF;");
+        globalStatsArea.setStyle(UIComponents.MONO_SCOREBOARD_STYLE);
         globalStatsArea.setWrapText(true);
         tabGlobal.setContent(globalStatsArea);
 
@@ -71,15 +72,28 @@ public class InspectorPanel extends VBox {
     }
 
     /**
-     * Evaluates metrics for targeted variables, recalculating visual representations.
+     * Isolates mathematical performance conversions (KPI) from presentation string builders.
+     * Array structure rules: index 0 = Measured Velocity, index 1 = Traffic Efficiency %.
      *
-     * @param selected item receiving primary visualization tracking parameters
+     * @param agent targeted computational mobile unit profile
+     * @return a double array tracking velocity conversions and dynamic efficiency ratios
+     */
+    private double[] calculateAgentMetrics(Agent agent) {
+        if (agent.getTotalActiveTime() <= 0) {
+            return new double[]{0.0, 100.0};
+        }
+        double avgSpeed = (agent.getTotalDistance() / agent.getTotalActiveTime()) / 60.0;
+        double efficiency = ((agent.getTotalActiveTime() - agent.getTotalWaitTime()) / agent.getTotalActiveTime()) * 100.0;
+        return new double[]{avgSpeed, efficiency};
+    }
+
+    /**
+     * Evaluates metrics for targeted variables, recalculating visual representations.
      */
     public void updateInspectorContent(Object selected) {
         if (selected instanceof Agent) {
             Agent a = (Agent) selected;
-            double avgSpeed = (a.getTotalActiveTime() > 0) ? (a.getTotalDistance() / a.getTotalActiveTime()) / 60.0 : 0.0;
-            double efficiency = (a.getTotalActiveTime() > 0) ? ((a.getTotalActiveTime() - a.getTotalWaitTime()) / a.getTotalActiveTime()) * 100.0 : 100.0;
+            double[] metrics = calculateAgentMetrics(a);
 
             StringBuilder sb = new StringBuilder();
             sb.append("Type     : Agent [").append(a.getAgentBehavior()).append("]\n")
@@ -92,9 +106,9 @@ public class InspectorPanel extends VBox {
               .append("Forced Detours     : ").append(a.getDetoursTaken()).append("\n")
               .append("Total Active Time  : ").append(String.format("%.1fs", a.getTotalActiveTime())).append("\n")
               .append("Total Delay (Wait) : ").append(String.format("%.1fs", a.getTotalWaitTime())).append("\n")
-              .append("Traffic Efficiency : ").append(String.format("%.1f%%", efficiency)).append("\n")
+              .append("Traffic Efficiency : ").append(String.format("%.1f%%", metrics[1])).append("\n")
               .append("Target Speed Limit : ").append(String.format("%.1f", a.getSpeed())).append(" px/s\n")
-              .append("Measured Net Velocity: ").append(String.format("%.1f", avgSpeed)).append(" px/s\n\n");
+              .append("Measured Net Velocity: ").append(String.format("%.1f", metrics[0])).append(" px/s\n\n");
 
             if (a.getCurrentEdge() != null && a.getDestination() != null) {
                 sb.append("On Connection Link : ").append(a.getCurrentEdge().getId()).append("\n")
