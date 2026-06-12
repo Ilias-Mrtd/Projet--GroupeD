@@ -23,7 +23,6 @@ public class PropertiesPanel extends VBox {
     private final List<Agent> agents;
     private SelectionSystem selectionSystem;
 
-    // Sub-components mappings references
     private final NodeSettingsPanel nodeSettingsPanel;
     private final EdgeSettingsPanel edgeSettingsPanel;
     private final AgentSettingsPanel agentSettingsPanel;
@@ -54,14 +53,12 @@ public class PropertiesPanel extends VBox {
         Label titleLabel = new Label("✏️ Graph manager");
         titleLabel.setStyle(UIComponents.TITLE_LABEL_STYLE);
 
-        // Sub-panel modular initializations passing references pipelines 
         this.nodeSettingsPanel = new NodeSettingsPanel(graph, selectionSystem, this::refresh, this::redrawCanvas, () -> { if (onAddNode != null) onAddNode.run(); }, () -> { if (onRemoveNode != null) onRemoveNode.run(); });
         this.edgeSettingsPanel = new EdgeSettingsPanel(graph, selectionSystem, this::refresh, this::redrawCanvas, () -> { if (onRemoveEdge != null) onRemoveEdge.run(); });
         this.agentSettingsPanel = new AgentSettingsPanel(agents, selectionSystem, this::refresh, () -> { if (onAddAgent != null) onAddAgent.run(); }, () -> { if (onRemoveAgent != null) onRemoveAgent.run(); }, () -> { if (onAssignObjective != null) onAssignObjective.run(); });
         this.batchGenerationPanel = new BatchGenerationPanel(() -> { if (onGenerateGraph != null) onGenerateGraph.run(); }, () -> { if (onSpawnAgents != null) onSpawnAgents.run(); });
         this.inspectorPanel = new InspectorPanel(graph, agents);
 
-        // UI tree structuring execution layout
         getChildren().addAll(
             titleLabel, new Separator(),
             nodeSettingsPanel, new Separator(),
@@ -76,7 +73,6 @@ public class PropertiesPanel extends VBox {
     public void setSelectionSystem(SelectionSystem ss) {
         this.selectionSystem = ss;
         
-        // Distribute initialization token references safely downwards to sub-sections
         this.nodeSettingsPanel.setSelectionSystem(ss);
         this.edgeSettingsPanel.setSelectionSystem(ss);
         this.agentSettingsPanel.setSelectionSystem(ss);
@@ -117,7 +113,6 @@ public class PropertiesPanel extends VBox {
             .orElse(null)));
     }
 
-    // Contextual references wrappers maintaining architectural operations
     public Node getSelectedNode() { return graph.getNodes().stream().filter(Node::isSelected).findFirst().orElse(null); }
     public Agent getSelectedAgent() { return agents.stream().filter(Agent::isSelected).findFirst().orElse(null); }
     public Edge getSelectedEdge() { return graph.getEdges().stream().flatMap(List::stream).filter(Edge::isSelected).findFirst().orElse(null); }
@@ -127,7 +122,6 @@ public class PropertiesPanel extends VBox {
     public int getGenAgentCount() { return batchGenerationPanel.getGenAgentCount(); }
     public void objectiveAssignedDone() { agentSettingsPanel.objectiveAssignedDone(); }
 
-    // Callback assignments mapping
     public void setOnAddNode(Runnable r) { this.onAddNode = r; }
     public void setOnRemoveNode(Runnable r) { this.onRemoveNode = r; }
     public void setOnRemoveEdge(Runnable r) { this.onRemoveEdge = r; }

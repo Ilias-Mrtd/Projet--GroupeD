@@ -72,19 +72,37 @@ public class InspectorPanel extends VBox {
     }
 
     /**
-     * Isolates mathematical performance conversions (KPI) from presentation string builders.
-     * Array structure rules: index 0 = Measured Velocity, index 1 = Traffic Efficiency %.
-     *
-     * @param agent targeted computational mobile unit profile
-     * @return a double array tracking velocity conversions and dynamic efficiency ratios
+     * Immutable data container capturing evaluated performance metrics (KPIs)
+     * decoupled entirely from UI rendering engines.
      */
-    private double[] calculateAgentMetrics(Agent agent) {
-        if (agent.getTotalActiveTime() <= 0) {
-            return new double[]{0.0, 100.0};
+    private static final class AgentMetrics {
+        private final double averageSpeed;
+        private final double trafficEfficiency;
+
+        private AgentMetrics(double averageSpeed, double trafficEfficiency) {
+            this.averageSpeed = averageSpeed;
+            this.trafficEfficiency = trafficEfficiency;
         }
-        double avgSpeed = (agent.getTotalDistance() / agent.getTotalActiveTime()) / 60.0;
-        double efficiency = ((agent.getTotalActiveTime() - agent.getTotalWaitTime()) / agent.getTotalActiveTime()) * 100.0;
-        return new double[]{avgSpeed, efficiency};
+
+        public double getAverageSpeed() { return averageSpeed; }
+        public double getTrafficEfficiency() { return trafficEfficiency; }
+    }
+
+    /**
+     * Pure mathematical transformation function isolating telemetry calculations.
+     * Considers baseline bounds to prevent arithmetic division-by-zero errors.
+     *
+     * @param agent the target autonomous mobile entity to analyze
+     * @return an immutable AgentMetrics object instance containing computed KPIs
+     */
+    private AgentMetrics computeAgentMetrics(Agent agent) {
+        double activeTime = agent.getTotalActiveTime();
+        if (activeTime <= 0.0) {
+            return new AgentMetrics(0.0, 100.0);
+        }
+        double avgSpeed = (agent.getTotalDistance() / activeTime) / 60.0;
+        double efficiency = ((activeTime - agent.getTotalWaitTime()) / activeTime) * 100.0;
+        return new AgentMetrics(avgSpeed, efficiency);
     }
 
     /**
@@ -93,7 +111,7 @@ public class InspectorPanel extends VBox {
     public void updateInspectorContent(Object selected) {
         if (selected instanceof Agent) {
             Agent a = (Agent) selected;
-            double[] metrics = calculateAgentMetrics(a);
+            AgentMetrics metrics = computeAgentMetrics(a);
 
             StringBuilder sb = new StringBuilder();
             sb.append("Type     : Agent [").append(a.getAgentBehavior()).append("]\n")
@@ -106,9 +124,9 @@ public class InspectorPanel extends VBox {
               .append("Forced Detours     : ").append(a.getDetoursTaken()).append("\n")
               .append("Total Active Time  : ").append(String.format("%.1fs", a.getTotalActiveTime())).append("\n")
               .append("Total Delay (Wait) : ").append(String.format("%.1fs", a.getTotalWaitTime())).append("\n")
-              .append("Traffic Efficiency : ").append(String.format("%.1f%%", metrics[1])).append("\n")
+              .append("Traffic Efficiency : ").append(String.format("%.1f%%", metrics.getTrafficEfficiency())).append("\n")
               .append("Target Speed Limit : ").append(String.format("%.1f", a.getSpeed())).append(" px/s\n")
-              .append("Measured Net Velocity: ").append(String.format("%.1f", metrics[0])).append(" px/s\n\n");
+              .append("Measured Net Velocity: ").append(String.format("%.1f", metrics.getAverageSpeed())).append(" px/s\n\n");
 
             if (a.getCurrentEdge() != null && a.getDestination() != null) {
                 sb.append("On Connection Link : ").append(a.getCurrentEdge().getId()).append("\n")
