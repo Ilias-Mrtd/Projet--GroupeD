@@ -11,8 +11,7 @@ import model.graph.Node;
 import java.util.List;
 
 /**
- * Sub-panel layout container coordinating autonomous navigation profiles, behavior configurations,
- * object tracking deletions, and tactical navigation destination rules.
+ * Sub-panel layout container coordinating autonomous navigation profiles.
  */
 public class AgentSettingsPanel extends VBox {
 
@@ -29,9 +28,6 @@ public class AgentSettingsPanel extends VBox {
     private final Button btnAssignObjective;
     private boolean assigningObjective = false;
 
-    /**
-     * Constructs the agent controller tracking interface block element.
-     */
     public AgentSettingsPanel(List<Agent> agents, SelectionSystem selectionSystem, Runnable refreshCallback,
                               Runnable onAddAgent, Runnable onRemoveAgent, Runnable onAssignObjective) {
         this.agents = agents;
@@ -49,7 +45,7 @@ public class AgentSettingsPanel extends VBox {
         cbAgentBehavior = new ComboBox<>();
         cbAgentBehavior.getItems().addAll(Agent.agentBehavior.PATIENT, Agent.agentBehavior.HURRIED, Agent.agentBehavior.VIP);
         cbAgentBehavior.setValue(Agent.agentBehavior.PATIENT);
-        cbAgentBehavior.setStyle("-fx-font-size: 12px;"); // Minor layout font tweak
+        cbAgentBehavior.setStyle("-fx-font-size: 12px;");
         cbAgentBehavior.setMaxWidth(Double.MAX_VALUE);
 
         btnAddAgent = UIComponents.buildButton("🤖 Add Autonomous Agent", "#388E3C");
@@ -66,27 +62,22 @@ public class AgentSettingsPanel extends VBox {
         getChildren().addAll(lblSection, cbAgentBehavior, btnAddAgent, btnRemoveAgent, btnAssignObjective);
     }
 
-    /**
-     * Sets the delayed contextual selection system reference token.
-     *
-     * @param selectionSystem the central interactive selector instance
-     */
     public void setSelectionSystem(SelectionSystem selectionSystem) {
         this.selectionSystem = selectionSystem;
     }
 
     private void handleAddAgentAction() {
-        Node sel = selectionSystem != null ? selectionSystem.getLastSelectedNode() : null;
-        if (sel == null) return;
-        if (onAddAgent != null) onAddAgent.run();
-        refreshCallback.run();
+        if (selectionSystem != null && selectionSystem.getLastSelectedNode() != null) {
+            if (onAddAgent != null) onAddAgent.run();
+            refreshCallback.run();
+        }
     }
 
     private void handleRemoveAgentAction() {
-        Agent sel = selectionSystem != null ? selectionSystem.getLastSelectedAgent() : null;
-        if (sel == null) return;
-        if (onRemoveAgent != null) onRemoveAgent.run();
-        refreshCallback.run();
+        if (selectionSystem != null && selectionSystem.getLastSelectedAgent() != null) {
+            if (onRemoveAgent != null) onRemoveAgent.run();
+            refreshCallback.run();
+        }
     }
 
     private void handleAssignObjectiveAction() {
@@ -94,9 +85,7 @@ public class AgentSettingsPanel extends VBox {
         if (assigningObjective) {
             selectionSystem.cancelAssignObjective();
             assigningObjective = false;
-        } else {
-            Agent sel = selectionSystem.getLastSelectedAgent();
-            if (sel == null) return;
+        } else if (selectionSystem.getLastSelectedAgent() != null) {
             assigningObjective = true;
             if (onAssignObjective != null) onAssignObjective.run();
         }
@@ -105,9 +94,6 @@ public class AgentSettingsPanel extends VBox {
 
     public void objectiveAssignedDone() { this.assigningObjective = false; }
 
-    /**
-     * Resolves currently active choices tracking user navigation modifiers.
-     */
     public void updateUIState(Object selected) {
         boolean isNode = (selected instanceof Node);
         boolean isAgent = (selected instanceof Agent);
@@ -115,9 +101,7 @@ public class AgentSettingsPanel extends VBox {
         btnAddAgent.setDisable(!isNode);
         btnRemoveAgent.setDisable(!isAgent);
 
-        if (!assigningObjective) {
-            btnAssignObjective.setDisable(!isAgent);
-        }
+        if (!assigningObjective) btnAssignObjective.setDisable(!isAgent);
 
         if (assigningObjective) {
             btnAssignObjective.setText("↩ Cancel Objective");

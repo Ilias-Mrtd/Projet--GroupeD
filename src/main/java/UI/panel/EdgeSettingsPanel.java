@@ -32,9 +32,6 @@ public class EdgeSettingsPanel extends VBox {
     private boolean defaultEdgeDirection = true;
     private boolean linkingActive = false;
 
-    /**
-     * Constructs the connection interface sub-section managing network edge mappings.
-     */
     public EdgeSettingsPanel(Graph graph, SelectionSystem selectionSystem, Runnable refreshCallback, 
                              Runnable redrawCallback, Runnable onRemoveEdge) {
         this.graph = graph;
@@ -83,11 +80,6 @@ public class EdgeSettingsPanel extends VBox {
         getChildren().addAll(lblSection, capBox, speedBox, btnToggleDir, btnAddEdge, btnRemoveEdge);
     }
 
-    /**
-     * Sets the delayed contextual selection system reference token.
-     *
-     * @param selectionSystem the central interactive selector instance
-     */
     public void setSelectionSystem(SelectionSystem selectionSystem) {
         this.selectionSystem = selectionSystem;
     }
@@ -96,9 +88,7 @@ public class EdgeSettingsPanel extends VBox {
         Edge sel = getSelectedEdge();
         if (sel != null) {
             int currentCap = sel.getCapacity();
-            if (delta > 0 || currentCap > 1) {
-                sel.setCapacity(currentCap + delta);
-            }
+            if (delta > 0 || currentCap > 1) sel.setCapacity(currentCap + delta);
         } else if (delta > 0 || defaultEdgeCapacity > 1) {
             defaultEdgeCapacity += delta;
         }
@@ -110,9 +100,7 @@ public class EdgeSettingsPanel extends VBox {
         Edge sel = getSelectedEdge();
         if (sel != null) {
             float updatedSpeed = sel.getSpeedModifier() + delta;
-            if (updatedSpeed >= 0.2f && updatedSpeed <= 5.0f) {
-                sel.setSpeedModifier(updatedSpeed);
-            }
+            if (updatedSpeed >= 0.2f && updatedSpeed <= 5.0f) sel.setSpeedModifier(updatedSpeed);
         }
         refreshCallback.run();
         redrawCallback.run();
@@ -120,11 +108,8 @@ public class EdgeSettingsPanel extends VBox {
 
     private void handleDirectionToggle() {
         Edge sel = getSelectedEdge();
-        if (sel != null) {
-            sel.setDirection(!sel.hasDirection());
-        } else {
-            defaultEdgeDirection = !defaultEdgeDirection;
-        }
+        if (sel != null) sel.setDirection(!sel.hasDirection());
+        else defaultEdgeDirection = !defaultEdgeDirection;
         refreshCallback.run();
         redrawCallback.run();
     }
@@ -148,6 +133,9 @@ public class EdgeSettingsPanel extends VBox {
         refreshCallback.run();
     }
 
+    /**
+     * Remplacé : Utilisation de Streams pour filtrer et supprimer l'arête cible proprement.
+     */
     private void handleRemoveEdgeAction() {
         Edge sel = selectionSystem != null ? selectionSystem.getLastSelectedEdge() : null;
         if (sel == null) return;
@@ -160,9 +148,6 @@ public class EdgeSettingsPanel extends VBox {
         redrawCallback.run();
     }
 
-    /**
-     * Synchronizes application view elements to report updated parameter models.
-     */
     public void updateUIState(Object selected) {
         boolean isEdge = (selected instanceof Edge);
         btnRemoveEdge.setDisable(!isEdge);
@@ -188,6 +173,10 @@ public class EdgeSettingsPanel extends VBox {
     }
 
     private Edge getSelectedEdge() {
-        return graph.getEdges().stream().flatMap(List::stream).filter(Edge::isSelected).findFirst().orElse(null);
+        return graph.getEdges().stream()
+                    .flatMap(List::stream)
+                    .filter(Edge::isSelected)
+                    .findFirst()
+                    .orElse(null);
     }
 }
