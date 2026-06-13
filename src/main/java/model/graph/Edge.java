@@ -2,16 +2,16 @@ package model.graph;
 
 import java.io.Serializable;
 import java.util.LinkedList;
-
 import model.agents.Agent;
 
 /**
  * Represents a structural connection (edge/pathway) between two spatial nodes in the graph matrix.
- * Manages spatial attributes, traffic bottlenecks via capacity restriction thresholds, speed factors,
- * and maintains an optimized waiting queue handling priority-based agent injection.
+ * Manages spatial attributes and delegates heavy traffic logic to EdgeManager to remain lightweight.
  * * @author Group D
+ * @since 2026
  */
 public class Edge implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private int id;
     private Node source;
@@ -28,14 +28,8 @@ public class Edge implements Serializable {
 
     private LinkedList<Agent> waitingQueue = new LinkedList<>();
 
-    /**
-     * Constructs a new Edge instance linking two spatial nodes and computes its geometric Euclidean length.
-     * * @param id Unique numerical identifier for the edge.
-     * @param source The origin source Node instance.
-     * @param target The destination target Node instance.
-     * @param capacity Maximum threshold of concurrent agents authorized on this pathway segment.
-     * @param direction Orientation behavior flag (true if unidirectional, false if bidirectional).
-     */
+    public enum edgeState { OUT, AVAILABLE, FULL }
+
     public Edge(int id, Node source, Node target, int capacity, boolean direction) {
         this.id = id;
         this.source = source;
@@ -45,91 +39,37 @@ public class Edge implements Serializable {
         this.direction = direction;
     }
 
-    private static final long serialVersionUID = 1L;
+    // ==========================================
+    //   DELEGATION TO MANAGER
+    // ==========================================
 
-    /**
-     * Internal operational status of the edge layout structural segment.
-     */
-    public enum edgeState { OUT, AVAILABLE, FULL }
-
-    /**
-     * Evaluates if the current density of active occupants has reached or surpassed the maximum capacity threshold.
-     * * @return true if the edge segment is completely congested; false otherwise.
-     */
-    public boolean isFull() { return getCurrentOccupants() >= getCapacity(); }
-
-    /**
-     * Validates whether an agent is allowed to access this segment based on space availability and queue priority rules.
-     * * @param a The tracking Agent object requesting entry validation checks.
-     * @return true if the segment has available capacity and the agent holds priority at the front of the queue.
-     */
-    public boolean canEnter(Agent a) {
-        return !isFull() && (getWaitingQueue().isEmpty() || getWaitingQueue().peek() == a);
+    public boolean isFull() { 
+        return EdgeManager.isFull(this); 
     }
 
-    /**
-     * Processes transactional clearance registration requests for an agent seeking entry onto this path segment.
-     * VIP agents bypass standard capacity blocks, forcing immediate entry regardless of congestion levels.
-     * * @param a The tracking Agent attempting to cross onto this path segment.
-     * @return true if entry access was successfully granted and state adjustments registered; false if rejected.
-     */
-    public boolean tryEnter(Agent a) {
-        // VIP FORCES ENTRY REGARDLESS OF CONGESTION!
-        if (a.getAgentBehavior() == Agent.agentBehavior.VIP) {
-            getWaitingQueue().remove(a);
-            setCurrentOccupants(getCurrentOccupants() + 1);
-            if (isFull()) {
-                setState(edgeState.FULL);
-            }
-            return true;
-        }
-
-        if (canEnter(a)) {
-            getWaitingQueue().remove(a);
-            setCurrentOccupants(getCurrentOccupants() + 1);
-            if (isFull()) {
-                setState(edgeState.FULL);
-            }
-            return true;
-        }
-        return false;
+    public boolean canEnter(Agent a) { 
+        return EdgeManager.canEnter(this, a); 
     }
 
-    /**
-     * Decrements the active occupancy tally when an entity leaves this edge segment, 
-     * releasing structural locks and restoring AVAILABLE status flags as needed.
-     */
-    public void leave() {
-        if (getCurrentOccupants() > 0) { setCurrentOccupants(getCurrentOccupants() - 1); }
-        if (!isFull()) { setState(edgeState.AVAILABLE); }
+    public boolean tryEnter(Agent a) { 
+        return EdgeManager.tryEnter(this, a); 
     }
 
-    /**
-     * Appends an agent to the back of the line or performs priority-based insertion 
-     * at the front of non-VIP lines if the agent possesses a VIP behavior model.
-     * * @param a The tracking Agent item requesting queue insertion registration.
-     */
-    public void enqueue(Agent a) {
-        if (!getWaitingQueue().contains(a)) {
-            if (a.getAgentBehavior() == Agent.agentBehavior.VIP) {
-                int insertIndex = 0;
-                for (Agent waiting : getWaitingQueue()) {
-                    if (waiting.getAgentBehavior() != Agent.agentBehavior.VIP) break;
-                    insertIndex++;
-                }
-                getWaitingQueue().add(insertIndex, a);
-            } else {
-                getWaitingQueue().add(a);
-            }
-        }
+    public void leave() { 
+        EdgeManager.leave(this); 
     }
 
-    /**
-     * Removes an agent immediately from the internal queue, canceling its pending transit requests.
-     * * @param a The target Agent component to evict from the line.
-     */
-    public void removeQueue(Agent a) { getWaitingQueue().remove(a); }
+    public void enqueue(Agent a) { 
+        EdgeManager.enqueue(this, a); 
+    }
 
+    public void removeQueue(Agent a) { 
+        EdgeManager.removeQueue(this, a); 
+    }
+
+    // ==========================================
+    //           GETTERS & SETTERS
+    // ==========================================
     public float getSpeedModifier() { return speedModifier; }
     public void setSpeedModifier(float speedModifier) { this.speedModifier = speedModifier; }
     public edgeState getState() { return this.state; }

@@ -2,15 +2,14 @@ package model.graph;
 
 import java.io.Serializable;
 import java.util.LinkedList;
-
 import model.agents.Agent;
 
 /**
  * Represents a discrete spatial intersection point (vertex/node) within the graph topology.
- * Manages physical coordinates, strict occupancy constraint thresholds, operational structural 
- * modifications (such as construction events), and a specialized priority queue system tailored 
- * for sorting and injecting behavioral agents.
+ * Manages physical state, occupancy variables, and structural flags, while delegating 
+ * operational traffic logic, construction adjustments, and queuing states to NodeManager.
  * * @author Group D
+ * @since 2026
  */
 public class Node implements Serializable {
 
@@ -29,11 +28,18 @@ public class Node implements Serializable {
     private boolean isUnderConstruction = false;
     private int savedCapacity = 1;
 
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Operational state descriptor flags characterizing node structural availability.
+     */
+    public enum nodeState { OUT, AVAILABLE, FULL }
+
     /**
      * Constructs a new Node with specified coordinates and occupancy limits.
-     * * @param id       Unique numerical identifier for the node.
-     * @param x        The horizontal coordinate component mapping layout offsets.
-     * @param y        The vertical coordinate component mapping layout offsets.
+     * * @param id Unique numerical identifier for the node.
+     * @param x The horizontal coordinate component mapping layout offsets.
+     * @param y The vertical coordinate component mapping layout offsets.
      * @param capacity Maximum number of concurrent agents authorized on this node.
      */
     public Node(int id, float x, float y, int capacity) {
@@ -43,7 +49,9 @@ public class Node implements Serializable {
         this.capacity = capacity;
     }
 
-    private static final long serialVersionUID = 1L;
+    // =========================================================================
+    //   DELEGATION PATTERN (Prevents breaking changes across the codebase)
+    // =========================================================================
 
     /**
      * Modifies the node's construction status. Enabling construction preserves the initial
@@ -52,17 +60,7 @@ public class Node implements Serializable {
      * * @param underConstruction true to isolate this node for maintenance; false to re-enable it.
      */
     public void setUnderConstruction(boolean underConstruction) {
-        this.isUnderConstruction = underConstruction;
-        if (underConstruction) {
-            this.savedCapacity = this.capacity;
-            this.capacity = 0;
-            this.setState(nodeState.FULL);
-        } else {
-            this.capacity = this.savedCapacity;
-            if (this.currentOccupants < this.capacity) {
-                this.setState(nodeState.AVAILABLE);
-            }
-        }
+        NodeManager.setUnderConstruction(this, underConstruction);
     }
 
     /**
@@ -70,7 +68,7 @@ public class Node implements Serializable {
      * * @return true if the node structural limits are fully saturated; false otherwise.
      */
     public boolean isFull() {
-        return getCurrentOccupants() >= getCapacity();
+        return NodeManager.isFull(this);
     }
 
     /**
@@ -80,7 +78,7 @@ public class Node implements Serializable {
      * @return true if space is clear and the agent holds entry priority; false if blocked.
      */
     public boolean canEnter(Agent a) {
-        return !isFull() && (getWaitingQueue().isEmpty() || getWaitingQueue().peek() == a);
+        return NodeManager.canEnter(this, a);
     }
 
     /**
@@ -91,25 +89,7 @@ public class Node implements Serializable {
      * @return true if structural parameters updated and entry was cleared; false if turned away.
      */
     public boolean tryEnter(Agent a) {
-
-        if (a.getAgentBehavior() == Agent.agentBehavior.VIP) {
-            getWaitingQueue().remove(a);
-            setCurrentOccupants(getCurrentOccupants() + 1);
-            if (isFull()) {
-                setState(nodeState.FULL);
-            }
-            return true;
-        }
-
-        if (canEnter(a)) {
-            getWaitingQueue().remove(a);
-            setCurrentOccupants(getCurrentOccupants() + 1);
-            if (isFull()) {
-                setState(nodeState.FULL);
-            }
-            return true;
-        }
-        return false;
+        return NodeManager.tryEnter(this, a);
     }
 
     /**
@@ -117,10 +97,7 @@ public class Node implements Serializable {
      * validation workflows, matching safety status triggers as required.
      */
     public void forceEnter() {
-        setCurrentOccupants(getCurrentOccupants() + 1);
-        if (isFull()) {
-            setState(nodeState.FULL);
-        }
+        NodeManager.forceEnter(this);
     }
 
     /**
@@ -128,12 +105,7 @@ public class Node implements Serializable {
      * resetting state descriptors to AVAILABLE when constraints clear up.
      */
     public void leave() {
-        if (getCurrentOccupants() > 0) {
-            setCurrentOccupants(getCurrentOccupants() - 1);
-        }
-        if (!isFull()) {
-            setState(nodeState.AVAILABLE);
-        }
+        NodeManager.leave(this);
     }
 
     /**
@@ -143,18 +115,7 @@ public class Node implements Serializable {
      * * @param a The tracking Agent component requesting queue insertion registration.
      */
     public void enqueue(Agent a) {
-        if (!getWaitingQueue().contains(a)) {
-            if (a.getAgentBehavior() == Agent.agentBehavior.VIP) {
-                int insertIndex = 0;
-                for (Agent waiting : getWaitingQueue()) {
-                    if (waiting.getAgentBehavior() != Agent.agentBehavior.VIP) break;
-                    insertIndex++;
-                }
-                getWaitingQueue().add(insertIndex, a);
-            } else {
-                getWaitingQueue().add(a);
-            }
-        }
+        NodeManager.enqueue(this, a);
     }
 
     /**
@@ -162,14 +123,12 @@ public class Node implements Serializable {
      * * @param a The target Agent instance to dismiss from the line.
      */
     public void removeQueue(Agent a) {
-        getWaitingQueue().remove(a);
+        NodeManager.removeQueue(this, a);
     }
 
-    /**
-     * Operational state descriptor flags characterizing node structural availability.
-     */
-    public enum nodeState { OUT, AVAILABLE, FULL }
-
+    // =========================================================================
+    //           GETTERS & SETTERS (Standard Encapsulation)
+    // =========================================================================
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
     public float getX() { return x; }
@@ -191,4 +150,7 @@ public class Node implements Serializable {
     public LinkedList<Agent> getWaitingQueue() { return waitingQueue; }
     public void setWaitingQueue(LinkedList<Agent> waitingQueue) { this.waitingQueue = waitingQueue; }
     public boolean isUnderConstruction() { return isUnderConstruction; }
+    public void setRawUnderConstruction(boolean underConstruction) { this.isUnderConstruction = underConstruction; }
+    public int getSavedCapacity() { return savedCapacity; }
+    public void setSavedCapacity(int savedCapacity) { this.savedCapacity = savedCapacity; }
 }

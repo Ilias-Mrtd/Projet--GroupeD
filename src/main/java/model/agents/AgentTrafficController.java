@@ -11,7 +11,6 @@ import simulationEngine.algorithm.*;
  * Intelligent subsystem handling pathfinding algorithms, map reservations,
  * detour procedures, and deadlock-prevention logic for warehouse agents.
  * * @author Group D
- * @since 2026
  */
 public class AgentTrafficController implements Serializable {
     private static final long serialVersionUID = 1L;

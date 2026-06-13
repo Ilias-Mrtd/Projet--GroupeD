@@ -1,14 +1,13 @@
 package model.graph;
 
-import java.util.List;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Random;
+import java.util.List;
 
 /**
  * Represents the topological map framework managing structural graph layouts.
- * It coordinates parallel lists of spatial nodes and their associated adjacency 
- * edge matrices, providing utilities for layout mutations and calculations.
+ * It holds parallel data models for spatial nodes and adjacency edge lists,
+ * delegating structural mutations and computations to GraphManager.
  * * @author Group D
  */
 public class Graph implements Serializable {
@@ -19,46 +18,6 @@ public class Graph implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Generates a unique pseudo-random identification integer for new nodes.
-     * Continuously scans existing tracking collections to prevent identity collision.
-     * * @return A unique numerical tracking identifier within bounds [0, 500).
-     */
-    private int newNodeId() {
-        Random random = new Random();
-        int newId = random.nextInt(500);
-
-        for (int i = 0; i < getNodes().size(); i++) {
-            if (getNodes().get(i).getId() == newId) {
-                newId = random.nextInt(500);
-                i = 0; // Restarts the loop sequence until a distinct identity is verified
-            }
-        }
-
-        return newId;
-    }
-
-    /**
-     * Generates a unique pseudo-random identification integer for new edges.
-     * Deeply scans nested adjacency arrays to guarantee absolute identifier uniqueness.
-     * * @return A unique numerical tracking identifier within bounds [0, 500).
-     */
-    private int newEdgeId() {
-        Random random = new Random();
-        int newId = random.nextInt(500);
-
-        for (int i = 0; i < getEdges().size(); i++) {
-            for (int j = 0; j < getEdges().get(i).size(); j++) {
-                if (getEdges().get(i).get(j).getId() == newId) {
-                    newId = random.nextInt(500);
-                    i = 0; // Restarts the nested loop sequence until a distinct identity is verified
-                }
-            }
-        }
-
-        return newId;
-    }
-
-    /**
      * Spawns a physical Node into the system with an automated unique identity key
      * and maps an empty list inside the parallel structural adjacency edge array.
      * * @param x Horizontal spatial coordinate mapping translation offsets.
@@ -66,16 +25,7 @@ public class Graph implements Serializable {
      * @param capacity Density limitations threshold rule constraints for occupancy.
      */
     public void addNode(int x, int y, int capacity) {
-        // Node instantiation with unique id
-        int newId = newNodeId();
-        Node newNode = new Node(newId, x, y, capacity);
-
-        // Append components onto parallel matrices tracking layouts
-        getNodes().add(newNode);
-        List<Edge> emptyList = new ArrayList<>();
-        getEdges().add(emptyList); // Map out empty tracking array space
-
-        System.out.println("Node " + newId + " successfully added to Graph");
+        GraphManager.addNode(this, x, y, capacity);
     }
 
     /**
@@ -87,37 +37,7 @@ public class Graph implements Serializable {
      * @param direction Orientation rules indicator flag layer.
      */
     public void addEdge(Node source, Node target, int capacity, boolean direction) {
-        // Edge instantiation with unique id
-        int newId = newEdgeId();
-        Edge newEdge = new Edge(newId, source, target, capacity, direction);
-
-        // Assign connection footprints inside matching tracking components index maps
-        for (int i = 0; i < getNodes().size(); i++) {
-            if (getNodes().get(i).getId() == source.getId()) {
-                getEdges().get(i).add(newEdge);
-            }
-            if (direction && getNodes().get(i).getId() == target.getId()) {
-                getEdges().get(i).add(newEdge);
-            }
-        }
-
-        System.out.println("Edge " + newId + " successfully added to Graph");
-    }
-
-    /**
-     * Internal removal utility scanning nested array slots to safely prune 
-     * out matched structural pathway references.
-     * * @param edgeToRemove The target Edge element instance to destroy.
-     */
-    private void removeEdge(Edge edgeToRemove) {
-        for (List<Edge> edgeList : getEdges()) {
-            for (int j = 0; j < edgeList.size(); j++) {
-                if (edgeList.get(j).getId() == edgeToRemove.getId()) {
-                    edgeList.remove(j);
-                }
-            }
-        }
-        System.out.println("Edge " + edgeToRemove.getId() + " has been successfully removed.");
+        GraphManager.addEdge(this, source, target, capacity, direction);
     }
 
     /**
@@ -127,20 +47,15 @@ public class Graph implements Serializable {
      * @return true if the node element matches and structural changes complete; false if missing.
      */
     public boolean removeNode(Node nodeToRemove) {
-        for (int i = 0; i < getNodes().size(); i++) {
-            if (getNodes().get(i).getId() == nodeToRemove.getId()) {
-                int length = getEdges().get(i).size();
-                for (int j = 0; j < length; j++) {
-                    removeEdge(getEdges().get(i).get(0));
-                }
-                getEdges().remove(i);
-                getNodes().remove(i);
-                System.out.println("Node " + nodeToRemove.getId() + " has been successfully removed.");
-                return true;
-            }
-        }
-        System.out.println("Node not found in Graph: " + this.toString());
-        return false;
+        return GraphManager.removeNode(this, nodeToRemove);
+    }
+
+    /**
+     * Recalculates spatial geometric lengths across all tracked components path segments.
+     * Employs standard Euclidean metrics via hypotenuse evaluation checks to sync measurements.
+     */
+    public void refreshEdgeLengths() {
+        GraphManager.refreshEdgeLengths(this);
     }
 
     /**
@@ -150,19 +65,20 @@ public class Graph implements Serializable {
      */
     @Override
     public String toString() {
-        String s = new String();
-
+        StringBuilder s = new StringBuilder();
         for (int i = 0; i < getNodes().size(); i++) {
-            s += getNodes().get(i).getId() + ":";
+            s.append(getNodes().get(i).getId()).append(":");
             for (int j = 0; j < getEdges().get(i).size(); j++) {
-                s += getEdges().get(i).get(j).getId() + ",";
+                s.append(getEdges().get(i).get(j).getId()).append(",");
             }
-            s += "\r\n";
+            s.append("\r\n");
         }
-
-        return s;
+        return s.toString();
     }
 
+    // ==========================================
+    //           GETTERS & SETTERS
+    // ==========================================
     public List<Node> getNodes() { return this.Nodes; }
     public void setNodes(List<Node> nodes) { Nodes = nodes; }
     public void resetNodes() { Nodes.clear(); }
@@ -179,18 +95,5 @@ public class Graph implements Serializable {
     public void clear() {
         Edges.clear();
         Nodes.clear();
-    }
-
-    /**
-     * Recalculates spatial geometric lengths across all tracked components path segments.
-     * Employs standard Euclidean metrics via hypotenuse evaluation checks to sync measurements.
-     */
-    public void refreshEdgeLengths() {
-        for (List<Edge> edgeList : getEdges()) {
-            for (Edge edge : edgeList) {
-                edge.setLength(Math.hypot(edge.getSource().getX() - edge.getTarget().getX(),
-                        edge.getSource().getY() - edge.getTarget().getY()));
-            }
-        }
     }
 }
