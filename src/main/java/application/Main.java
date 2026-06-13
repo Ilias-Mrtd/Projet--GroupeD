@@ -227,7 +227,7 @@ public class Main extends Application {
             e.getRowValue().setEndBehavior(e.getNewValue());
         });
 
-        agentTable.getColumns().addAll(idCol, stateCol, behaviorCol, speedCol, patienceCol, algoCol, endBehaviorCol);
+        agentTable.getColumns().addAll(List.of(idCol, stateCol, behaviorCol, speedCol, patienceCol, algoCol, endBehaviorCol));
         leftPanel.getChildren().addAll(leftTitle, agentTable);
         VBox.setVgrow(agentTable, Priority.ALWAYS);
 
