@@ -17,8 +17,7 @@ public class AgentRenderer implements AgentRendering {
     /**
      * Renders the agent entity on the graphical canvas, including its selection
      * halo, projected path, and state colors.
-     * 
-     * @param gc    The active graphics context of the canvas.
+     * * @param gc    The active graphics context of the canvas.
      * @param agent The target tracking agent to draw.
      */
     @Override
@@ -106,15 +105,24 @@ public class AgentRenderer implements AgentRendering {
         gc.setFill(agentColor);
         gc.fillOval(x, y, AGENT_RADIUS, AGENT_RADIUS);
 
-        gc.setFill(Color.web("#FFFFFF"));
-        gc.fillText("A" + agent.getId(), x + 5, y + 20);
+        // ONLY display the agent ID label if the agent is selected
+        if (agent.isSelected()) {
+            String text = "A" + agent.getId();
+            
+            // Pill Badge (Semi-transparent black background)
+            gc.setFill(Color.color(0.1, 0.1, 0.1, 0.85));
+            gc.fillRoundRect(x + 10, y + 10, 45, 18, 10, 10);
+            
+            // Cyan Text
+            gc.setFill(Color.web("#00E5FF"));
+            gc.fillText(text, x + 15, y + 23);
+        }
     }
 
     /**
      * Interpolates path records to extract live coordinate dimensions mapping
      * tracking vectors.
-     * 
-     * @param agent The simulated tracking agent node entity component.
+     * * @param agent The simulated tracking agent node entity component.
      * @return A 2D point mapping layout updates on the tracking panel.
      */
     private Point2D computeAgentPosition(Agent agent) {

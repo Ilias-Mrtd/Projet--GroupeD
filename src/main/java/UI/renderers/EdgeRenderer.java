@@ -10,8 +10,7 @@ public class EdgeRenderer implements EdgeRendering {
     /**
      * Renders a single graph edge on the canvas, applying status colors,
      * traffic stress gradients, selection highlights, and directional markers.
-     * 
-     * @param gc   The active graphics context of the canvas.
+     * * @param gc   The active graphics context of the canvas.
      * @param edge The target graph edge to draw.
      */
     @Override
@@ -57,14 +56,11 @@ public class EdgeRenderer implements EdgeRendering {
         gc.strokeLine(xSource, ySource, xTarget, yTarget);
         gc.setLineWidth(1.0f);
 
-        // 5. Render descriptive identification label at edge midpoint
+        // Cache midpoint for labels and arrows
         double midX = (xSource + xTarget) / 2.0;
         double midY = (ySource + yTarget) / 2.0;
-        gc.setFill(Color.web("#161111"));
-        gc.fillText("id: " + edge.getId(), midX + 10, midY + 20);
 
-        // 6. Render directional indicator arrows where layout limits traffic
-        // orientation
+        // 5. Render directional indicator arrows where layout limits traffic orientation
         if (!edge.hasDirection()) {
             double angle = Math.atan2(yTarget - ySource, xTarget - xSource);
             double headAngle = Math.PI / 6.0;
@@ -88,6 +84,19 @@ public class EdgeRenderer implements EdgeRendering {
                     x2 - (headLength * Math.cos(angle + headAngle)),
                     y2 - (headLength * Math.sin(angle + headAngle)));
             gc.setLineWidth(1.0f);
+        }
+        
+        // 6. ONLY display the edge ID label if the edge is selected
+        if (edge.isSelected()) {
+            String text = "Edge: " + edge.getId();
+            
+            // Pill Badge (Semi-transparent black background)
+            gc.setFill(Color.color(0.1, 0.1, 0.1, 0.85));
+            gc.fillRoundRect(midX + 5, midY + 5, 65, 18, 10, 10);
+            
+            // Cyan Text
+            gc.setFill(Color.web("#00E5FF")); 
+            gc.fillText(text, midX + 10, midY + 18);
         }
     }
 }
