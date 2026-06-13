@@ -11,7 +11,8 @@ import UI.GraphCanvas;
 
 /**
  * Main application layout coordinator routing live mouse cursor inputs.
- * Distributes event routines based on the active editing mode, updates selection state,
+ * Distributes event routines based on the active editing mode, updates
+ * selection state,
  * and handles node drag and drop operations.
  */
 public class SelectionSystem {
@@ -26,27 +27,32 @@ public class SelectionSystem {
     private double dragOffsetY = 0;
 
     /** Active editing modes modifying click behavior. */
-    public enum Mode { NORMAL, LINKING_EDGE, ASSIGN_OBJECTIVE }
+    public enum Mode {
+        NORMAL, LINKING_EDGE, ASSIGN_OBJECTIVE
+    }
+
     private Mode mode = Mode.NORMAL;
     private Node linkSource = null;
     private Agent objectiveAgent = null;
 
-    @FunctionalInterface 
-    public interface EdgeLinkCallback { 
-        /** Triggered when an edge linkage sequence is completed between two endpoints. */
-        void onEdgeLink(Node source, Node target); 
+    @FunctionalInterface
+    public interface EdgeLinkCallback {
+        /**
+         * Triggered when an edge linkage sequence is completed between two endpoints.
+         */
+        void onEdgeLink(Node source, Node target);
     }
-    
-    @FunctionalInterface 
-    public interface EmptyClickCallback { 
+
+    @FunctionalInterface
+    public interface EmptyClickCallback {
         /** Triggered when the cursor clicks on empty canvas space coordinates. */
-        void onEmptyClick(double x, double y); 
+        void onEmptyClick(double x, double y);
     }
-    
-    @FunctionalInterface 
-    public interface ObjectiveCallback { 
+
+    @FunctionalInterface
+    public interface ObjectiveCallback {
         /** Triggered when a node target destination is assigned to an agent profile. */
-        void onObjectiveAssigned(Agent agent, Node target); 
+        void onObjectiveAssigned(Agent agent, Node target);
     }
 
     private EdgeLinkCallback edgeLinkCallback = null;
@@ -69,10 +75,12 @@ public class SelectionSystem {
     /**
      * Redraws the visual elements on the canvas view.
      *
-     * @param refreshEdges If true, recalculates all edge lengths based on changed node coordinates.
+     * @param refreshEdges If true, recalculates all edge lengths based on changed
+     *                     node coordinates.
      */
     private void updateView(boolean refreshEdges) {
-        if (refreshEdges) graph.refreshEdgeLengths();
+        if (refreshEdges)
+            graph.refreshEdgeLengths();
         canvas.draw();
     }
 
@@ -81,23 +89,24 @@ public class SelectionSystem {
      *
      * @param cb Callback action executable once a valid path connection finishes.
      */
-    public void startEdgeLinking(EdgeLinkCallback cb) { 
-        this.mode = Mode.LINKING_EDGE; 
-        this.linkSource = null; 
-        this.edgeLinkCallback = cb; 
-        context.clearAllSelections(); 
-        updateView(false); 
+    public void startEdgeLinking(EdgeLinkCallback cb) {
+        this.mode = Mode.LINKING_EDGE;
+        this.linkSource = null;
+        this.edgeLinkCallback = cb;
+        context.clearAllSelections();
+        updateView(false);
     }
 
     /**
      * Cancels the edge creation process and cleans temporary link references.
      */
-    public void cancelEdgeLinking() { 
-        if (linkSource != null) linkSource.setSelected(false); 
-        mode = Mode.NORMAL; 
-        linkSource = null; 
-        edgeLinkCallback = null; 
-        updateView(false); 
+    public void cancelEdgeLinking() {
+        if (linkSource != null)
+            linkSource.setSelected(false);
+        mode = Mode.NORMAL;
+        linkSource = null;
+        edgeLinkCallback = null;
+        updateView(false);
     }
 
     /**
@@ -106,26 +115,29 @@ public class SelectionSystem {
      * @param a  The selected agent node.
      * @param cb Callback executable when target designation finishes.
      */
-    public void startAssignObjective(Agent a, ObjectiveCallback cb) { 
-        if (a == null) return; 
-        this.mode = Mode.ASSIGN_OBJECTIVE; 
-        this.objectiveAgent = a; 
-        this.objectiveCallback = cb; 
-        context.selectAgent(a); 
-        updateView(false); 
+    public void startAssignObjective(Agent a, ObjectiveCallback cb) {
+        if (a == null)
+            return;
+        this.mode = Mode.ASSIGN_OBJECTIVE;
+        this.objectiveAgent = a;
+        this.objectiveCallback = cb;
+        context.selectAgent(a);
+        updateView(false);
     }
 
     /**
      * Cancels the current target selection mode and releases the agent context.
      */
-    public void cancelAssignObjective() { 
-        mode = Mode.NORMAL; 
-        objectiveAgent = null; 
-        objectiveCallback = null; 
-        updateView(false); 
+    public void cancelAssignObjective() {
+        mode = Mode.NORMAL;
+        objectiveAgent = null;
+        objectiveCallback = null;
+        updateView(false);
     }
 
-    public void setOnEmptyClick(EmptyClickCallback cb) { this.emptyClickCallback = cb; }
+    public void setOnEmptyClick(EmptyClickCallback cb) {
+        this.emptyClickCallback = cb;
+    }
 
     /**
      * Routes hardware mouse click triggers toward context-appropriate handlers.
@@ -133,15 +145,21 @@ public class SelectionSystem {
      * @param event The mouse event containing click coordinates.
      */
     public void handleMouseClick(MouseEvent event) {
+        context.clearAllSelections();
         if (event.getButton() == MouseButton.SECONDARY) {
-            if (mode == Mode.LINKING_EDGE) cancelEdgeLinking();
-            else if (mode == Mode.ASSIGN_OBJECTIVE) cancelAssignObjective();
+            if (mode == Mode.LINKING_EDGE)
+                cancelEdgeLinking();
+            else if (mode == Mode.ASSIGN_OBJECTIVE)
+                cancelAssignObjective();
             return;
         }
         Point2D worldPos = canvas.screenToWorld(event.getX(), event.getY());
-        if (mode == Mode.LINKING_EDGE) handleLinkingClick(worldPos.getX(), worldPos.getY());
-        else if (mode == Mode.ASSIGN_OBJECTIVE) handleObjectiveClick(worldPos.getX(), worldPos.getY());
-        else handleNormalClick(worldPos.getX(), worldPos.getY());
+        if (mode == Mode.LINKING_EDGE)
+            handleLinkingClick(worldPos.getX(), worldPos.getY());
+        else if (mode == Mode.ASSIGN_OBJECTIVE)
+            handleObjectiveClick(worldPos.getX(), worldPos.getY());
+        else
+            handleNormalClick(worldPos.getX(), worldPos.getY());
     }
 
     /**
@@ -150,10 +168,12 @@ public class SelectionSystem {
      * @param event Mouse press payload metrics.
      */
     public void handleMousePressed(MouseEvent event) {
-        if (event.getButton() != MouseButton.PRIMARY || mode != Mode.NORMAL) return;
+        if (event.getButton() != MouseButton.PRIMARY || mode != Mode.NORMAL)
+            return;
         Point2D wp = canvas.screenToWorld(event.getX(), event.getY());
         Node clickedNode = SpatialGeometryCalculator.findNodeAt(graph, wp.getX(), wp.getY());
-        if (clickedNode == null) return;
+        if (clickedNode == null)
+            return;
 
         if (clickedNode != context.getLastSelectedNode()) {
             context.selectNode(clickedNode);
@@ -170,7 +190,8 @@ public class SelectionSystem {
      * @param event Live tracking cursor metrics payload.
      */
     public void handleMouseDragged(MouseEvent event) {
-        if (!draggingNode || context.getLastSelectedNode() == null || mode != Mode.NORMAL) return;
+        if (!draggingNode || context.getLastSelectedNode() == null || mode != Mode.NORMAL)
+            return;
         Point2D wp = canvas.screenToWorld(event.getX(), event.getY());
         context.getLastSelectedNode().setX((float) (wp.getX() - dragOffsetX));
         context.getLastSelectedNode().setY((float) (wp.getY() - dragOffsetY));
@@ -183,20 +204,23 @@ public class SelectionSystem {
      * @param event Input termination payload.
      */
     public void handleMouseReleased(MouseEvent event) {
-        if (!draggingNode) return;
+        if (!draggingNode)
+            return;
         draggingNode = false;
         updateView(true);
     }
 
     private void handleLinkingClick(double x, double y) {
         Node clicked = SpatialGeometryCalculator.findNodeAt(graph, x, y);
-        if (clicked == null) return;
+        if (clicked == null)
+            return;
         if (linkSource == null) {
             linkSource = clicked;
             context.selectNode(clicked);
             updateView(false);
         } else {
-            if (clicked == linkSource) return;
+            if (clicked == linkSource)
+                return;
             linkSource.setSelected(false);
             mode = Mode.NORMAL;
             edgeLinkCallback.onEdgeLink(linkSource, clicked);
@@ -208,7 +232,8 @@ public class SelectionSystem {
 
     private void handleObjectiveClick(double x, double y) {
         Node clicked = SpatialGeometryCalculator.findNodeAt(graph, x, y);
-        if (clicked == null) return;
+        if (clicked == null)
+            return;
         mode = Mode.NORMAL;
         if (objectiveAgent != null && objectiveCallback != null) {
             objectiveCallback.onObjectiveAssigned(objectiveAgent, clicked);
@@ -222,31 +247,82 @@ public class SelectionSystem {
         context.clearPendingPosition();
 
         Agent a = SpatialGeometryCalculator.findAgentAt(agents, x, y);
-        if (a != null) { context.selectAgent(a); updateView(false); return; }
+        if (a != null) {
+            context.selectAgent(a);
+            updateView(false);
+            return;
+        }
 
         Node n = SpatialGeometryCalculator.findNodeAt(graph, x, y);
-        if (n != null) { context.selectNode(n); updateView(false); return; }
+        if (n != null) {
+            context.selectNode(n);
+            updateView(false);
+            return;
+        }
 
         Edge e = SpatialGeometryCalculator.findEdgeAt(graph, x, y);
-        if (e != null) { context.selectEdge(e); updateView(false); return; }
+        if (e != null) {
+            context.selectEdge(e);
+            updateView(false);
+            return;
+        }
 
         context.setPendingPosition(x, y);
-        if (emptyClickCallback != null) emptyClickCallback.onEmptyClick(x, y);
+        if (emptyClickCallback != null)
+            emptyClickCallback.onEmptyClick(x, y);
         updateView(false);
     }
 
-    public void selectAgent(Agent agent) { context.selectAgent(agent); updateView(false); }
-    public Point2D computeAgentPosition(Agent agent) { return SpatialGeometryCalculator.computeAgentPosition(agent); }
+    public void selectAgent(Agent agent) {
+        context.selectAgent(agent);
+        updateView(false);
+    }
 
-    public Mode getMode() { return mode; }
-    public Node getLastSelectedNode() { return context.getLastSelectedNode(); }
-    public Edge getLastSelectedEdge() { return context.getLastSelectedEdge(); }
-    public Agent getLastSelectedAgent() { return context.getLastSelectedAgent(); }
-    public double getPendingNodeX() { return context.getPendingNodeX(); }
-    public double getPendingNodeY() { return context.getPendingNodeY(); }
-    public boolean hasPendingPosition() { return context.hasPendingPosition(); }
-    public void clearPendingPosition() { context.clearPendingPosition(); }
-    public Graph getGraph() { return graph; }
-    public GraphCanvas getCanvas() { return canvas; }
-    public List<Agent> getAgents() { return agents; }
+    public Point2D computeAgentPosition(Agent agent) {
+        return SpatialGeometryCalculator.computeAgentPosition(agent);
+    }
+
+    public Mode getMode() {
+        return mode;
+    }
+
+    public Node getLastSelectedNode() {
+        return context.getLastSelectedNode();
+    }
+
+    public Edge getLastSelectedEdge() {
+        return context.getLastSelectedEdge();
+    }
+
+    public Agent getLastSelectedAgent() {
+        return context.getLastSelectedAgent();
+    }
+
+    public double getPendingNodeX() {
+        return context.getPendingNodeX();
+    }
+
+    public double getPendingNodeY() {
+        return context.getPendingNodeY();
+    }
+
+    public boolean hasPendingPosition() {
+        return context.hasPendingPosition();
+    }
+
+    public void clearPendingPosition() {
+        context.clearPendingPosition();
+    }
+
+    public Graph getGraph() {
+        return graph;
+    }
+
+    public GraphCanvas getCanvas() {
+        return canvas;
+    }
+
+    public List<Agent> getAgents() {
+        return agents;
+    }
 }
