@@ -11,8 +11,6 @@ import model.agents.Agent;
  * modifications (such as construction events), and a specialized priority queue system tailored 
  * for sorting and injecting behavioral agents.
  * * @author Group D
- * @version 1.0
- * @see java.io.Serializable
  */
 public class Node implements Serializable {
 

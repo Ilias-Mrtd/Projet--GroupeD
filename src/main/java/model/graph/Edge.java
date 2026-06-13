@@ -10,8 +10,6 @@ import model.agents.Agent;
  * Manages spatial attributes, traffic bottlenecks via capacity restriction thresholds, speed factors,
  * and maintains an optimized waiting queue handling priority-based agent injection.
  * * @author Group D
- * @version 1.0
- * @see java.io.Serializable
  */
 public class Edge implements Serializable {
 

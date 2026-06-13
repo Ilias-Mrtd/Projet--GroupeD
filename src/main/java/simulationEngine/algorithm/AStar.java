@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import model.graph.*;
 
-public class AStar extends Algo {
+public class AStar extends AbstractAlgorithm {
 
     private static final double TRAFFIC_PENALTY = 5000.0;
 

@@ -10,8 +10,6 @@ import java.util.Random;
  * It coordinates parallel lists of spatial nodes and their associated adjacency 
  * edge matrices, providing utilities for layout mutations and calculations.
  * * @author Group D
- * @version 1.0
- * @see java.io.Serializable
  */
 public class Graph implements Serializable {
     

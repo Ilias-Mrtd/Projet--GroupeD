@@ -8,7 +8,6 @@ import model.graph.Node;
  * Isolated structural state container maintaining historical runtime targets.
  * Holds active tracking selections and handles state transition operations
  * for elements inside the grid map context.
- * * @since 2026
  */
 public class SelectionContext {
     private Node lastSelectedNode = null;

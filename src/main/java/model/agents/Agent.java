@@ -7,15 +7,13 @@ import java.util.List;
 import model.graph.*;
 import simulationEngine.algorithm.Dijkstra;
 import simulationEngine.algorithm.AStar;
-import simulationEngine.algorithm.Algo;
+import simulationEngine.algorithm.AbstractAlgorithm;
 
 /**
  * Represents an autonomous agent within the warehouse simulation.
  * The agent manages its own state, pathfinding calculations, objective queues,
  * spatial resource reservations, and movement mechanics along the graph topology.
  * * @author Group D
- * @version 1.0
- * @see java.io.Serializable
  */
 public class Agent implements Serializable {
 
@@ -229,7 +227,7 @@ public class Agent implements Serializable {
      * Factories the specific discrete routing algorithm framework matching instructions parameters.
      * * @return An instantiated path solver implementation matching requested constraints.
      */
-    private Algo getCalculator() {
+    private AbstractAlgorithm getCalculator() {
         if (this.algoType == AlgoType.DIJKSTRA) {
             logMsg("Calculating path (Forced: Dijkstra)");
             return new Dijkstra(getGraph(), getCurrentNode(), getDestination());
@@ -256,7 +254,7 @@ public class Agent implements Serializable {
             setDestination(getObjectives().remove(0));
             setState(agentState.CALCULATING);
             if (getGraph() != null && getCurrentNode() != null) {
-                Algo calculator = getCalculator();
+                AbstractAlgorithm calculator = getCalculator();
                 if (calculator.getPath().isEmpty() && getCurrentNode().getId() != getDestination().getId()) {
                     logMsg("❌ NO PATH to node " + getDestination().getId() + "! Objective abandoned.");
                     abandonedObjectives++; startNextObjective(); return;
@@ -306,7 +304,7 @@ public class Agent implements Serializable {
             getPath().clear(); getPath().add(detour); makeReservations();
         } else {
             logMsg("No street to detour, recalculating route...");
-            Algo calculator = getCalculator();
+            AbstractAlgorithm calculator = getCalculator();
             if (calculator.getPath().isEmpty() && getCurrentNode().getId() != getDestination().getId()) {
                 logMsg("❌ Completely blocked towards node " + getDestination().getId() + ". Objective abandoned!");
                 abandonedObjectives++; startNextObjective(); return;
@@ -517,7 +515,7 @@ public class Agent implements Serializable {
                                     if (!getObjectives().isEmpty()) { startNextObjective(); } else { handleEndBehavior(); }
                                 } else {
                                     logMsg("🔄 Finished detouring. Recalculating path to objective " + getDestination().getId());
-                                    Algo calculator = getCalculator();
+                                    AbstractAlgorithm calculator = getCalculator();
                                     if (calculator.getPath().isEmpty()) {
                                         logMsg("❌ Route destroyed to node " + getDestination().getId() + ". Objective abandoned!");
                                         abandonedObjectives++; startNextObjective();

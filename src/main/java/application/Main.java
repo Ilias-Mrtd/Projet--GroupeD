@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.io.File;
 
 import model.graph.*;
-import services.FileService;
+import services.GraphStorageManager;
 import simulationEngine.engine.SimulationEngine;
 import model.agents.Agent;
 import model.agents.Agent.agentBehavior;
@@ -53,9 +53,7 @@ import controllers.SelectionSystem;
  * It coordinates the simulation engine, graph models, entity rendering,
  * layout configuration, and real-time user interactions.
  * * @author Group D
- * 
- * @version 1.0
- * @see javafx.application.Application
+ *
  */
 public class Main extends Application {
 
@@ -101,8 +99,8 @@ public class Main extends Application {
 
         // Algorithm selection configuration
         ComboBox<String> algoSelector = new ComboBox<>();
-        algoSelector.getItems().addAll("Algo: Random", "Algo: Dijkstra", "Algo: A*");
-        algoSelector.setValue("Algo: Random");
+        algoSelector.getItems().addAll("AbstractAlgorithm: Random", "AbstractAlgorithm: Dijkstra", "AbstractAlgorithm: A*");
+        algoSelector.setValue("AbstractAlgorithm: Random");
         algoSelector.setOnAction(e -> {
             if (algoSelector.getValue().contains("Dijkstra")) {
                 globalAlgo = Agent.AlgoType.DIJKSTRA;
@@ -306,14 +304,14 @@ public class Main extends Application {
 
         // I/O File System Persistence Handlers
         btnSave.setOnAction(e -> {
-            FileService.ensureSaveDirectoryExists();
+            GraphStorageManager.ensureSaveDirectoryExists();
             FileChooser fileChooser = new FileChooser();
-            fileChooser.setInitialDirectory(new File(FileService.SAVE_DIR));
+            fileChooser.setInitialDirectory(new File(GraphStorageManager.SAVE_DIR));
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Simulation Files", "*.sim"));
             File file = fileChooser.showSaveDialog(primaryStage);
             if (file != null) {
                 try {
-                    FileService.saveSimulation(file.getAbsolutePath(), graph, agents);
+                    GraphStorageManager.saveSimulation(file.getAbsolutePath(), graph, agents);
                     showAlert(AlertType.INFORMATION, "Success", "Simulation saved successfully!");
                 } catch (Exception ex) {
                     showAlert(AlertType.ERROR, "Error", "Unable to save file: " + ex.getMessage());
@@ -323,7 +321,7 @@ public class Main extends Application {
 
         menuLoad.setOnShowing(e -> {
             menuLoad.getItems().clear();
-            List<String> files = FileService.getSavedFiles();
+            List<String> files = GraphStorageManager.getSavedFiles();
             if (files.isEmpty()) {
                 MenuItem emptyItem = new MenuItem("No saves found");
                 emptyItem.setDisable(true);
@@ -495,7 +493,7 @@ public class Main extends Application {
      */
     private void loadSimulationFile(String fileName, Graph graph, List<Agent> agents, GraphCanvas graphCanvas) {
         try {
-            FileService.SimulationData data = FileService.loadSimulation(FileService.SAVE_DIR + fileName);
+            GraphStorageManager.SimulationData data = GraphStorageManager.loadSimulation(GraphStorageManager.SAVE_DIR + fileName);
             graph.resetNodes();
             graph.resetEdges();
             agents.clear();

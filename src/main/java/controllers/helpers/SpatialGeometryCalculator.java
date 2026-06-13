@@ -10,7 +10,6 @@ import java.util.List;
  * Centralizes collision vector calculations, line segment projections,
  * boundary threshold checking, and live kinematic node translations
  * without persisting mutable selection states.
- * * @since 2026
  */
 public final class SpatialGeometryCalculator {
 
