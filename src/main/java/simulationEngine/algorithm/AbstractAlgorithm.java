@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import model.graph.*;
 
-public abstract class Algo implements IPathFinder {
+public abstract class AbstractAlgorithm implements IPathFinder {
 
     private Graph graph;
     private Node currentNode;
     private Node destination;
     private List<Node> path = new ArrayList<>();
 
-    public Algo(Graph graph, Node source, Node target) {
+    public AbstractAlgorithm(Graph graph, Node source, Node target) {
         this.graph = graph;
         this.currentNode = source;
         this.destination = target;

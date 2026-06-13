@@ -6,7 +6,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FileService {
+public class GraphStorageManager {
     public static final String SAVE_DIR = "simulations/";
 
     /**
