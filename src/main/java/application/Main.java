@@ -176,7 +176,7 @@ public class Main extends Application {
 
         TableView<Agent> agentTable = new TableView<>();
         agentTable.setEditable(true);
-        agentTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        agentTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
         TableColumn<Agent, Integer> idCol = new TableColumn<>("ID");
         idCol.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getId()));
