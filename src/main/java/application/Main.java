@@ -99,7 +99,8 @@ public class Main extends Application {
 
         // Algorithm selection configuration
         ComboBox<String> algoSelector = new ComboBox<>();
-        algoSelector.getItems().addAll("AbstractAlgorithm: Random", "AbstractAlgorithm: Dijkstra", "AbstractAlgorithm: A*");
+        algoSelector.getItems().addAll("AbstractAlgorithm: Random", "AbstractAlgorithm: Dijkstra",
+                "AbstractAlgorithm: A*");
         algoSelector.setValue("AbstractAlgorithm: Random");
         algoSelector.setOnAction(e -> {
             if (algoSelector.getValue().contains("Dijkstra")) {
@@ -313,8 +314,10 @@ public class Main extends Application {
                 try {
                     GraphStorageManager.saveSimulation(file.getAbsolutePath(), graph, agents);
                     showAlert(AlertType.INFORMATION, "Success", "Simulation saved successfully!");
+                    System.out.println("Success : Simulation saved successfully!");
                 } catch (Exception ex) {
                     showAlert(AlertType.ERROR, "Error", "Unable to save file: " + ex.getMessage());
+                    System.out.println("Error : Unable to save file: " + ex.getMessage());
                 }
             }
         });
@@ -446,16 +449,35 @@ public class Main extends Application {
         });
 
         // Initialize default app data structures
-        setupSampleGraph(graph, agents, engine);
+        initializeSimulation(graph, agents, engine);
         updateAgentTable.run();
 
         Scene scene = new Scene(root, 1400, 800);
         primaryStage.setTitle("Warehouse Management System — Group D");
         primaryStage.setScene(scene);
+
+        /**
+         * Try a quicksave before the application close
+         */
+        primaryStage.setOnCloseRequest(event -> {
+            try {
+                services.GraphStorageManager.quickSave(graph, agents);
+                showAlert(AlertType.INFORMATION, "[Autosave]",
+                        "Simulation saved successfully!\n The application will close. \n THANK YOU !");
+                System.out.println(
+                        "[Autosave] : Simulation saved successfully! \n The application will close. \n THANK YOU !");
+            } catch (Exception ex) {
+                showAlert(AlertType.ERROR, "[Autosave]", "Unable to save file: " + ex.getMessage());
+                System.out.println("[Autosave] : Unable to save file: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        });
+
         primaryStage.show();
 
         graphCanvas.draw();
         engine.start();
+
     }
 
     /**
@@ -493,7 +515,8 @@ public class Main extends Application {
      */
     private void loadSimulationFile(String fileName, Graph graph, List<Agent> agents, GraphCanvas graphCanvas) {
         try {
-            GraphStorageManager.SimulationData data = GraphStorageManager.loadSimulation(GraphStorageManager.SAVE_DIR + fileName);
+            GraphStorageManager.SimulationData data = GraphStorageManager
+                    .loadSimulation(GraphStorageManager.SAVE_DIR + fileName);
             graph.resetNodes();
             graph.resetEdges();
             agents.clear();
@@ -576,16 +599,82 @@ public class Main extends Application {
     /**
      * Bootstraps standard demonstration infrastructure tracking workspace network
      * environment.
-     * Builds a default 5x4 matrix setup equipped with predefined agent pathways for
-     * initial testing.
+     * Implements the quicksave or initialise samplegraph.
      * * @param graph The target model component to construct the initial node
      * layout inside.
      * 
      * @param agents The global entities registry array receiving preliminary items.
      * @param engine The core task pipeline engine mapping runtime updates hooks.
      */
-    private void setupSampleGraph(Graph graph, List<Agent> agents, SimulationEngine engine) {
+    private void initializeSimulation(Graph graph, List<Agent> agents, SimulationEngine engine) {
+        java.io.File lastSession = new java.io.File(services.GraphStorageManager.SAVE_DIR + "autosave.sim");
+        if (lastSession.exists()) {
+            try {
+                services.GraphStorageManager.SimulationData data = services.GraphStorageManager
+                        .loadSimulation(lastSession.getAbsolutePath());
+                graph.getNodes().addAll(data.graph().getNodes());
+                graph.getEdges().addAll(data.graph().getEdges());
+                for (Agent savedAgent : data.agents()) {
+                    engine.addAgent(savedAgent);
+                }
+                System.out.println("[Autosave] succesfully loaded.");
+            } catch (Exception e) {
+                System.err.println("[Autosave] could not be loaded. \n Loading default graph");
+                setupSampleGraph(graph, agents, engine);
+            }
+        } else {
+            System.out.println("[Autosave] could not be found. \n Loading default graph");
+            setupSampleGraph(graph, agents, engine);
+        }
+    }
 
+    private void setupSampleGraph(Graph graph, List<Agent> agents, SimulationEngine engine) {
+        for (int i = 100; i < 501; i += 200) {
+            graph.addNode(50, i, 1);
+        }
+        for (int i = 100; i < 501; i += 200) {
+            graph.addNode(150, i, 1);
+        }
+        for (int i = 100; i < 501; i += 200) {
+            graph.addNode(450, i, 1);
+        }
+        for (int i = 100; i < 501; i += 200) {
+            graph.addNode(550, i, 1);
+        }
+        graph.addNode(300, 300, 1);
+        for (int i = 0; i < 7; i += 6) {
+            graph.addEdge(graph.getNodes().get(0 + i), graph.getNodes().get(1 + i), 1, true);
+            graph.addEdge(graph.getNodes().get(0 + i), graph.getNodes().get(3 + i), 1, true);
+            graph.addEdge(graph.getNodes().get(1 + i), graph.getNodes().get(2 + i), 1, true);
+            graph.addEdge(graph.getNodes().get(1 + i), graph.getNodes().get(4 + i), 1, true);
+            graph.addEdge(graph.getNodes().get(2 + i), graph.getNodes().get(5 + i), 1, true);
+            graph.addEdge(graph.getNodes().get(3 + i), graph.getNodes().get(4 + i), 1, true);
+            graph.addEdge(graph.getNodes().get(4 + i), graph.getNodes().get(5 + i), 1, true);
+        }
+        for (int i = 3; i < 8; i += 2) {
+            graph.addEdge(graph.getNodes().get(i), graph.getNodes().get(12), 1, false);
+            graph.addEdge(graph.getNodes().get(12), graph.getNodes().get(i + 1), 1, false);
+        }
+        Agent a1 = new Agent(1, 2.5f, agentState.AVAILABLE);
+        a1.setAgentBehavior(agentBehavior.VIP);
+        Agent a2 = new Agent(2, 2.5f, agentState.AVAILABLE);
+        a2.setAgentBehavior(agentBehavior.HURRIED);
+        Agent a3 = new Agent(3, 2, agentState.AVAILABLE);
+        a3.setAgentBehavior(agentBehavior.PATIENT);
+        Agent a4 = new Agent(4, 2, agentState.AVAILABLE);
+        a4.setAgentBehavior(agentBehavior.PATIENT);
+        a1.setStartingNode(graph.getNodes().get(2));
+        a2.setStartingNode(graph.getNodes().get(2));
+        a3.setStartingNode(graph.getNodes().get(2));
+        a4.setStartingNode(graph.getNodes().get(2));
+        engine.addAgent(a1);
+        engine.addAgent(a2);
+        engine.addAgent(a3);
+        engine.addAgent(a4);
+        a1.addObjective(graph.getNodes().get(9));
+        a2.addObjective(graph.getNodes().get(9));
+        a3.addObjective(graph.getNodes().get(9));
+        a4.addObjective(graph.getNodes().get(9));
     }
 
     /**
