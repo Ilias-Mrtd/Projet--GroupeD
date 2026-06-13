@@ -56,8 +56,17 @@ public class NodeRenderer implements NodeRendering {
         // 5. Render core node surface circle
         gc.fillOval(x - halfRadius, y - halfRadius, RADIUS, RADIUS);
 
-        // 6. Render high-contrast descriptive identification text label
-        gc.setFill(Color.web("#FFFFFF"));
-        gc.fillText("id: " + node.getId(), x + 15, y + 20);
+        // 6. ONLY display the ID label if the node is currently selected by the user
+        if (node.isSelected()) {
+            String text = "ID: " + node.getId();
+            
+            // Pill Badge (Semi-transparent black background)
+            gc.setFill(Color.color(0.1, 0.1, 0.1, 0.85));
+            gc.fillRoundRect(x + 15, y + 10, 50, 18, 10, 10);
+            
+            // Cyan Text
+            gc.setFill(Color.web("#00E5FF"));
+            gc.fillText(text, x + 20, y + 23);
+        }
     }
 }
